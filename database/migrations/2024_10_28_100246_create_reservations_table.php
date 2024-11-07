@@ -15,27 +15,31 @@ return new class extends Migration
     {
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
-            $table->string('prefix');
+            $table->string('prefix')->nullable();
 
             $table->unsignedBigInteger('ressource_id');
             $table->foreign('ressource_id')->references('id')->on('ressources');
 
-            $table->enum('state', ['sollicit', 'partially payed', 'confirmed', 'totally payed'])->default('sollicit');
-            $table->dateTime('date');
-            $table->unsignedInteger('amount_due');
-            $table->text('note');
-            $table->dateTime('is_gift');
+            $table->dateTime('start_date');
+            $table->dateTime('end_date');
+            $table->time('start_time');
+            $table->time('end_time');
 
-            $table->unsignedBigInteger('created_by');
+            $table->enum('state', ['sollicit', 'partially payed', 'confirmed', 'totally payed'])->default('sollicit');
+            $table->unsignedInteger('amount_due');
+            $table->text('note')->nullable();
+            $table->boolean('is_gift')->default(0);
+
+            $table->unsignedBigInteger('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('users');
 
-            $table->unsignedBigInteger('receiver_user_id');
+            $table->unsignedBigInteger('receiver_user_id')->nullable();
             $table->foreign('receiver_user_id')->references('id')->on('users');
 
-            $table->unsignedBigInteger('giver_user_id');
+            $table->unsignedBigInteger('giver_user_id')->nullable();
             $table->foreign('giver_user_id')->references('id')->on('users');
 
-            $table->text('reason_for_gift');
+            $table->text('reason_for_gift')->nullable();
             $table->timestamps();
         });
     }

@@ -13,11 +13,10 @@ class Payment extends Model
     protected $fillable = [
         'amount',
         'note',
+        'payment_method',
+        'payment_status',
+        'transaction_id',
     ];
-
-    public function payment_mode(): BelongsTo {
-        return $this->belongsTo(PaymentMode::class);
-    }
 
     public function reservation(): BelongsTo {
         return $this->belongsTo(Reservation::class);

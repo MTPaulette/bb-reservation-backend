@@ -11,6 +11,7 @@ class Coupon extends Model
     use HasFactory;
     protected $fillable = [
         'code',
+        'total_usage',
         'has_expired',
         'expired_on',
         'percent',
@@ -21,6 +22,6 @@ class Coupon extends Model
     public function users(): BelongsToMany {
         return $this->belongsToMany(User::class, 'couponUsers')
                     ->using(CouponUser::class)
-                    ->withPivot('id', 'used_on', 'created_at');
+                    ->withPivot('id', 'nb_usage', 'used_on', 'created_at');
     }
 }

@@ -1,0 +1,407 @@
+
+// App/Policies/ClientPolicy.php
+
+namespace App\Policies;
+
+use App\Models\Client;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class ClientPolicy
+{
+    use HandlesAuthorization;
+
+    public function view(User $user, Client $client)
+    {
+        return $user->hasPermission('view_client');
+    }
+
+    public function edit(User $user, Client $client)
+    {
+        return $user->hasPermission('edit_client');
+    }
+
+    public function delete(User $user, Client $client)
+    {
+        return $user->hasPermission('delete_client');
+    }
+
+    public function create_reservation(User $user, Client $client)
+    {
+        return $user->hasPermission('create_reservation');
+    }
+
+    public function view_reservations(User $user, Client $client)
+    {
+        return $user->hasPermission('view_reservations');
+    }
+
+    public function cancel_reservation(User $user, Client $client)
+    {
+        return $user->hasPermission('cancel_reservation');
+    }
+}
+
+// App/Policies/StaffPolicy.php
+
+namespace App\Policies;
+
+use App\Models\Staff;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class StaffPolicy
+{
+    use HandlesAuthorization;
+
+    public function view(User $user, Staff $staff)
+    {
+        return $user->hasPermission('view_staff');
+    }
+
+    public function edit(User $user, Staff $staff)
+    {
+        return $user->hasPermission('edit_staff');
+    }
+
+    public function delete(User $user, Staff $staff)
+    {
+        return $user->hasPermission('delete_staff');
+    }
+
+    public function manage_reservations(User $user, Staff $staff)
+    {
+        return $user->hasPermission('manage_reservations');
+    }
+
+    public function manage_resources(User $user, Staff $staff)
+    {
+        return $user->hasPermission('manage_resources');
+    }
+
+    public function manage_spaces(User $user, Staff $staff)
+    {
+        return $user->hasPermission('manage_spaces');
+    }
+
+    public function manage_agency(User $user, Staff $staff)
+    {
+        return $user->hasPermission('manage_agency');
+    }
+}
+
+// App/Policies/SuperadminPolicy.php
+
+namespace App\Policies;
+
+use App\Models\Superadmin;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class SuperadminPolicy
+{
+    use HandlesAuthorization;
+
+    public function view(User $user, Superadmin $superadmin)
+    {
+        return $user->hasPermission('view_superadmin');
+    }
+
+    public function edit(User $user, Superadmin $superadmin)
+    {
+        return $user->hasPermission('edit_superadmin');
+    }
+
+    public function delete(User $user, Superadmin $superadmin)
+    {
+        return $user->hasPermission('delete_superadmin');
+    }
+
+    public function manage_permissions(User $user, Superadmin $superadmin)
+    {
+        return $user->hasPermission('manage_permissions');
+    }
+
+    public function manage_agency(User $user, Superadmin $superadmin)
+    {
+        return $user->hasPermission('manage_agency');
+    }
+
+    public function manage_settings(User $user, Superadmin $superadmin)
+    {
+        return $user->hasPermission('manage_settings');
+    }
+}
+
+// App/Policies/CouponPolicy.php
+
+namespace App\Policies;
+
+use App\Models\Coupon;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class CouponPolicy
+{
+    use HandlesAuthorization;
+
+    public function view(User $user, Coupon $coupon)
+    {
+        return $user->hasPermission('view_coupon');
+    }
+
+    public function edit(User $user, Coupon $coupon)
+    {
+        return $user->hasPermission('edit_coupon');
+    }
+
+    public function delete(User $user, Coupon $coupon)
+    {
+        return $user->hasPermission('delete_coupon');
+    }
+
+    public function create(User $user, Coupon $coupon)
+    {
+        return $user->hasPermission('create_coupon');
+    }
+
+    public function use(User $user, Coupon $coupon)
+    {
+        return $user->hasPermission('use_coupon');
+    }
+}
+
+// App/Policies/PaymentPolicy.php
+
+namespace App\Policies;
+
+use App\Models\Payment;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class PaymentPolicy
+{
+    use HandlesAuthorization;
+
+    public function view(User $user, Payment $payment)
+    {
+        return $user->hasPermission('view_payment');
+    }
+
+    public function edit(User $user, Payment $payment)
+    {
+        return $user->hasPermission('edit_payment');
+    }
+
+    public function delete(User $user, Payment $payment)
+    {
+        return $user->hasPermission('delete_payment');
+    }
+
+    public function create(User $user, Payment $payment)
+    {
+        return $user->hasPermission('create_payment');
+    }
+}
+
+// App/Policies/ReservationPolicy.php
+
+namespace App\Policies;
+
+use App\Models\Reservation;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class ReservationPolicy
+{
+    use HandlesAuthorization;
+
+    public function view(User $user, Reservation $reservation)
+    {
+        return $user->hasPermission('view_reservation');
+    }
+
+    public function edit(User $user, Reservation $reservation)
+    {
+        return $user->hasPermission('edit_reservation');
+    }
+
+    public function delete(User $user, Reservation $reservation)
+    {
+        return $user->hasPermission('delete_reservation');
+    }
+
+    public function create(User $user, Reservation $reservation)
+    {
+        return $user->hasPermission('create_reservation');
+    }
+
+    public function cancel(User $user, Reservation $reservation)
+    {
+        return $user->hasPermission('cancel_reservation');
+    }
+}
+
+// App/Policies/RessourcePolicy.php
+
+namespace App\Policies;
+
+use App\Models\Ressource;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class RessourcePolicy
+{
+    use HandlesAuthorization;
+
+    public function view(User $user, Ressource $ressource)
+    {
+        return $user->hasPermission('view_ressource');
+    }
+
+    public function edit(User $user, Ressource $ressource)
+    {
+        return $user->hasPermission('edit_ressource');
+    }
+
+    public function delete(User $user, Ressource $ressource)
+    {
+        return $user->hasPermission('delete_ressource');
+    }
+
+    public function create(User $user, Ressource $ressource)
+    {
+        return $user->hasPermission('create_ressource');
+    }
+
+    public function manage(User $user, Ressource $ressource)
+    {
+        return $user->hasPermission('manage_ressource');
+    }
+}
+
+// App/Policies/SpacePolicy.php
+
+namespace App\Policies;
+
+use App\Models\Space;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class SpacePolicy
+{
+    use HandlesAuthorization;
+
+    public function view(User $user, Space $space)
+    {
+        return $user->hasPermission('view_space');
+    }
+
+    public function edit(User $user, Space $space)
+    {
+        return $user->hasPermission('edit_space');
+    }
+
+    public function delete(User $user, Space $space)
+    {
+        return $user->hasPermission('delete_space');
+    }
+
+    public function create(User $user, Space $space)
+    {
+        return $user->hasPermission('create_space');
+    }
+
+    public function manage(User $user, Space $space)
+    {
+        return $user->hasPermission('manage_space');
+    }
+}
+
+// App/Policies/ImagePolicy.php
+
+namespace App\Policies;
+
+use App\Models\Image;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class ImagePolicy
+{
+    use HandlesAuthorization;
+
+    public function view(User $user, Image $image)
+    {
+        return $user->hasPermission('view_image');
+    }
+
+    public function edit(User $user, Image $image)
+    {
+        return $user->hasPermission('edit_image');
+    }
+
+    public function delete(User $user, Image $image)
+    {
+        return $user->hasPermission('delete_image');
+    }
+
+    public function create(User $user, Image $image)
+    {
+        return $user->hasPermission('create_image');
+    }
+
+    public function upload(User $user, Image $image)
+    {
+        return $user->hasPermission('upload_image');
+    }
+}
+
+// App/Policies/AgencyPolicy.php
+
+namespace App\Policies;
+
+use App\Models\Agency;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class AgencyPolicy
+{
+    use HandlesAuthorization;
+
+    public function view(User $user, Agency $agency)
+    {
+        return $user->hasPermission('view_agency');
+    }
+
+    public function edit(User $user, Agency $agency)
+    {
+        return $user->hasPermission('edit_agency');
+    }
+
+    public function delete(User $user, Agency $agency)
+    {
+        return $user->hasPermission('delete_agency');
+    }
+
+    public function create(User $user, Agency $agency)
+    {
+        return $user->hasPermission('create_agency');
+    }
+
+    public function manage(User $user, Agency $agency)
+    {
+        return $user->hasPermission('manage_agency');
+    }
+}
+
+// App/Policies/OpeningDayPolicy.php
+
+namespace App\Policies;
+
+use App\Models\OpeningDay;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class OpeningDayPolicy
+{
+    use HandlesAuthorization;
+
+    public function view(User $user, OpeningDay $openingDay)
+    {
+        return $user->hasPermission('view_opening_day');
+    }
+
+    public function edit(User $user, OpeningDay $openingDay)
+    {
+        return $user->hasPermission('edit_opening_day');
+    }
+}

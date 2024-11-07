@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class ValidityController extends Controller
+class OptionController extends Controller
 {
     //
 }

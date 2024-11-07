@@ -10,6 +10,7 @@ class CouponUser extends Pivot
 {
     use HasFactory;
     protected $fillable = [
+        'nb_usage',
         'used_on',
     ];
 

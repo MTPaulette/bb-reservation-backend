@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->integer('nb_place')->default(1);
+            $table->unsignedInteger('nb_place')->default(1);
             $table->timestamps();
         });
     }

@@ -12,9 +12,12 @@ class Ressource extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'price',
-        'credit',
-        'debit',
+        'quantity',
+        'price_hour',
+        'price_midday',
+        'price_day',
+        'price_week',
+        'price_month',
     ];
 
     public function agency(): BelongsTo {
@@ -27,10 +30,6 @@ class Ressource extends Model
 
     public function created_by(): BelongsTo {
         return $this->belongsTo(User::class);
-    }
-
-    public function validity(): BelongsTo {
-        return $this->belongsTo(Validity::class);
     }
 
     public function characteristics(): BelongsToMany {

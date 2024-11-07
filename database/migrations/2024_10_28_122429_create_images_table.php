@@ -15,9 +15,9 @@ return new class extends Migration
     {
         Schema::create('images', function (Blueprint $table) {
             $table->id();
-            $table->string('src')->nullable();
+            $table->string('src');
 
-            $table->unsignedBigInteger('space_id');
+            $table->unsignedBigInteger('space_id')->nullable();
             $table->foreign('space_id')->references('id')->on('spaces');
             $table->timestamps();
         });

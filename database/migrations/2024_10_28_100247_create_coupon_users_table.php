@@ -22,10 +22,11 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users');
 
-            $table->unsignedBigInteger('payment_id')->nullable();
+            $table->unsignedBigInteger('payment_id');
             $table->foreign('payment_id')->references('id')->on('payments');
 
-            $table->dateTime('used_on');
+            $table->unsignedInteger('nb_usage')->default(1);
+            $table->dateTime('used_on')->nullable();
             $table->timestamps();
         });
     }

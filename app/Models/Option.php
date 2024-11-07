@@ -4,16 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Validity extends Model
+class Option extends Model
 {
     use HasFactory;
     protected $fillable = [
         'name',
+        'value',
     ];
-
-    public function ressources(): HasMany {
-        return $this->hasMany(Ressource::class);
-    }
 }

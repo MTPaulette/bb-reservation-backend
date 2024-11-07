@@ -12,8 +12,11 @@ class Reservation extends Model
     use HasFactory;
     protected $fillable = [
         'prefix',
+        'start_date',
+        'end_date',
+        'start_time',
+        'end_time',
         'state',
-        'date',
         'amount_due',
         'note',
         'is_gift',
