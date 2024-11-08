@@ -210,6 +210,7 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'ExampleClass' => App\Example\ExampleClass::class,
+        // return \Options::getValue('logo');
 	    'LogActivity' => \App\Helpers\LogActivity::class,
 	    'Options' => \App\Helpers\Option::class,
     ])->toArray(),

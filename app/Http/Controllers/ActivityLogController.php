@@ -15,7 +15,6 @@ class ActivityLogController extends Controller
      */
     public function index(Request $request)
     {
-        return \Options::getValue('logo');
         if(!$request->user()->hasPermission('view_logactivity')) {
             abort(403);
         }

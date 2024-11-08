@@ -384,24 +384,24 @@ class AgencyPolicy
     }
 }
 
-// App/Policies/OpeningDayPolicy.php
+// App/Policies/OpeningdayPolicy.php
 
 namespace App\Policies;
 
-use App\Models\OpeningDay;
+use App\Models\Openingday;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class OpeningDayPolicy
+class OpeningdayPolicy
 {
     use HandlesAuthorization;
 
-    public function view(User $user, OpeningDay $openingDay)
+    public function view(User $user, Openingday $openingday)
     {
-        return $user->hasPermission('view_opening_day');
+        return $user->hasPermission('view_openingday');
     }
 
-    public function edit(User $user, OpeningDay $openingDay)
+    public function edit(User $user, Openingday $openingday)
     {
-        return $user->hasPermission('edit_opening_day');
+        return $user->hasPermission('edit_openingday');
     }
 }

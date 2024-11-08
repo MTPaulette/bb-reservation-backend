@@ -38,11 +38,11 @@ class DatabaseSeeder extends Seeder
             ]);
         }
         
-        /* OpeningDay */
-        $openingDays = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-        foreach ($openingDays as $openingDay) {
-            \App\Models\OpeningDay::factory()->create([
-                'name' => $openingDay
+        /* Openingday */
+        $openingdays = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+        foreach ($openingdays as $openingday) {
+            \App\Models\Openingday::factory()->create([
+                'name' => $openingday
             ]);
         }
 

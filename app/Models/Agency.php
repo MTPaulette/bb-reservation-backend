@@ -20,9 +20,9 @@ class Agency extends Model
         'reason_for_suspension',
     ];
 
-    public function openingDays(): BelongsToMany {
-        return $this->belongsToMany(OpeningDay::class, 'agencyOpeningDays')
-                    ->using(AgencyOpeningDay::class)
+    public function openingdays(): BelongsToMany {
+        return $this->belongsToMany(Openingday::class, 'agencyOpeningdays')
+                    ->using(AgencyOpeningday::class)
                     ->withPivot('id', 'from' , 'to', 'created_at');
     }
 

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 
-class OpeningDay extends Model
+class Openingday extends Model
 {
     use HasFactory;
     protected $fillable = [
@@ -15,8 +15,8 @@ class OpeningDay extends Model
     ];
 
     public function agencies(): BelongsToMany {
-        return $this->belongsToMany(Agency::class, 'agencyOpeningDays')
-                    ->using(AgencyOpeningDay::class)
+        return $this->belongsToMany(Agency::class, 'agencyOpeningdays')
+                    ->using(AgencyOpeningday::class)
                     ->withPivot('id', 'from' , 'to', 'created_at');
     }
 }

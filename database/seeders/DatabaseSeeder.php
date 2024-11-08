@@ -30,11 +30,11 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        /* OpeningDay */
-        $openingDays = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-        foreach ($openingDays as $openingDay) {
-            \App\Models\OpeningDay::factory()->create([
-                'name' => $openingDay
+        /* Openingday */
+        $openingdays = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+        foreach ($openingdays as $openingday) {
+            \App\Models\Openingday::factory()->create([
+                'name' => $openingday
             ]);
         }
 
@@ -139,6 +139,10 @@ class DatabaseSeeder extends Seeder
         /* Permission */
 
         $permissions = [
+            //Agency
+            ['name'=>"manage_agency", 'description'=>"Gérer son agence"],
+            ['name'=>"manage_all_agencies", 'description'=>"Gérer toutes les agences"],
+
             //Option & permission
             ['name'=>"manage_option", 'description'=>"Gérer les options"],
             ['name'=>"manage_permissions", 'description'=>"Gérer les permissions et les roles dans le systeme"],
@@ -171,7 +175,6 @@ class DatabaseSeeder extends Seeder
             ['name'=>"manage_reservations", 'description'=>"Gérer les réservations"],
             ['name'=>"manage_resources", 'description'=>"Gérer les ressources"],
             ['name'=>"manage_spaces", 'description'=>"Gérer les espaces"],
-            ['name'=>"manage_agency", 'description'=>"Gérer l'agence"],
             //Superadmin
             ['name'=>"show_all_superadmin", 'description'=>"Lister tous les superadmin"],
             ['name'=>"view_superadmin", 'description'=>"Afficher les informations de tous les superadmin"],
@@ -181,14 +184,6 @@ class DatabaseSeeder extends Seeder
             ['name'=>"suspend_staff", 'description'=>"Suspendre un membre du personnel admin/superadmin"],
             ['name'=>"cancel_staff_suspension", 'description'=>"Annuler la suspension d'un membre du personnel admin/superadmin"],
 
-            ['name'=>"manage_agency", 'description'=>"Gérer l'agence"],
-            //Agency
-            ['name'=>"show_all_agency", 'description'=>"Lister toutes les agences"],
-            ['name'=>"view_agency", 'description'=>"Afficher les informations de l'agence"],
-            ['name'=>"edit_agency", 'description'=>"Modifier les informations de l'agence"],
-            ['name'=>"delete_agency", 'description'=>"Supprimer l'agence"],
-            ['name'=>"create_agency", 'description'=>"Créer une nouvelle agence"],
-            ['name'=>"manage_agency", 'description'=>"Gérer l'agence"],
             //Coupon
             ['name'=>"show_all_coupon", 'description'=>"Lister tous les coupons de reduction"],
             ['name'=>"view_coupon", 'description'=>"Afficher les informations du coupon"],
@@ -240,12 +235,7 @@ class DatabaseSeeder extends Seeder
             ['name'=>"edit_image", 'description'=>"Modifier l'image"],
             ['name'=>"delete_image", 'description'=>"Supprimer l'image"],
             ['name'=>"create_image", 'description'=>"Créer une nouvelle image"],
-            ['name'=>"upload_image", 'description'=>"Télécharger l'image"],
-            //Opening_day
-            ['name'=>"view_opening_day", 'description'=>"Afficher les informations du jour d'ouverture dans toutes les agences"],
-            ['name'=>"view_opening_day", 'description'=>"Afficher les informations du jour d'ouverture de son agence"],
-            ['name'=>"manage_opening_day", 'description'=>"Gérer le jour d'ouverture dans toutes les agences"],
-            ['name'=>"manage_opening_day_of_agency", 'description'=>"Gérer le jour d'ouverture de son agence"],
+            ['name'=>"upload_image", 'description'=>"Télécharger l'image"]
         ];
 
         $i = 1;

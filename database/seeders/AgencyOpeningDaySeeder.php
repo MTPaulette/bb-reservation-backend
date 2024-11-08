@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class AgencyOpeningDaySeeder extends Seeder
+class AgencyOpeningdaySeeder extends Seeder
 {
     /**
      * Run the database seeds.

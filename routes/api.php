@@ -7,6 +7,7 @@ use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\UserAccountController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\AgencyController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
@@ -56,8 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     /* role */
     Route::get('/roles', [RoleController::class, 'index']);
     Route::get('/role/{id}', [RoleController::class, 'show']);
-    Route::get('/role/{id}/permissions', [RoleController::class, 'permissions']);
-    Route::put('/role/{id}/permissions/update', [RoleController::class, 'update_permissions']);
+    Route::put('/role/{id}/update', [RoleController::class, 'update']);
 
     /* permission */
     Route::get('/permissions', [PermissionController::class, 'index']);
@@ -65,6 +65,13 @@ Route::middleware('auth:sanctum')->group(function () {
     /* option */
     Route::get('/options', [OptionController::class, 'index']);
     Route::post('/option/store', [OptionController::class, 'store']);
+
+    /* agency routes */
+    Route::get("/agencies",[AgencyController::class, "index"]);
+    Route::get("/agency/{id}",[AgencyController::class, "show"]);
+    Route::post("/agency/store",[AgencyController::class, "store"]);
+    Route::put("/agency/{id}/update",[AgencyController::class, "update"]);
+    Route::put('/agency/{id}/delete', [AgencyController::class, 'destroy']);
 
 });
 

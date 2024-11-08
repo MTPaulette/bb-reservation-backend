@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('opening_days', function (Blueprint $table) {
+        Schema::create('openingdays', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->timestamps();
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('opening_days');
+        Schema::dropIfExists('openingdays');
     }
 };

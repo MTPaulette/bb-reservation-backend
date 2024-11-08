@@ -13,14 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('agency_opening_days', function (Blueprint $table) {
+        Schema::create('agencyOpeningdays', function (Blueprint $table) {
             $table->id();
 
             $table->unsignedBigInteger('agency_id')->onDelete('cascade');
             $table->foreign('agency_id')->references('id')->on('agencies');
 
-            $table->unsignedBigInteger('openingDay_id')->onDelete('cascade');
-            $table->foreign('openingDay_id')->references('id')->on('opening_days');
+            $table->unsignedBigInteger('openingday_id')->onDelete('cascade');
+            $table->foreign('openingday_id')->references('id')->on('openingdays');
 
             $table->dateTime('from');
             $table->dateTime('to');
@@ -35,6 +35,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('agency_opening_days');
+        Schema::dropIfExists('agencyOpeningdays');
     }
 };

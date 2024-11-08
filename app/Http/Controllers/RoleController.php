@@ -23,10 +23,14 @@ class RoleController extends Controller
         if(!$request->user()->hasPermission('manage_permissions')) {
             abort(403);
         }
-        $role = Role::findOrFail($request->id);
+        $role = Role::where('id', $request->id)->orderBy('name')->with('permissions')->get();
+        if(sizeof($role) == 0){
+            abort(404);
+        }
         return response()->json($role, 201);
     }
 
+    /*
     public function permissions(Request $request)
     {
         if(!$request->user()->hasPermission('manage_permissions')) {
@@ -41,9 +45,9 @@ class RoleController extends Controller
 
         $permissions = $query->where('role_id', $role->id)->get();
         return response()->json($permissions, 201);
-    }
+    } */
 
-    public function update_permissions(Request $request)
+    public function update(Request $request)
     {
         if(!$request->user()->hasPermission('manage_permissions')) {
             abort(403);
