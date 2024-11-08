@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Activity_log;
+use App\Models\Agency;
 use App\Models\Reservation;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -10,12 +13,6 @@ use Illuminate\Support\Facades\Validator;
 
 class StaffController extends Controller
 {
-    /*
-    public function __construct()
-    {
-        $this->authorizeResource(User::class, 'user');
-    }
-
     /**
      * Display a listing of the resource.
      *
@@ -23,11 +20,33 @@ class StaffController extends Controller
      */
     public function index(Request $request)
     {
-        if(!$request->user()->hasPermission('show_all_client')) {
+        $user = $request->user();
+        if(
+            !$user->hasPermission('show_all_admin') && 
+            !$user->hasPermission('show_all_admin_of_agency') &&
+            !$user->hasPermission('show_all_superadmin')
+        ) {
             abort(403);
         }
-        $all_clients = User::withRole()->get()->where('role_id', 2);
-        return response()->json($all_clients, 201);
+
+        $filters = $request->only([
+            'agency', 'role',
+        ]);
+
+        if($user->hasPermission('show_all_superadmin')) {
+            $all_staffs = User::withAgencyAndRole()->filter($filters)->get();
+            return response()->json($all_staffs, 201);
+        }
+
+        if($user->hasPermission('show_all_admin')) {
+            $all_staffs = User::withAgencyAndRole()->where('role', 'admin')->filter($filters)->get();
+            return response()->json($all_staffs, 201);
+        }
+
+        if($user->hasPermission('show_all_admin_of_agency')) {
+            $all_staffs = User::withAgencyAndRole()->get()->where('role', 'admin')->where('work_at', $user->work_at);
+            return response()->json($all_staffs, 201);
+        }
     }
     
     /**
@@ -36,15 +55,43 @@ class StaffController extends Controller
      * @param  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request, User $user)
+    public function show(Request $request)
     {
         $authUser = $request->user();
-        if( $authUser->hasPermission('view_client') || $user->id == $authUser->id ){
-            // $user = User::withRole()->get()->findOrFail($request->id);
-            return response()->json($user, 201);
+        // return $authUser;
+        if(
+            $authUser->hasPermission('view_admin') ||
+            $authUser->hasPermission('view_admin_of_agency') ||
+            $authUser->hasPermission('view_superadmin')
+        ) {
+
+            if( $authUser->hasPermission('view_superadmin')){
+                $user = User::withRole()->findOrFail($request->id);
+                if($user->role == 'superadmin') {
+                    $user = User::withAgencyAndRole()->get()->where('id', $request->id);
+                    return response()->json($user, 201);
+                }
+            }
+
+            if( $authUser->hasPermission('view_admin')){
+                $user = User::withRole()->findOrFail($request->id);
+                if($user->role == 'admin' && $user->work_at == $user->work_at) {
+                    $user = User::withAgencyAndRole()->get()->where('id', $request->id);
+                    return response()->json($user, 201);
+                }
+            }
+
+            if( $authUser->hasPermission('view_admin_of_agency')){
+                $user = User::withRole()->findOrFail($request->id);
+                if($user->role == 'admin' && $authUser->work_at == $user->work_at) {
+                    $user = User::withAgencyAndRole()->get()->where('id', $request->id);
+                    return response()->json($user, 201);
+                }
+            }
         }
         abort(403);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -54,7 +101,10 @@ class StaffController extends Controller
      */
     public function store(Request $request)
     {
-        if(!$request->user()->hasPermission('create_client')) {
+        if(
+            !$request->user()->hasPermission('create_superadmin') &&
+            !$request->user()->hasPermission('create_admin')
+        ) {
             abort(403);
         }
         $validator = Validator::make($request->all(),[
@@ -66,7 +116,7 @@ class StaffController extends Controller
         ]);
 
         if($validator->fails()){
-            \LogActivity::addToLog("User creation failed. ".$validator->errors());
+            \LogActivity::addToLog("Admin/superadmin creation failed. ".$validator->errors());
             return response([
                 'errors' => $validator->errors(),
             ], 500);
@@ -75,20 +125,42 @@ class StaffController extends Controller
         $user = User::create($validator->validated());
 
         $user = User::where('email', $request->email)->first();
+        $agency = Agency::findOrFail($request->agency_id);
+        $role = Role::findOrFail($request->role_id);
 
-        if($request->has('role_id')) {
-            $user->role_id = $request->role_id;
-        } else {
-            $user->role_id = 2; //2 for role client
+        $usertype = '';
+        if($request->user()->hasPermission('create_admin')) {
+            if($request->user()->hasPermission('create_superadmin')) {
+                $user->role_id = $role->id ? $role->id : 1;
+                $user->work_at = $agency->id ? $agency->id : 1;
+                $usertype = $role->id == 1 ? 'admin' : 'superadmin';
+            } else {
+                $user->role_id = 1;
+                $user->work_at = $agency->id ? $agency->id : 1;
+                $usertype = 'admin';
+            }
+        }
+
+
+        if($request->user()->hasPermission('create_superadmin')) {
+            if($request->user()->hasPermission('create_admin')) {
+                $user->role_id = $role->id ? $role->id : 1;
+                $user->work_at = $agency->id ? $agency->id : 1;
+                $usertype = $role->id == 1 ? 'admin' : 'superadmin';
+            } else {
+                $user->role_id = 3;
+                $user->work_at = $agency->id ? $agency->id : 1;
+                $usertype = 'superadmin';
+            }
         }
 
         $user->created_by = $request->user()->id;
         $user->save();
         $response = [
-            'message' => "The user $user->firstname account successfully created",
+            'message' => "The $usertype $user->firstname account successfully created",
         ];
 
-        \LogActivity::addToLog("New user created.<br/> User name: $user->lastname $user->firstname");
+        \LogActivity::addToLog("New $usertype created.<br/> $usertype name: $user->lastname $user->firstname");
 
         return response($response, 201);
     }
@@ -101,37 +173,43 @@ class StaffController extends Controller
      */
     public function update(Request $request)
     {
-        if(!$request->user()->hasPermission('edit_client')) {
-            abort(403);
-        }
+        $authUser = $request->user();
+        if(
+            $authUser->hasPermission('edit_admin') ||
+            $authUser->hasPermission('edit_superadmin')
+        ) {
+            $user = User::withRole()->findOrFail($request->id);
+            if( $authUser->hasPermission('edit_admin')){
+                if($user->role == 'admin') {
+                    if($request->has('agency_id') && isset($request->agency_id)) {
+                        $agency = Agency::findOrFail($request->agency_id);
+                        $user->work_at = $agency->id;
+                    }
+                    /*
+                    if($request->has('role_id') && isset($request->role_id)) {
+                        $role = Role::findOrFail($request->role_id);
+                        $user->role_id = $role->id;
+                    }*/
+                }
+            }
+            if( $authUser->hasPermission('edit_superadmin')){
+                if($user->role == 'superadmin') {
+                    if($request->has('agency_id') && isset($request->agency_id)) {
+                        $agency = Agency::findOrFail($request->agency_id);
+                        $user->work_at = $agency->id;
+                    }
+                    if($request->has('role_id') && isset($request->role_id)) {
+                        $role = Role::findOrFail($request->role_id);
+                        $user->role_id = $role->id;
+                    }
+                }
+            }
 
-        $validator = Validator::make($request->all(),[
-            'lastname' => 'string|max:50',
-            'firstname' => 'string|max:50',
-            'phonenumber' => 'string|min:9',
-        ]);
-
-        if($validator->fails()){
-            \LogActivity::addToLog("Fail to update user's informations. ".$validator->errors());
-            return response([
-                'errors' => $validator->errors(),
-            ], 500);
+            $user->update();
+            \LogActivity::addToLog("The $user->role $user->lastname $user->firstname has been updated.");
+            return response($user, 201);
         }
-        $user = User::withRole()->findOrFail($request->id);
-
-        if($request->has('lastname') && isset($request->lastname)) {
-            $user->lastname = $request->lastname;
-        }
-        if($request->has('firstname') && isset($request->firstname)) {
-            $user->firstname = $request->firstname;
-        }
-        if($request->has('phonenumber') && isset($request->phonenumber)) {
-            $user->phonenumber = $request->phonenumber;
-        }
-
-        $user->update();
-        \LogActivity::addToLog("The user $user->lastname $user->firstname has been updated.");
-        return response($user, 201);
+        abort(403);
     }
 
     /**
@@ -142,41 +220,80 @@ class StaffController extends Controller
      */
     public function destroy(Request $request)
     {
-        if(!$request->user()->hasPermission('delete_client')) {
-            abort(403);
+        if(
+            $request->user()->hasPermission('delete_admin') ||
+            $request->user()->hasPermission('delete_superadmin')
+        ) {
+            $authUser = $request->user();
+            $user = User::withRole()->findOrFail($request->id);
+            if($user->role == 'admin') {
+                if (! Hash::check($request->password, $authUser->password)) {
+                    $response = [
+                        'password' => 'Wrong password.'
+                    ];
+                    \LogActivity::addToLog("Fail to delete $user->role $user->lastname $user->firstname. error: Wrong password");
+                    return response($response, 422);
+                }
+
+                // check if the user has already been make reservation
+                $reservations = Reservation::where('created_by', $request->id)
+                                    ->orWhere('receiver_user_id', $request->id)
+                                    ->orWhere('giver_user_id', $request->id)
+                                    ->exists();
+
+                $logs = Activity_log::where('user_id', $request->id)->exists();
+
+                if($reservations || $logs) {
+                    $response = [
+                        'error' => "The $user->role $user->lastname $user->firstname has already been maked reservation. You can not delete it",
+                    ];
+                    \LogActivity::addToLog("Fail to delete $user->role $user->lastname $user->firstname. error: He has maked reservation.");
+                    return response($response, 422);
+                } else {
+                    $user->delete();
+                    $response = [
+                        'message' => "The $user->role $user->lastname $user->firstname successfully deleted",
+                    ];
+
+                    \LogActivity::addToLog("The $user->role  $user->lastname $user->firstname deleted");
+                    return response($response, 201);
+                }
+            }
         }
-
-        $authUser = $request->user();
-        $user = User::findOrFail($request->id);
-
-        if (! Hash::check($request->password, $authUser->password)) {
-            $response = [
-                'password' => 'Wrong password.'
-            ];
-            \LogActivity::addToLog("Fail to delete user $user->lastname $user->firstname. error: Wrong password");
-            return response($response, 422);
-        }
-
-        // check if the user has already been make reservation
-        $reservations = Reservation::where('created_by', $request->id)
-                            ->orWhere('receiver_user_id', $request->id)
-                            ->orWhere('giver_user_id', $request->id)
-                            ->exists();
-
-        if($reservations) {
-            $response = [
-                'error' => "The user $user->lastname $user->firstname has already been maked reservation. You can not delete it",
-            ];
-            \LogActivity::addToLog("Fail to delete user $user->lastname $user->firstname. error: He has maked reservation.");
-            return response($response, 422);
-        } else {
-            $user->delete();
-            $response = [
-                'message' => "User $user->lastname $user->firstname successfully deleted",
-            ];
-
-            \LogActivity::addToLog("User  $user->lastname $user->firstname deleted");
-            return response($response, 201);
-        }
+        abort(403);
     }
+
+    public function suspend(Request $request)
+    {
+        $authUser = $request->user();
+        if($authUser->hasPermission('suspend_staff')) {
+            $user = User::withRole()->findOrFail($request->id);
+            if (! Hash::check($request->password, $authUser->password)) {
+                $response = [
+                    'password' => 'Wrong password.'
+                ];
+                \LogActivity::addToLog("Fail to delete $user->role $user->lastname $user->firstname. error: Wrong password");
+                return response($response, 422);
+            }
+            if($user->role == 'superadmin' || $user->role == 'admin') {
+                if($request->cancel_suspension){
+                    $user->is_suspended = 0;
+                    $response = [
+                        'message' => "The $user->role $user->lastname $user->firstname's suspension is stopped",
+                    ];
+                } else {
+                    $user->is_suspended = 1;
+                    $response = [
+                        'message' => "The $user->role $user->lastname $user->firstname successfully suspended",
+                    ];
+                }
+                $user->save();
+
+                \LogActivity::addToLog("The $user->role  $user->lastname $user->firstname suspended");
+                return response($response, 201);
+            }
+        }
+        abort(403);
+    }
+
 }

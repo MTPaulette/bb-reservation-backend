@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         /* role */
-        $roles = ['administrateur', 'client', 'superadmin'];
+        $roles = ['admin', 'client', 'superadmin'];
         foreach ($roles as $role) {
             \App\Models\Role::factory()->create([
                 'name' => $role
@@ -50,7 +50,7 @@ class DatabaseSeeder extends Seeder
             'lastname' => 'Mayogue',
             'firstname' => 'Yahoo EE',
             'email' => 'mayogue@yahoo.com',
-            'role_id' => 2,
+            'role_id' => 1,
             'work_at' => 1,
         ]);
 
@@ -62,6 +62,13 @@ class DatabaseSeeder extends Seeder
             'work_at' => 2,
         ]);
 
+
+        \App\Models\User::factory()->create([
+            'lastname' => 'test',
+            'firstname' => 'client',
+            'email' => 'client@test.fr',
+            'role_id' => 2
+        ]);
         /* characteristic */
         $characteristics = ['cafe ou the', 'video-projecteur', 'imprimante', 'climatisation', 'internet'];
         foreach ($characteristics as $characteristic) {
@@ -132,6 +139,16 @@ class DatabaseSeeder extends Seeder
         /* Permission */
 
         $permissions = [
+            //Option & permission
+            ['name'=>"manage_option", 'description'=>"Gérer les options"],
+            ['name'=>"manage_permissions", 'description'=>"Gérer les permissions et les roles dans le systeme"],
+            ['name'=>"manage_settings", 'description'=>"Gérer les paramètres de l'application"],
+
+            //Logactivity
+            ['name'=>"view_logactivity", 'description'=>"Afficher toutes les logs d'activité"],
+            ['name'=>"delete_logactivity", 'description'=>"Supprimer les logs d'activité"],
+            // ['name'=>"view_logactivity_of_agency", 'description'=>"Afficher les logs d'activité de son agence"],
+            
             //Client
             ['name'=>"show_all_client", 'description'=>"Lister tous les clients"],
             ['name'=>"view_client", 'description'=>"Afficher les informations du client"],
@@ -142,14 +159,14 @@ class DatabaseSeeder extends Seeder
             ['name'=>"create_reservation", 'description'=>"Créer une réservation pour le client"],
             ['name'=>"view_reservations", 'description'=>"Afficher les réservations du client"],
             ['name'=>"cancel_reservation", 'description'=>"Annuler une réservation du client"],
-            //Staff
-            ['name'=>"show_all_staff", 'description'=>"Lister tout le personnel"],
-            ['name'=>"show_all_staff_of_agency", 'description'=>"Lister tout le personnel de son agence"],
-            ['name'=>"view_staff", 'description'=>"Afficher les informations du staff"],
-            ['name'=>"view_staff_of_agency", 'description'=>"Afficher les informations du staff de son agence"],
-            ['name'=>"create_staff", 'description'=>"Creer un nouveau membre du staff"],
-            ['name'=>"edit_staff", 'description'=>"Modifier les informations du staff"],
-            ['name'=>"delete_staff", 'description'=>"Supprimer le staff"],
+            //Admin
+            ['name'=>"show_all_admin", 'description'=>"Lister tout le personnel"],
+            ['name'=>"show_all_admin_of_agency", 'description'=>"Lister tout le personnel de son agence"],
+            ['name'=>"view_admin", 'description'=>"Afficher les informations de l'admin"],
+            ['name'=>"view_admin_of_agency", 'description'=>"Afficher les informations de l'admin de son agence"],
+            ['name'=>"create_admin", 'description'=>"Creer un nouveau membre de l'admin"],
+            ['name'=>"edit_admin", 'description'=>"Modifier les informations de l'admin"],
+            ['name'=>"delete_admin", 'description'=>"Supprimer un admin"],
             
             ['name'=>"manage_reservations", 'description'=>"Gérer les réservations"],
             ['name'=>"manage_resources", 'description'=>"Gérer les ressources"],
@@ -160,18 +177,18 @@ class DatabaseSeeder extends Seeder
             ['name'=>"view_superadmin", 'description'=>"Afficher les informations de tous les superadmin"],
             ['name'=>"create_superadmin", 'description'=>"Creer un nouveau superadmin"],
             ['name'=>"edit_superadmin", 'description'=>"Modifier les informations de tous les superadmin"],
+            ['name'=>"delete_superadmin", 'description'=>"Supprimer un superadmin"],
+            ['name'=>"suspend_staff", 'description'=>"Suspendre un membre du personnel admin/superadmin"],
+            ['name'=>"cancel_staff_suspension", 'description'=>"Annuler la suspension d'un membre du personnel admin/superadmin"],
 
-            ['name'=>"delete_superadmin", 'description'=>"Supprimer tous les superadmin"],
-            ['name'=>"manage_permissions", 'description'=>"Gérer les permissions de tous les superadmin"],
             ['name'=>"manage_agency", 'description'=>"Gérer l'agence"],
-            ['name'=>"manage_settings", 'description'=>"Gérer les paramètres de l'application"],
             //Agency
             ['name'=>"show_all_agency", 'description'=>"Lister toutes les agences"],
-            ['name'=>"view agency", 'description'=>"Afficher les informations de l'agence"],
-            ['name'=>"edit agency", 'description'=>"Modifier les informations de l'agence"],
-            ['name'=>"delete agency", 'description'=>"Supprimer l'agence"],
-            ['name'=>"create agency", 'description'=>"Créer une nouvelle agence"],
-            ['name'=>"manage agency", 'description'=>"Gérer l'agence"],
+            ['name'=>"view_agency", 'description'=>"Afficher les informations de l'agence"],
+            ['name'=>"edit_agency", 'description'=>"Modifier les informations de l'agence"],
+            ['name'=>"delete_agency", 'description'=>"Supprimer l'agence"],
+            ['name'=>"create_agency", 'description'=>"Créer une nouvelle agence"],
+            ['name'=>"manage_agency", 'description'=>"Gérer l'agence"],
             //Coupon
             ['name'=>"show_all_coupon", 'description'=>"Lister tous les coupons de reduction"],
             ['name'=>"view_coupon", 'description'=>"Afficher les informations du coupon"],
@@ -213,27 +230,22 @@ class DatabaseSeeder extends Seeder
             ['name'=>"create_ressource_of_agency", 'description'=>"Créer une nouvelle ressource dans son agence"],
             ['name'=>"manage_ressource", 'description'=>"Gérer la ressource"],
             //Space
-            ['name'=>"view space", 'description'=>"Afficher les informations de l'espace"],
-            ['name'=>"edit space", 'description'=>"Modifier les informations de l'espace"],
-            ['name'=>"delete space", 'description'=>"Supprimer l'espace"],
-            ['name'=>"create space", 'description'=>"Créer un nouvel espace"],
-            ['name'=>"manage space", 'description'=>"Gérer l'espace"],
+            ['name'=>"view_space", 'description'=>"Afficher les informations de l'espace"],
+            ['name'=>"edit_space", 'description'=>"Modifier les informations de l'espace"],
+            ['name'=>"delete_space", 'description'=>"Supprimer l'espace"],
+            ['name'=>"create_space", 'description'=>"Créer un nouvel espace"],
+            ['name'=>"manage_space", 'description'=>"Gérer l'espace"],
             //Image
-            ['name'=>"view image", 'description'=>"Afficher l'image"],
-            ['name'=>"edit image", 'description'=>"Modifier l'image"],
-            ['name'=>"delete image", 'description'=>"Supprimer l'image"],
-            ['name'=>"create image", 'description'=>"Créer une nouvelle image"],
-            ['name'=>"upload image", 'description'=>"Télécharger l'image"],
+            ['name'=>"view_image", 'description'=>"Afficher l'image"],
+            ['name'=>"edit_image", 'description'=>"Modifier l'image"],
+            ['name'=>"delete_image", 'description'=>"Supprimer l'image"],
+            ['name'=>"create_image", 'description'=>"Créer une nouvelle image"],
+            ['name'=>"upload_image", 'description'=>"Télécharger l'image"],
             //Opening_day
             ['name'=>"view_opening_day", 'description'=>"Afficher les informations du jour d'ouverture dans toutes les agences"],
             ['name'=>"view_opening_day", 'description'=>"Afficher les informations du jour d'ouverture de son agence"],
             ['name'=>"manage_opening_day", 'description'=>"Gérer le jour d'ouverture dans toutes les agences"],
             ['name'=>"manage_opening_day_of_agency", 'description'=>"Gérer le jour d'ouverture de son agence"],
-            //Option
-            ['name'=>"manage_option", 'description'=>"Gérer les options"],
-            //Logactivity
-            ['name'=>"view_logactivity", 'description'=>"Afficher les logs d'activité"],
-            ['name'=>"delete_logactivity", 'description'=>"Supprimer les logs d'activité"]
         ];
 
         $i = 1;
@@ -247,4 +259,11 @@ class DatabaseSeeder extends Seeder
         }
         \App\Models\User::factory(10)->create();
     }
+    /*
+    $permissions_superadmin = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+    36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68,
+    69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 88]
+        
+    $role_superadmin->permissions()->sync($permissions_superadmin);
+    */
 }

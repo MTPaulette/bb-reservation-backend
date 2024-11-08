@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'phonenumber',
         'image',
+        'is_suspended'
     ];
 
     protected $hidden = [
@@ -100,5 +101,29 @@ class User extends Authenticatable
         return $query->join('roles', 'users.role_id', '=', 'roles.id')
                     ->select('users.*', 'roles.name as role')
                     ->orderByDesc('created_at');
+    }
+
+    public function scopeWithAgency(Builder $query): Builder{
+        return $query->join('agencies', 'users.work_at', '=', 'agencies.id')
+                    ->select('users.*', 'agencies.name as agency')
+                    ->orderByDesc('created_at');
+    }
+
+    public function scopeWithAgencyAndRole(Builder $query): Builder{
+        return $query->join('agencies', 'users.work_at', '=', 'agencies.id')
+                    ->join('roles', 'users.role_id', '=', 'roles.id')
+                    ->select('users.*', 'agencies.name as agency', 'roles.name as role')
+                    ->orderByDesc('created_at');
+    }
+
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query->when(
+            $filters['agency'] ?? false,
+            fn ($query, $value) => $query->where('agencies.name', '=', $value)
+        )->when(
+            $filters['role'] ?? false,
+            fn ($query, $value) => $query->where('roles.name', '=', $value)
+        );
     }
 }
