@@ -64,7 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /* option */
     Route::get('/options', [OptionController::class, 'index']);
-    Route::post('/options', [OptionController::class, 'store']);
+    Route::post('/option/store', [OptionController::class, 'store']);
 
 });
 
