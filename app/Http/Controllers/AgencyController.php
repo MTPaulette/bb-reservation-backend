@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agency;
-use App\Models\AgencyOpeningday;
 use App\Models\Openingday;
 use App\Models\Ressource;
 use App\Models\User;
@@ -98,7 +97,7 @@ class AgencyController extends Controller
             'message' => "The agency $agency->name successfully created",
         ];
 
-        \LogActivity::addToLog("New agency created.<br/> agency name: $agency->name");
+        \LogActivity::addToLog("New agency created. agency name: $agency->name");
 
         return response($response, 201);
     }

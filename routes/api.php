@@ -12,6 +12,7 @@ use App\Http\Controllers\OpeningdayController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserImageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,8 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
     Route::delete("/logout",[UserAccountController::class, "logout"]);
     Route::put('/profile', [UserAccountController::class, 'update']);
     Route::put('/password', [PasswordController::class, 'update']);
+    Route::post("/profile/image/store",[UserImageController::class, "store"]);
+    Route::put("/profile/image/delete",[UserImageController::class, "destroy"]);
 
     /* client routes */
     Route::get("/clients",[ClientController::class, "index"]);
@@ -53,7 +56,7 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
     Route::get('/authenticated-user', [UserAccountController::class, 'show']);
 
     /* log activity routes */
-    Route::get('/activity_logs', [ActivityLogController::class, 'index']);
+    Route::get('/logs', [ActivityLogController::class, 'index']);
     Route::put('/clear_logs', [ActivityLogController::class, 'destroy']);
 
     /* role */

@@ -22,8 +22,8 @@ class ActivityLogController extends Controller
                                 ->select('activity_logs.*', 'users.firstname as firstname', 'users.lastname as lastname')
                                 ->orderByDesc('created_at')
                                 ->get();
-                                
-        // $logs = User::withRole()->get()->where('role_id', 2);
+
+        // $logs = Activity_log::all();
         return response()->json($logs, 201);
     }
     

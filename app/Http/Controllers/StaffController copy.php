@@ -160,7 +160,7 @@ class StaffController extends Controller
             'message' => "The $usertype $user->firstname account successfully created",
         ];
 
-        \LogActivity::addToLog("New $usertype created.<br/> $usertype name: $user->lastname $user->firstname");
+        \LogActivity::addToLog("New $usertype created. $usertype name: $user->lastname $user->firstname");
 
         return response($response, 201);
     }

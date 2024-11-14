@@ -48,7 +48,7 @@ class PasswordController extends Controller
             $response = [
                 'errors' => 'Current Password does not match with Old Password',
             ];
-            \LogActivity::addToLog("User password update failed.<br/> User name: $user->lastname $user->firstname. | error: " .$response['errors']);
+            \LogActivity::addToLog("User password update failed. User name: $user->lastname $user->firstname. | error: " .$response['errors']);
             return response($response, 500);
         }
     }

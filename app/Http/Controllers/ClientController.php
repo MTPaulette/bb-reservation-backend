@@ -86,7 +86,7 @@ class ClientController extends Controller
             'message' => "The client $user->firstname account successfully created",
         ];
 
-        \LogActivity::addToLog("New client created.<br/> client name: $user->lastname $user->firstname");
+        \LogActivity::addToLog("New client created. client name: $user->lastname $user->firstname");
 
         return response($response, 201);
     }

@@ -45,7 +45,7 @@ class UserAccountController extends Controller
             $user->role_id = 3;
             $user->save();
         }
-        \LogActivity::addToLog("New user created.<br/> User name: $user->lastname $user->firstname");
+        \LogActivity::addToLog("New user created. User name: $user->lastname $user->firstname");
         return response($user, 201);
     }
 
