@@ -16,7 +16,8 @@ class Coupon extends Model
         'expired_on',
         'percent',
         'amount',
-        'note',
+        'note_en',
+        'note_fr',
     ];
 
     public function users(): BelongsToMany {

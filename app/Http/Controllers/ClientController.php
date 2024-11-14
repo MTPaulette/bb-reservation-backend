@@ -27,8 +27,8 @@ class ClientController extends Controller
         if(!$request->user()->hasPermission('show_all_client')) {
             abort(403);
         }
-        $all_clients = User::withRole()->get()->where('role_id', 2);
-        return response()->json($all_clients, 201);
+        $clients = User::withRole()->where('roles.name', 'client')->get()->toArray();
+        return response()->json($clients, 201);
     }
     
     /**

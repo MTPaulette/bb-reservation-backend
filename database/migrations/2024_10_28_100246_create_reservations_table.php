@@ -25,9 +25,11 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
 
-            $table->enum('state', ['sollicit', 'partially payed', 'confirmed', 'totally payed'])->default('sollicit');
+            $table->enum('state_en', ['sollicit', 'partially payed', 'confirmed', 'totally payed'])->default('sollicit');
+            $table->enum('state_fr', ['sollicité', 'partiellement payé', 'confirmé', 'totallement payé'])->default('sollicité');
             $table->unsignedInteger('amount_due');
-            $table->text('note')->nullable();
+            $table->text('note_en')->nullable();
+            $table->text('note_fr')->nullable();
             $table->boolean('is_gift')->default(0);
 
             $table->unsignedBigInteger('created_by')->nullable();

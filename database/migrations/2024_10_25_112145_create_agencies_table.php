@@ -15,11 +15,13 @@ return new class extends Migration
     {
         Schema::create('agencies', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->unique();
             $table->string('address')->nullable();
             $table->string('email')->nullable();
             $table->string('phonenumber')->nullable();
-            $table->text('reason_for_suspension')->nullable();
+            $table->enum('status', ['active', 'suspended'])->default('active');
+            $table->text('reason_for_suspension_en')->nullable();
+            $table->text('reason_for_suspension_fr')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('users');
             $table->timestamps();

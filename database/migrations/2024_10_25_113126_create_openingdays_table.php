@@ -15,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('openingdays', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name_en');
+            $table->string('name_fr');
             $table->timestamps();
         });
     }

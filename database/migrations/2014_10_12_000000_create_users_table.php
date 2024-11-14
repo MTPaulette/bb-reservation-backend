@@ -23,7 +23,7 @@ return new class extends Migration
             $table->rememberToken();
             $table->string('phonenumber')->nullable();
             $table->string('image')->nullable();
-            $table->boolean('is_suspended')->default(0);
+            $table->enum('status', ['active', 'suspended'])->default('active');
             $table->unsignedBigInteger('role_id')->default(2);
             $table->foreign('role_id')->references('id')->on('roles');
             $table->unsignedBigInteger('created_by')->nullable();

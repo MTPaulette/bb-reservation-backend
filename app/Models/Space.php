@@ -11,7 +11,8 @@ class Space extends Model
     use HasFactory;
     protected $fillable = [
         'name',
-        'description',
+        'description_en',
+        'description_fr',
         'nb_place'
     ];
 

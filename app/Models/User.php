@@ -25,7 +25,7 @@ class User extends Authenticatable
         'password',
         'phonenumber',
         'image',
-        'is_suspended'
+        'status',
     ];
 
     protected $hidden = [
@@ -110,7 +110,8 @@ class User extends Authenticatable
     }
 
     public function scopeWithAgencyAndRole(Builder $query): Builder{
-        return $query->join('agencies', 'users.work_at', '=', 'agencies.id')
+        // return $query->join('agencies', 'users.work_at', '=', 'agencies.id')
+        return $query->join('agencies', 'users.work_at', 'agencies.id')
                     ->join('roles', 'users.role_id', '=', 'roles.id')
                     ->select('users.*', 'agencies.name as agency', 'roles.name as role')
                     ->orderByDesc('created_at');

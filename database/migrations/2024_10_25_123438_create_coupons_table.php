@@ -21,7 +21,8 @@ return new class extends Migration
             $table->dateTime('expired_on');
             $table->float('percent')->nullable();
             $table->float('amount')->nullable();
-            $table->text('note')->nullable();
+            $table->text('note_en')->nullable();
+            $table->text('note_fr')->nullable();
             $table->timestamps();
         });
     }

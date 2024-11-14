@@ -16,7 +16,8 @@ return new class extends Migration
         Schema::create('spaces', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('description')->nullable();
+            $table->text('description_en')->nullable();
+            $table->text('description_fr')->nullable();
             $table->unsignedInteger('nb_place')->default(1);
             $table->timestamps();
         });

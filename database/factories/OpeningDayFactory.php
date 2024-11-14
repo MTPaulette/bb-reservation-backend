@@ -17,7 +17,8 @@ class OpeningdayFactory extends Factory
     public function definition()
     {
         return [
-            'name' => fake()->dayOfWeek(),
+            'name_en' => fake()->dayOfWeek(),
+            'name_fr' => fake()->dayOfWeek(),
         ];
     }
 }

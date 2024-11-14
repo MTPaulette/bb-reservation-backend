@@ -10,7 +10,8 @@ class Characteristic extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'name',
+        'name_en',
+        'name_fr',
     ];
 
     public function ressources(): BelongsToMany {

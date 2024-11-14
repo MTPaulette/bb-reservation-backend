@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
 {
@@ -14,7 +13,22 @@ class RoleController extends Controller
         if(!$request->user()->hasPermission('manage_permissions')) {
             abort(403);
         }
-        $roles = Role::orderBy('name')->get(['id', 'name']);
+        // $roles = Role::orderBy('name')->get(['id', 'name']);
+        $roles = Role::with('permissions')
+            ->get()->map(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'permissions' => $role->permissions->map(function ($permission) {
+                        return [
+                            'id' => $permission->id,
+                            'name' => $permission->name,
+                            'description_en' => $permission->description_en,
+                            'description_fr' => $permission->description_fr,
+                        ];
+                    })->toArray(),
+                ];
+            });
         return response()->json($roles, 201);
     }
 
@@ -23,7 +37,21 @@ class RoleController extends Controller
         if(!$request->user()->hasPermission('manage_permissions')) {
             abort(403);
         }
-        $role = Role::where('id', $request->id)->orderBy('name')->with('permissions')->get();
+        $role = Role::where('id', $request->id)->with('permissions')
+            ->get()->map(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'permissions' => $role->permissions->map(function ($permission) {
+                        return [
+                            'id' => $permission->id,
+                            'name' => $permission->name,
+                            'description_en' => $permission->description_en,
+                            'description_fr' => $permission->description_fr,
+                        ];
+                    })->toArray(),
+                ];
+            });
         if(sizeof($role) == 0){
             abort(404);
         }

@@ -83,15 +83,6 @@ class StaffController extends Controller
 
             if( $authUser->hasPermission('view_admin_of_agency')){
                 $user = User::withRole()->findOrFail($request->id);
-                /*
-                $user = User::withRole()->find($request->id);
-                if(!$user) {
-                    $response = [
-                        'errors' => "user not found.",
-                    ];
-                    return response($response, 404);
-                }
-                    */
                 if($user->role == 'admin' && $authUser->work_at == $user->work_at) {
                     $user = User::withAgencyAndRole()->get()->where('id', $request->id);
                     return response()->json($user, 201);
@@ -299,7 +290,7 @@ class StaffController extends Controller
                 $response = [
                     'password' => 'Wrong password.'
                 ];
-                \LogActivity::addToLog("Fail to suspend $user->role $user->lastname $user->firstname. error: Wrong password");
+                \LogActivity::addToLog("Fail to delete $user->role $user->lastname $user->firstname. error: Wrong password");
                 return response($response, 422);
             }
             if($user->role == 'superadmin' || $user->role == 'admin') {

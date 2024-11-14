@@ -16,8 +16,9 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('amount');
-            $table->text('note')->nullable();
-            $table->enum('payment_method', ['Carte bancaire', 'MTN Money', 'Cash', 'Orange Money']);
+            $table->text('note_en')->nullable();
+            $table->text('note_fr')->nullable();
+            $table->enum('payment_method', ['Bank', 'MTN Money', 'Cash', 'Orange Money']);
             $table->string('payment_status')->nullable();
             $table->string('transaction_id')->nullable();
 

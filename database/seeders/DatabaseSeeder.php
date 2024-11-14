@@ -24,18 +24,38 @@ class DatabaseSeeder extends Seeder
 
         /* agency */
         $agencies = ['Elig Essono', 'Etoa-Meki'];
-        foreach ($agencies as $agency) {
-            \App\Models\Agency::factory()->create([
-                'name' => $agency
-            ]);
-        }
+        // foreach ($agencies as $agency) {
+        \App\Models\Agency::factory()->create([
+            'name' => $agencies[0],
+            'address' => "Elig Essono, Rue Joseph Essono Mballa, Yde-Cmr",
+            'phonenumber' => "237694235019",
+            'email' => "contact@brain-booster.net"
+        ]);
+        \App\Models\Agency::factory()->create([
+            'name' => $agencies[1],
+            'address' => "Yde-Cmr",
+            'phonenumber' => "237222211234",
+            'email' => "contact@brain-booster.net"
+        ]);
+        // }
 
         /* Openingday */
-        $openingdays = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+        $openingdays = [
+            ['monday', 'lundi'], ['tuesday', 'mardi'], ['wednesday', 'mercredi'],
+            ['thursday', 'jeudi'], ['friday', 'vendredi'], ['saturday', 'samedi']
+        ];
+        
+        $i = 1;
+        $agency_EE = \App\Models\Agency::find(1);
+        $agency_EM = \App\Models\Agency::find(2);
         foreach ($openingdays as $openingday) {
             \App\Models\Openingday::factory()->create([
-                'name' => $openingday
+                'name_en' => $openingday[0],
+                'name_fr' => $openingday[1]
             ]);
+            $agency_EE->openingdays()->attach($i);
+            $agency_EM->openingdays()->attach($i);
+            $i++;
         }
 
         /* user */
@@ -70,10 +90,14 @@ class DatabaseSeeder extends Seeder
             'role_id' => 2
         ]);
         /* characteristic */
-        $characteristics = ['cafe ou the', 'video-projecteur', 'imprimante', 'climatisation', 'internet'];
+        $characteristics = [
+            ['coffee or tea', 'cafe ou the'], ['video projector', 'video-projecteur'],
+            ['printer', 'imprimante'], ['air conditioning', 'climatisation'], ['internet', 'internet']
+        ];
         foreach ($characteristics as $characteristic) {
             \App\Models\Characteristic::factory()->create([
-                'name' => $characteristic
+                'name_en' => $characteristic[0],
+                'name_fr' => $characteristic[1]
             ]);
         }
 
@@ -137,117 +161,115 @@ class DatabaseSeeder extends Seeder
         }
 
         /* Permission */
-
         $permissions = [
             //Agency
-            ['name'=>"manage_agency", 'description'=>"Gérer son agence"],
-            ['name'=>"manage_all_agencies", 'description'=>"Gérer toutes les agences"],
-
+            ['name'=>"manage_agency", 'description'=> ["Manage your agency", "Gérer son agence"]],
+            ['name'=>"manage_all_agencies", 'description'=> ["Manage all agencies", "Gérer toutes les agences"]],
+            
             //Option & permission
-            ['name'=>"manage_option", 'description'=>"Gérer les options"],
-            ['name'=>"manage_permissions", 'description'=>"Gérer les permissions et les roles dans le systeme"],
-            ['name'=>"manage_settings", 'description'=>"Gérer les paramètres de l'application"],
-
+            ['name'=>"manage_option", 'description'=> ["Manage options", "Gérer les options"]],
+            ['name'=>"manage_permissions", 'description'=> ["Manage permissions and roles in the system", "Gérer les permissions et les roles dans le systeme"]],
+            ['name'=>"manage_settings", 'description'=> ["Manage application settings","Gérer les paramètres de l'application"]],
+            
             //Logactivity
-            ['name'=>"view_logactivity", 'description'=>"Afficher toutes les logs d'activité"],
-            ['name'=>"delete_logactivity", 'description'=>"Supprimer les logs d'activité"],
-            // ['name'=>"view_logactivity_of_agency", 'description'=>"Afficher les logs d'activité de son agence"],
+            ['name'=>"view_logactivity", 'description'=> ["View all activity logs", "Afficher toutes les logs d'activité"]],
+            ['name'=>"delete_logactivity", 'description'=> ["Delete activity logs", "Supprimer les logs d'activité"]],
+            // ['name'=>"view_logactivity_of_agency", 'description'=> ["View the activity logs of your agency", "Afficher les logs d'activité de son agence"],
             
             //Client
-            ['name'=>"show_all_client", 'description'=>"Lister tous les clients"],
-            ['name'=>"view_client", 'description'=>"Afficher les informations du client"],
-            ['name'=>"create_client", 'description'=>"Creer un client"],
-            ['name'=>"edit_client", 'description'=>"Modifier les informations du client"],
-            ['name'=>"delete_client", 'description'=>"Supprimer le client"],
-
-            ['name'=>"create_reservation", 'description'=>"Créer une réservation pour le client"],
-            ['name'=>"view_reservations", 'description'=>"Afficher les réservations du client"],
-            ['name'=>"cancel_reservation", 'description'=>"Annuler une réservation du client"],
-            //Admin
-            ['name'=>"show_all_admin", 'description'=>"Lister tout le personnel"],
-            ['name'=>"show_all_admin_of_agency", 'description'=>"Lister tout le personnel de son agence"],
-            ['name'=>"view_admin", 'description'=>"Afficher les informations de l'admin"],
-            ['name'=>"view_admin_of_agency", 'description'=>"Afficher les informations de l'admin de son agence"],
-            ['name'=>"create_admin", 'description'=>"Creer un nouveau membre de l'admin"],
-            ['name'=>"edit_admin", 'description'=>"Modifier les informations de l'admin"],
-            ['name'=>"delete_admin", 'description'=>"Supprimer un admin"],
+            ['name'=>"show_all_client", 'description'=> ["List all clients", "Lister tous les clients"]],
+            ['name'=>"view_client", 'description'=> ["View client information", "Afficher les informations du client"]],
+            ['name'=>"create_client", 'description'=> ["Create a client", "Creer un client"]],
+            ['name'=>"edit_client", 'description'=> ["Edit client information", "Modifier les informations du client"]],
+            ['name'=>"delete_client", 'description'=> ["Delete client", "Supprimer le client"]],
             
-            ['name'=>"manage_reservations", 'description'=>"Gérer les réservations"],
-            ['name'=>"manage_resources", 'description'=>"Gérer les ressources"],
-            ['name'=>"manage_spaces", 'description'=>"Gérer les espaces"],
+            ['name'=>"create_reservation", 'description'=> ["Create a reservation for the client", "Créer une réservation pour le client"]],
+            ['name'=>"view_reservations", 'description'=> ["Show customer reservations", "Afficher les réservations du client"]],
+            ['name'=>"cancel_reservation", 'description'=> ["Cancel a customer reservation", "Annuler une réservation du client"]],
+            //Admin
+            ['name'=>"show_all_admin", 'description'=> ["List all staff", "Lister tout le personnel"]],
+            ['name'=>"show_all_admin_of_agency", 'description'=> ["List all staff of your agency", "Lister tout le personnel de son agence"]],
+            ['name'=>"view_admin", 'description'=> ["Show admin information", "Afficher les informations de l'admin de son agence"]],
+            ['name'=>"view_admin_of_agency", 'description'=> ["Show admin information of your agency", "Afficher les informations de l'admin"]],
+            ['name'=>"create_admin", 'description'=> ["Create a new admin member", "Creer un nouveau membre de l'admin"]],
+            ['name'=>"edit_admin", 'description'=> ["Edit admin information", "Modifier les informations de l'admin"]],
+            ['name'=>"delete_admin", 'description'=> ["Delete an admin", "Supprimer un admin"]],
+            
+            ['name'=>"manage_reservations", 'description'=> ["Manage reservations", "Gérer les réservations"]],
+            ['name'=>"manage_resources", 'description'=> ["Manage resources", "Gérer les ressources"]],
+            ['name'=>"manage_spaces", 'description'=> ["Manage spaces", "Gérer les espaces"]],
             //Superadmin
-            ['name'=>"show_all_superadmin", 'description'=>"Lister tous les superadmin"],
-            ['name'=>"view_superadmin", 'description'=>"Afficher les informations de tous les superadmin"],
-            ['name'=>"create_superadmin", 'description'=>"Creer un nouveau superadmin"],
-            ['name'=>"edit_superadmin", 'description'=>"Modifier les informations de tous les superadmin"],
-            ['name'=>"delete_superadmin", 'description'=>"Supprimer un superadmin"],
-            ['name'=>"suspend_staff", 'description'=>"Suspendre un membre du personnel admin/superadmin"],
-            ['name'=>"cancel_staff_suspension", 'description'=>"Annuler la suspension d'un membre du personnel admin/superadmin"],
-
+            ['name'=>"show_all_superadmin", 'description'=> ["List all superadmins", "Lister tous les superadmin"]],
+            ['name'=>"view_superadmin", 'description'=> ["Show all superadmin information", "Afficher les informations de tous les superadmin"]],
+            ['name'=>"create_superadmin", 'description'=> ["Create a new superadmin", "Creer un nouveau superadmin"]],
+            ['name'=>"edit_superadmin", 'description'=> ["Edit all superadmin information", "Modifier les informations de tous les superadmin"]],
+            ['name'=>"delete_superadmin", 'description'=> ["Delete a superadmin", "Supprimer un superadmin"]],
+            ['name'=>"suspend_staff", 'description'=> ["Suspend a staff member admin/superadmin", "Suspendre un membre du personnel admin/superadmin"]],
+            ['name'=>"cancel_staff_suspension", 'description'=> ["Cancel the suspension of a staff member admin/superadmin", "Annuler la suspension d'un membre du personnel admin/superadmin"]],
+            
             //Coupon
-            ['name'=>"show_all_coupon", 'description'=>"Lister tous les coupons de reduction"],
-            ['name'=>"view_coupon", 'description'=>"Afficher les informations du coupon"],
-            ['name'=>"edit_coupon", 'description'=>"Modifier les informations du coupon"],
-            ['name'=>"delete_coupon", 'description'=>"Supprimer le coupon"],
-            ['name'=>"create_coupon", 'description'=>"Créer un nouveau coupon"],
-            ['name'=>"use_coupon", 'description'=>"Utiliser le coupon"],
+            ['name'=>"show_all_coupon", 'description'=> ["List all discount coupons", "Lister tous les coupons de reduction"]],
+            ['name'=>"view_coupon", 'description'=> ["Show coupon information", "Afficher les informations du coupon"]],
+            ['name'=>"edit_coupon", 'description'=> ["Edit coupon information", "Modifier les informations du coupon"]],
+            ['name'=>"delete_coupon", 'description'=> ["Delete coupon", "Supprimer le coupon"]],
+            ['name'=>"create_coupon", 'description'=> ["Create a new coupon", "Créer un nouveau coupon"]],
+            ['name'=>"use_coupon", 'description'=> ["Use coupon", "Utiliser le coupon"]],
             //Payment
-            ['name'=>"show_all_payment", 'description'=>"Lister tous les paiements effectués"],
-            ['name'=>"view_payment", 'description'=>"Afficher les informations du paiement"],
-            ['name'=>"edit_payment", 'description'=>"Modifier les informations du paiement"],
-            ['name'=>"delete_payment", 'description'=>"Supprimer le paiement"],
-            ['name'=>"create_payment", 'description'=>"Créer un nouveau paiement"],
-            ['name'=>"process_payment", 'description'=>"Traiter le paiement"],
+            ['name'=>"show_all_payment", 'description'=> ["List all payments made", "Lister tous les paiements effectués"]],
+            ['name'=>"view_payment", 'description'=> ["View payment information", "Afficher les informations du paiement"]],
+            ['name'=>"edit_payment", 'description'=> ["Edit payment information", "Modifier les informations du paiement"]],
+            ['name'=>"delete_payment", 'description'=> ["Delete payment", "Supprimer le paiement"]],
+            ['name'=>"create_payment", 'description'=> ["Create a new payment", "Créer un nouveau paiement"]],
+            ['name'=>"process_payment", 'description'=> ["Process payment","Traiter le paiement"]],
             //Reservation
-            ['name'=>"show_all_reservation", 'description'=>"Lister toutes les réservation effectués"],
-            ['name'=>"show_all_reservation_of_agency", 'description'=>"Lister toutes les réservation effectués dans son agence"],
-            ['name'=>"view_reservation", 'description'=>"Afficher les informations de la réservation"],
-            ['name'=>"view_reservation_of_agency", 'description'=>"Afficher les informations de la réservation de son agence"],
-            ['name'=>"edit_reservation", 'description'=>"Modifier les informations de la réservation quelconque"],
-            ['name'=>"edit_own_reservation", 'description'=>"Modifier les informations de la réservation effectuée par soi-meme"],
-            ['name'=>"edit_reservation_of_agency", 'description'=>"Modifier les informations de la réservation effectuée dans son agence"],
-            ['name'=>"delete_reservation", 'description'=>"Supprimer la réservation quelconque"],
-            ['name'=>"delete_own_reservation", 'description'=>"Supprimer la réservation effectuée par soi-meme"],
-            ['name'=>"delete_reservation_of_agency", 'description'=>"Supprimer la réservation effectuée dans son agence"],
-            ['name'=>"create_reservation", 'description'=>"Créer une nouvelle réservation"],
-            ['name'=>"cancel_reservation", 'description'=>"Annuler la réservation quelconque"],
-            ['name'=>"cancel_own_reservation", 'description'=>"Annuler une réservation effectuée par soi-meme"],
-            ['name'=>"cancel_reservation_of_agency", 'description'=>"Annuler une réservation de son agence"],
-            //Ressource
-            ['name'=>"show_all_ressource", 'description'=>"Liste toutes les ressources"],
-            ['name'=>"show_all_ressource_of_agency", 'description'=>"Liste toutes les ressources de son agence"],
-            ['name'=>"view_ressource", 'description'=>"Afficher les informations de la ressource"],
-            ['name'=>"edit_ressource", 'description'=>"Modifier les informations de la ressource"],
-            ['name'=>"edit_ressource_of_agency", 'description'=>"Modifier les informations de la ressource de son agence"],
-            ['name'=>"delete_ressource", 'description'=>"Supprimer la ressource"],
-            ['name'=>"delete_ressource_of_agency", 'description'=>"Supprimer la ressource de son agence"],
-            ['name'=>"create_ressource", 'description'=>"Créer une nouvelle ressource"],
-            ['name'=>"create_ressource_of_agency", 'description'=>"Créer une nouvelle ressource dans son agence"],
-            ['name'=>"manage_ressource", 'description'=>"Gérer la ressource"],
+            ['name'=>"show_all_reservation", 'description'=> ["List all reservations made", "Lister toutes les réservation effectués"]],
+            ['name'=>"show_all_reservation_of_agency", 'description'=> ["List all reservations made in your agency", "Lister toutes les réservation effectués dans son agence"]],
+            ['name'=>"view_reservation", 'description'=> ["Show reservation information", "Afficher les informations de la réservation"]],
+            ['name'=>"view_reservation_of_agency", 'description'=> ["Show reservation information of your agency", "Afficher les informations de la réservation de son agence"]],
+            ['name'=>"edit_reservation", 'description'=> ["Edit any reservation information", "Modifier les informations de la réservation quelconque"]],
+            ['name'=>"edit_own_reservation", 'description'=> ["Edit the information of the reservation made by yourself", "Modifier les informations de la réservation effectuée par soi-meme"]],
+            ['name'=>"edit_reservation_of_agency", 'description'=> ["Edit the information of the reservation made in your agency", "Modifier les informations de la réservation effectuée dans son agence"]],
+            ['name'=>"delete_reservation", 'description'=> ["Delete any reservation", "Supprimer la réservation quelconque"]],
+            ['name'=>"delete_own_reservation", 'description'=> ["Delete the reservation made by yourself", "Supprimer la réservation effectuée par soi-meme"]],
+            ['name'=>"delete_reservation_of_agency", 'description'=> ["Delete the reservation made in your agency", "Supprimer la réservation effectuée dans son agence"]],
+            ['name'=>"create_reservation", 'description'=> ["Create a new reservation", "Créer une nouvelle réservation"]],
+            ['name'=>"cancel_reservation", 'description'=> ["Cancel any reservation", "Annuler la réservation quelconque"]],
+            ['name'=>"cancel_own_reservation", 'description'=> ["Cancel a reservation made by yourself", "Annuler une réservation effectuée par soi-meme"]],
+            ['name'=>"cancel_reservation_of_agency", 'description'=> ["Cancel a reservation made by your agency", "Annuler une réservation de son agence"]],
+            //Resource
+            ['name'=>"show_all_ressource", 'description'=> ["List all resources", "Liste toutes les ressources"]],
+            ['name'=>"show_all_ressource_of_agency", 'description'=> ["List all resources of your agency", "Liste toutes les ressources de son agence"]],
+            ['name'=>"view_ressource", 'description'=> ["View resource information", "Afficher les informations de la ressource"]],
+            ['name'=>"edit_ressource", 'description'=> ["Edit resource information", "Modifier les informations de la ressource"]],
+            ['name'=>"edit_ressource_of_agency", 'description'=> ["Edit resource information of his agency", "Modifier les informations de la ressource de son agence"]],
+            ['name'=>"delete_ressource", 'description'=> ["Delete the resource", "Supprimer la ressource"]],
+            ['name'=>"delete_ressource_of_agency", 'description'=> ["Delete the resource of his agency", "Supprimer la ressource de son agence"]],
+            ['name'=>"create_ressource", 'description'=> ["Create a new resource", "Créer une nouvelle ressource"]],
+            ['name'=>"create_ressource_of_agency", 'description'=> ["Create a new resource in his agency", "Créer une nouvelle ressource dans son agence"]],
+            ['name'=>"manage_ressource", 'description'=> ["Manage the resource", "Gérer la ressource"]],
+
             //Space
-            ['name'=>"view_space", 'description'=>"Afficher les informations de l'espace"],
-            ['name'=>"edit_space", 'description'=>"Modifier les informations de l'espace"],
-            ['name'=>"delete_space", 'description'=>"Supprimer l'espace"],
-            ['name'=>"create_space", 'description'=>"Créer un nouvel espace"],
-            ['name'=>"manage_space", 'description'=>"Gérer l'espace"],
-            //Image
-            ['name'=>"view_image", 'description'=>"Afficher l'image"],
-            ['name'=>"edit_image", 'description'=>"Modifier l'image"],
-            ['name'=>"delete_image", 'description'=>"Supprimer l'image"],
-            ['name'=>"create_image", 'description'=>"Créer une nouvelle image"],
-            ['name'=>"upload_image", 'description'=>"Télécharger l'image"]
+            ['name'=>"view_space", 'description'=> ["View space information", "Afficher les informations de l'espace"]],
+            ['name'=>"edit_space", 'description'=> ["Edit space information", "Modifier les informations de l'espace"]],
+            ['name'=>"delete_space", 'description'=> ["Delete space", "Supprimer l'espace"]],
+            ['name'=>"create_space", 'description'=> ["Create new space", "Créer un nouvel espace"]],
+            ['name'=>"manage_space", 'description'=> ["Manage space", "Gérer l'espace"]],
         ];
 
         $i = 1;
         $role_superadmin = \App\Models\Role::find(3);
         $role_admin = \App\Models\Role::find(1);
         foreach ($permissions as $permission) {
-            \App\Models\Permission::factory()->create($permission);
+            \App\Models\Permission::factory()->create([
+                'name' => $permission['name'],
+                'description_en' => $permission['description'][0],
+                'description_fr' => $permission['description'][1],
+            ]);
             $role_superadmin->permissions()->attach($i);
             $role_admin->permissions()->attach($i);
             $i++;
         }
-        \App\Models\User::factory(10)->create();
+        \App\Models\User::factory(20)->create();
     }
     /*
     $permissions_superadmin = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,

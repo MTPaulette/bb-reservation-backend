@@ -8,6 +8,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\UserAccountController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AgencyController;
+use App\Http\Controllers\OpeningdayController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
@@ -29,7 +30,7 @@ Route::post("/register",[UserAccountController::class, "register"]);
 
 
 /* authenticated route: both user and admin */
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () {
     Route::delete("/logout",[UserAccountController::class, "logout"]);
     Route::put('/profile', [UserAccountController::class, 'update']);
     Route::put('/password', [PasswordController::class, 'update']);
@@ -44,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     /* staff routes */
     Route::get("/staff",[StaffController::class, "index"]);
     Route::get("/staff/{id}",[StaffController::class, "show"]);
+    Route::post("/staff/store",[StaffController::class, "store"]);
     Route::put("/staff/{id}/update",[StaffController::class, "update"]);
     Route::put('/staff/{id}/delete', [StaffController::class, 'destroy']);
     Route::put('/staff/{id}/suspend', [StaffController::class, 'suspend']);
@@ -72,9 +74,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post("/agency/store",[AgencyController::class, "store"]);
     Route::put("/agency/{id}/update",[AgencyController::class, "update"]);
     Route::put('/agency/{id}/delete', [AgencyController::class, 'destroy']);
+    Route::put('/agency/{id}/suspend', [AgencyController::class, 'suspend']);
+
+    /* openingdays routes */
+    Route::get("/openingdays",[OpeningdayController::class, "index"]);
 
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+Route::middleware('auth:sanctum')->get('/auth-permissions', function (Request $request) {
+    $permissions = $request->user()->role->permissions->pluck('name')->toArray();
+    return response($permissions, 201);
 });

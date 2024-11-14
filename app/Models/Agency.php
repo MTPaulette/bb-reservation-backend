@@ -17,7 +17,9 @@ class Agency extends Model
         'address',
         'email',
         'phonenumber',
-        'reason_for_suspension',
+        'status',
+        'reason_for_suspension_en',
+        'reason_for_suspension_fr',
     ];
 
     public function openingdays(): BelongsToMany {
