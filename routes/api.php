@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ClientController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\StaffController;
@@ -87,7 +88,8 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    $user = $request->user();
+    return $user;
 });
 
 Route::middleware('auth:sanctum')->get('/auth-permissions', function (Request $request) {

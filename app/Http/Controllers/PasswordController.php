@@ -27,9 +27,9 @@ class PasswordController extends Controller
         if($currentPasswordHash){
             $user->password = $request->password;
             $user->update();
-            $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
+            // $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
             $response = [
-                'token' => $token,
+                // 'token' => $token,
                 'message' => "Password Updated Successfully"
             ];
             \LogActivity::addToLog("User $user->lastname $user->firstname update his password.");

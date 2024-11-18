@@ -43,12 +43,12 @@ class User extends Authenticatable
             set: fn ($value) => Hash::make($value),
         );
     }
-
+/*
     protected function image(): Attribute {
         return Attribute::make(
-            get: fn ($value) => url('/storage/'.$value),
+            get: fn ($value) => asset('/storage/'.$value),
         );
-    }
+    }*/
 
     public function created_by(): BelongsTo {
         return $this->belongsTo(User::class);

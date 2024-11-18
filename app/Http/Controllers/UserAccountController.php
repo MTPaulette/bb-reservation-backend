@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
@@ -132,7 +133,11 @@ class UserAccountController extends Controller
         $user->update();
 
         \LogActivity::addToLog("The user $user->lastname $user->firstname update his profile.");
-        return response($user, 201);
+        $response = [
+            'user' => $user,
+            'token' => $request->bearerToken()
+        ];
+        return response($response, 201);
     }
 
     /**

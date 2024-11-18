@@ -69,7 +69,7 @@ class UserImageController extends Controller
         \LogActivity::addToLog("The user $user->lastname has uploaded his profile pic.");
         $response = [
             'message' => "The user $user->lastname has uploaded his profile pic.",
-            'src' => url('/storage/'.$user->image),
+            'src' => $user->image,
         ];
         return response($response, 201);
     }
@@ -83,15 +83,15 @@ class UserImageController extends Controller
      */
     public function destroy(Request $request)
     {
-      $user = $request->user();
-      Storage::disk('public')->delete($user->image);
-      $user->image = null;
-      $user->update();
+        $user = $request->user();
+        Storage::disk('public')->delete($user->image);
+        $user->image = null;
+        $user->update();
 
-      \LogActivity::addToLog("The user $user->lastname has deleted his profile pic.");
-      $response = [
-          'message' => "The user $user->lastname has deleted his profile pic."
-      ];
-      return response($response, 201);
+        \LogActivity::addToLog("The user $user->lastname has deleted his profile pic.");
+        $response = [
+            'message' => "The user $user->lastname has deleted his profile pic."
+        ];
+        return response($response, 201);
     }
 }
