@@ -35,6 +35,8 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
     Route::delete("/logout",[UserAccountController::class, "logout"]);
     Route::put('/profile', [UserAccountController::class, 'update']);
     Route::put('/password', [PasswordController::class, 'update']);
+
+    Route::get("/profile/image",[UserImageController::class, "show"]);
     Route::post("/profile/image/store",[UserImageController::class, "store"]);
     Route::put("/profile/image/delete",[UserImageController::class, "destroy"]);
 

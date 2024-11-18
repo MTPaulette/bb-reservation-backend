@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
 
 class UserAccountController extends Controller
@@ -74,14 +75,7 @@ class UserAccountController extends Controller
         }
  
         // $user->tokens()->delete();
-        if($user->role_id == 1) {
-            $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
-        } else if($user->role_id == 3) {
-            $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
-        } else {
-            $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
-        }
-
+        $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
         $response = [
             'user' => $user,
             'token' => $token
@@ -99,13 +93,18 @@ class UserAccountController extends Controller
      */
     public function update(Request $request)
     {
+        $request->validate([
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users', 'email')->ignore($request->user()->id),
+            ],
+        ]);
         $validator = Validator::make($request->all(),[
             'lastname' => 'string|max:50',
             'firstname' => 'string|max:50',
-            // 'email' => 'email|unique:users',
             'phonenumber' => 'string|min:9',
         ]);
-
         if($validator->fails()){
             \LogActivity::addToLog("Fail to update user's informations. ".$validator->errors());
             return response([
@@ -114,6 +113,10 @@ class UserAccountController extends Controller
         }
         $user = $request->user();
 
+        if($request->has('email') && isset($request->email)) {
+            $user->email = $request->email;
+        }
+
         if($request->has('lastname') && isset($request->lastname)) {
             $user->lastname = $request->lastname;
         }
@@ -121,10 +124,6 @@ class UserAccountController extends Controller
         if($request->has('firstname') && isset($request->firstname)) {
             $user->firstname = $request->firstname;
         }
-
-        // if($request->has('email') && isset($request->email)) {
-        //     $user->email = $request->email;
-        // }
 
         if($request->has('phonenumber') && isset($request->phonenumber)) {
             $user->phonenumber = $request->phonenumber;

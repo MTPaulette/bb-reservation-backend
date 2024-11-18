@@ -19,7 +19,7 @@ class PasswordController extends Controller
     {
         $user = $request->user();
         $request->validate([
-            'current_password' => ['required','string','min:8'],
+            'current_password' => ['required','string'],
             'password' => ['required', 'string', 'min:8']
         ]);
         
@@ -27,17 +27,8 @@ class PasswordController extends Controller
         if($currentPasswordHash){
             $user->password = $request->password;
             $user->update();
-
-            if($user->role_id == 1) {
-                $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
-            } else if($user->role_id == 3) {
-                $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
-            } else {
-                $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
-            }
-
+            $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
             $response = [
-                'user' => $user,
                 'token' => $token,
                 'message' => "Password Updated Successfully"
             ];
@@ -49,7 +40,7 @@ class PasswordController extends Controller
                 'errors' => 'Current Password does not match with Old Password',
             ];
             \LogActivity::addToLog("User password update failed. User name: $user->lastname $user->firstname. | error: " .$response['errors']);
-            return response($response, 500);
+            return response($response, 422);
         }
     }
 

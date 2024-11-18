@@ -44,6 +44,12 @@ class User extends Authenticatable
         );
     }
 
+    protected function image(): Attribute {
+        return Attribute::make(
+            get: fn ($value) => url('/storage/'.$value),
+        );
+    }
+
     public function created_by(): BelongsTo {
         return $this->belongsTo(User::class);
     }

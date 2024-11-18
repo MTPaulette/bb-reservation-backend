@@ -13,17 +13,10 @@ class UserImageController extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
  
-        $user = $request->user();
         $imageName = time().'.'.$request->image->extension();
         $request->image->move(public_path('images'), $imageName);
-
-        $user->image = $imageName;
-        $user->update();
-        $response = [
-            'message' => "The user $user->lastname has uploaded his profile pic.",
-            'src' => $user->image,
-        ];
-        return response($response, 201);
+ 
+        return response()->json(['message' => 'Image uploaded successfully']);
     }
     
     public function getImage()
@@ -43,7 +36,7 @@ class UserImageController extends Controller
     {
         $user = $request->user();
 
-        if($request->hasFile('image')) {
+        if($request->hasFile('images')) {
             $request->validate([
                 'images.*' => 'mimes:jpg,png,jpeg,webp|max:5000'
             ], [
@@ -53,23 +46,18 @@ class UserImageController extends Controller
             if(isset($user->image)) {
                 Storage::disk('public')->delete($user->image);
             }
-
-            $path = $request->file('image')->store('images/user', 'public');
-            $user->image = $path;
             
-            // foreach ($request->file('image') as $file){
-            // return 'yes';
-            //     $path = $file->store('images/user', 'public');
-            //     $user->image = $path;
-            // }
+            foreach ($request->file('images') as $file){
+                $path = $file->store('images/user', 'public');
+                $user->image = $path;
+            }
         }
 
         $user->update();
 
         \LogActivity::addToLog("The user $user->lastname has uploaded his profile pic.");
         $response = [
-            'message' => "The user $user->lastname has uploaded his profile pic.",
-            'src' => url('/storage/'.$user->image),
+            'message' => "The user $user->lastname has uploaded his profile pic."
         ];
         return response($response, 201);
     }

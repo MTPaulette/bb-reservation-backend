@@ -103,7 +103,7 @@ class ClientController extends Controller
             $validator = Validator::make($request->all(),[
                 'lastname' => 'string|max:50',
                 'firstname' => 'string|max:50',
-                'phonenumber' => 'string|min:9',
+                // 'phonenumber' => 'string',
             ]);
 
             if($validator->fails()){

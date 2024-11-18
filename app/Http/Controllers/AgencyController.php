@@ -210,7 +210,7 @@ class AgencyController extends Controller
             $agency = Agency::findOrFail($request->id);
             if (!Hash::check($request->password, $authUser->password)) {
                 $response = [
-                    'password' => 'Wrong password.'
+                    'password' => "Wrong password. $request->password"
                 ];
                 \LogActivity::addToLog("Agency $agency->name suspension failed. error: Wrong password");
                 return response($response, 422);
