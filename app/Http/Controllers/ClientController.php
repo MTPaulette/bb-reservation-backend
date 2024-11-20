@@ -64,9 +64,9 @@ class ClientController extends Controller
         $validator = Validator::make($request->all(),[
             'lastname' => 'required|string|max:50',
             'firstname' => 'required|string|max:50',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:8',
-            'phonenumber' => 'string|min:9',
+            'email' => 'required|email|unique:users|max:250',
+            'password' => 'required|string|min:8|max:50',
+            'phonenumber' => 'string|min:9|max:250',
         ]);
 
         if($validator->fails()){

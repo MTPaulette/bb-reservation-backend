@@ -14,9 +14,9 @@ class Characteristic extends Model
         'name_fr',
     ];
 
-    public function ressources(): BelongsToMany {
-        return $this->belongsToMany(Ressource::class, 'characteristicRessources')
-                    ->using(CharacteristicRessource::class)
+    public function spaces(): BelongsToMany {
+        return $this->belongsToMany(Space::class, 'characteristicSpaces')
+                    ->using(CharacteristicSpace::class)
                     ->withPivot('id');
                     // ->withPivot('id', 'from' , 'to', 'created_at');
     }

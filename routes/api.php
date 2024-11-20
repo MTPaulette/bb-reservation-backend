@@ -9,10 +9,13 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\UserAccountController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AgencyController;
+use App\Http\Controllers\CharacteristicController;
 use App\Http\Controllers\OpeningdayController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SpaceController;
+use App\Http\Controllers\SpaceImageController;
 use App\Http\Controllers\UserImageController;
 
 /*
@@ -81,6 +84,23 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
     Route::put("/agency/{id}/update",[AgencyController::class, "update"]);
     Route::put('/agency/{id}/delete', [AgencyController::class, 'destroy']);
     Route::put('/agency/{id}/suspend', [AgencyController::class, 'suspend']);
+
+    /* space routes */
+    Route::get("/spaces",[SpaceController::class, "index"]);
+    Route::get("/space/{id}",[SpaceController::class, "show"]);
+    Route::post("/space/store",[SpaceController::class, "store"]);
+    Route::put("/space/{id}/update",[SpaceController::class, "update"]);
+    Route::put('/space/{id}/delete', [SpaceController::class, 'destroy']);
+
+    /* space images routes */
+    Route::post("/space/{space_id}/image/store",[SpaceImageController::class, "store"]);
+    Route::put("/space/image/{image_id}/delete",[SpaceImageController::class, "destroy"]);
+
+    /* Characteristic routes */
+    Route::get("/characteristics",[CharacteristicController::class, "index"]);
+    Route::post("/characteristic/store",[CharacteristicController::class, "store"]);
+    Route::put("/characteristic/{id}/update",[CharacteristicController::class, "update"]);
+    Route::put('/characteristic/{id}/delete', [CharacteristicController::class, 'destroy']);
 
     /* openingdays routes */
     Route::get("/openingdays",[OpeningdayController::class, "index"]);

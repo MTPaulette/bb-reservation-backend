@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
@@ -22,10 +21,10 @@ class UserAccountController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'lastname' => 'required|string|max:50',
-            'firstname' => 'required|string|max:50',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:6',
+            'lastname' => 'required|string|max:250',
+            'firstname' => 'required|string|max:250',
+            'email' => 'required|email|unique:users|max:250',
+            'password' => 'required|string|min:6|max:50',
         ]);
 
         if($validator->fails()){
@@ -54,8 +53,8 @@ class UserAccountController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'email' => 'required|email|',
-            'password' => 'required|string|min:6',
+            'email' => 'required|email|max:250',
+            'password' => 'required|string|min:6|max:50',
         ]);
 
         if($validator->fails()){
@@ -102,9 +101,9 @@ class UserAccountController extends Controller
             ],
         ]);
         $validator = Validator::make($request->all(),[
-            'lastname' => 'string|max:50',
-            'firstname' => 'string|max:50',
-            'phonenumber' => 'string|min:9',
+            'lastname' => 'string|max:250',
+            'firstname' => 'string|max:250',
+            'phonenumber' => 'string|min:9|max:250',
         ]);
         if($validator->fails()){
             \LogActivity::addToLog("Fail to update user's informations. ".$validator->errors());

@@ -13,14 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('characteristic_ressources', function (Blueprint $table) {
+        Schema::create('characteristicSpaces', function (Blueprint $table) {
             $table->id();
 
             $table->unsignedBigInteger('characteristic_id')->onDelete('cascade');
             $table->foreign('characteristic_id')->references('id')->on('characteristics');
 
-            $table->unsignedBigInteger('ressource_id')->onDelete('cascade');
-            $table->foreign('ressource_id')->references('id')->on('ressources');
+            $table->unsignedBigInteger('space_id')->onDelete('cascade');
+            $table->foreign('space_id')->references('id')->on('spaces');
         });
     }
 
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('characteristic_ressources');
+        Schema::dropIfExists('characteristicSpaces');
     }
 };

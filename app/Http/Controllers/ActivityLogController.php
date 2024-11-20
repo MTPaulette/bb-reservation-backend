@@ -18,13 +18,12 @@ class ActivityLogController extends Controller
         if(!$request->user()->hasPermission('view_logactivity')) {
             abort(403);
         }
-        $logs = Activity_log::join('users', 'users.id', '=', 'activity_logs.user_id')
+        $logss = Activity_log::leftJoin('users', 'users.id', '=', 'activity_logs.user_id')
                                 ->select('activity_logs.*', 'users.firstname as firstname', 'users.lastname as lastname')
                                 ->orderByDesc('created_at')
                                 ->get();
 
-        // $logs = Activity_log::all();
-        return response()->json($logs, 201);
+        return response()->json($logss, 201);
     }
     
     /**

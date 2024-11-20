@@ -20,7 +20,7 @@ class PasswordController extends Controller
         $user = $request->user();
         $request->validate([
             'current_password' => ['required','string'],
-            'password' => ['required', 'string', 'min:8']
+            'password' => ['required', 'string', 'min:8', 'max:50']
         ]);
         
         $currentPasswordHash= Hash::check($request->current_password, $user->password);
@@ -48,7 +48,7 @@ class PasswordController extends Controller
         //$request->validate(['email' => 'required|email']);
     
         $validator = Validator::make($request->all(),[
-            'email' => 'required|email'
+            'email' => 'required|email|max:250'
         ]);
 
         if($validator->fails()){
@@ -78,8 +78,8 @@ class PasswordController extends Controller
     {
         $validator = Validator::make($request->all(),[
             'token' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|string|min:6',
+            'email' => 'required|email|max:250',
+            'password' => 'required|string|min:6|max:250',
         ]);
 
         if($validator->fails()){

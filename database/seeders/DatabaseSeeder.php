@@ -64,6 +64,7 @@ class DatabaseSeeder extends Seeder
             'firstname' => 'Paulette',
             'email' => 'paulettemayogue@brain-booster.net',
             'role_id' => 3,
+            'work_at' => 1,
         ]);
 
         \App\Models\User::factory()->create([
@@ -82,13 +83,28 @@ class DatabaseSeeder extends Seeder
             'work_at' => 2,
         ]);
 
-
         \App\Models\User::factory()->create([
             'lastname' => 'test',
             'firstname' => 'client',
             'email' => 'client@test.fr',
             'role_id' => 2
         ]);
+
+        \App\Models\User::factory(20)->create();
+        \App\Models\User::factory(2)->create([
+            'role_id' => 1,
+            'work_at' => 1,
+        ]);
+        \App\Models\User::factory(2)->create([
+            'role_id' => 1,
+            'work_at' => 2,
+        ]);
+        \App\Models\User::factory(1)->create([
+            'role_id' => 3,
+            'work_at' => 2,
+        ]);
+
+
         /* characteristic */
         $characteristics = [
             ['coffee or tea', 'cafe ou the'], ['video projector', 'video-projecteur'],
@@ -102,6 +118,12 @@ class DatabaseSeeder extends Seeder
         }
 
         /* space */
+        $i = 1;
+        $char_1 = \App\Models\Characteristic::find(1);
+        $char_2 = \App\Models\Characteristic::find(2);
+        $char_3 = \App\Models\Characteristic::find(3);
+        $char_4 = \App\Models\Characteristic::find(4);
+        $char_5 = \App\Models\Characteristic::find(5);
         $spaces = [
             ['name'=>"Open space", 'nb_place'=>"1"],
             ['name'=>"Bureaux privés standards", 'nb_place'=>"1"],
@@ -113,7 +135,6 @@ class DatabaseSeeder extends Seeder
             ['name'=>"Bureau Privé standards", 'nb_place'=>"1"],
             ['name'=>"Bureaux privés Premium", 'nb_place'=>"1"],
             ['name'=>"Mini salle Reunion", 'nb_place'=>"1"],
-            ['name'=>"Maxi Bureau", 'nb_place'=>"1"],
             ['name'=>"Salle conference", 'nb_place'=>"1"],
             ['name'=>"Progress", 'nb_place'=>"1"],
             ['name'=>"Eureka Inspirational", 'nb_place'=>"1"],
@@ -136,6 +157,12 @@ class DatabaseSeeder extends Seeder
         ];
         foreach ($spaces as $space) {
             \App\Models\Space::factory()->create($space);
+            $char_1->spaces()->attach($i);
+            $char_2->spaces()->attach($i);
+            $char_3->spaces()->attach($i);
+            $char_4->spaces()->attach($i);
+            $char_5->spaces()->attach($i);
+            $i++;
         }
 
         /* ressource */
@@ -182,10 +209,7 @@ class DatabaseSeeder extends Seeder
             ['name'=>"create_client", 'description'=> ["Create a client", "Creer un client"]],
             ['name'=>"edit_client", 'description'=> ["Edit client information", "Modifier les informations du client"]],
             ['name'=>"delete_client", 'description'=> ["Delete client", "Supprimer le client"]],
-            
-            ['name'=>"create_reservation", 'description'=> ["Create a reservation for the client", "Créer une réservation pour le client"]],
-            ['name'=>"view_reservations", 'description'=> ["Show customer reservations", "Afficher les réservations du client"]],
-            ['name'=>"cancel_reservation", 'description'=> ["Cancel a customer reservation", "Annuler une réservation du client"]],
+
             //Admin
             ['name'=>"show_all_admin", 'description'=> ["List all staff", "Lister tout le personnel"]],
             ['name'=>"show_all_admin_of_agency", 'description'=> ["List all staff of your agency", "Lister tout le personnel de son agence"]],
@@ -197,7 +221,6 @@ class DatabaseSeeder extends Seeder
             
             ['name'=>"manage_reservations", 'description'=> ["Manage reservations", "Gérer les réservations"]],
             ['name'=>"manage_resources", 'description'=> ["Manage resources", "Gérer les ressources"]],
-            ['name'=>"manage_spaces", 'description'=> ["Manage spaces", "Gérer les espaces"]],
             //Superadmin
             ['name'=>"show_all_superadmin", 'description'=> ["List all superadmins", "Lister tous les superadmin"]],
             ['name'=>"view_superadmin", 'description'=> ["Show all superadmin information", "Afficher les informations de tous les superadmin"]],
@@ -206,7 +229,14 @@ class DatabaseSeeder extends Seeder
             ['name'=>"delete_superadmin", 'description'=> ["Delete a superadmin", "Supprimer un superadmin"]],
             ['name'=>"suspend_staff", 'description'=> ["Suspend a staff member admin/superadmin", "Suspendre un membre du personnel admin/superadmin"]],
             ['name'=>"cancel_staff_suspension", 'description'=> ["Cancel the suspension of a staff member admin/superadmin", "Annuler la suspension d'un membre du personnel admin/superadmin"]],
-            
+
+            //Space
+            ['name'=>"show_all_space", 'description'=> ["List all spaces", "Lister tous les espaces"]],
+            ['name'=>"edit_space", 'description'=> ["Edit space information", "Modifier les informations de l'espace"]],
+            ['name'=>"delete_space", 'description'=> ["Delete space", "Supprimer l'espace"]],
+            ['name'=>"create_space", 'description'=> ["Create new space", "Créer un nouvel espace"]],
+            ['name'=>"manage_spaces", 'description'=> ["Manage spaces", "Gérer les espaces"]],
+        
             //Coupon
             ['name'=>"show_all_coupon", 'description'=> ["List all discount coupons", "Lister tous les coupons de reduction"]],
             ['name'=>"view_coupon", 'description'=> ["Show coupon information", "Afficher les informations du coupon"]],
@@ -234,6 +264,7 @@ class DatabaseSeeder extends Seeder
             ['name'=>"delete_reservation_of_agency", 'description'=> ["Delete the reservation made in your agency", "Supprimer la réservation effectuée dans son agence"]],
             ['name'=>"create_reservation", 'description'=> ["Create a new reservation", "Créer une nouvelle réservation"]],
             ['name'=>"cancel_reservation", 'description'=> ["Cancel any reservation", "Annuler la réservation quelconque"]],
+            ['name'=>"view_reservations", 'description'=> ["Show customer reservations", "Afficher les réservations du client"]],
             ['name'=>"cancel_own_reservation", 'description'=> ["Cancel a reservation made by yourself", "Annuler une réservation effectuée par soi-meme"]],
             ['name'=>"cancel_reservation_of_agency", 'description'=> ["Cancel a reservation made by your agency", "Annuler une réservation de son agence"]],
             //Resource
@@ -247,13 +278,6 @@ class DatabaseSeeder extends Seeder
             ['name'=>"create_ressource", 'description'=> ["Create a new resource", "Créer une nouvelle ressource"]],
             ['name'=>"create_ressource_of_agency", 'description'=> ["Create a new resource in his agency", "Créer une nouvelle ressource dans son agence"]],
             ['name'=>"manage_ressource", 'description'=> ["Manage the resource", "Gérer la ressource"]],
-
-            //Space
-            ['name'=>"view_space", 'description'=> ["View space information", "Afficher les informations de l'espace"]],
-            ['name'=>"edit_space", 'description'=> ["Edit space information", "Modifier les informations de l'espace"]],
-            ['name'=>"delete_space", 'description'=> ["Delete space", "Supprimer l'espace"]],
-            ['name'=>"create_space", 'description'=> ["Create new space", "Créer un nouvel espace"]],
-            ['name'=>"manage_space", 'description'=> ["Manage space", "Gérer l'espace"]],
         ];
 
         $i = 1;
@@ -269,7 +293,6 @@ class DatabaseSeeder extends Seeder
             $role_admin->permissions()->attach($i);
             $i++;
         }
-        \App\Models\User::factory(20)->create();
     }
     /*
     $permissions_superadmin = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,

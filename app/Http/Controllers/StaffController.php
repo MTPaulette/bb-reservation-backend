@@ -117,11 +117,11 @@ class StaffController extends Controller
             abort(403);
         }
         $validator = Validator::make($request->all(),[
-            'lastname' => 'required|string|max:50',
-            'firstname' => 'required|string|max:50',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:8',
-            'phonenumber' => 'string|min:9',
+            'lastname' => 'required|string|max:250',
+            'firstname' => 'required|string|max:250',
+            'email' => 'required|email|unique:users|max:250',
+            'password' => 'required|string|min:8|max:50',
+            'phonenumber' => 'string|min:9|max:250',
         ]);
 
         if($validator->fails()){

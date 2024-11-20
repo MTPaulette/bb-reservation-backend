@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Space extends Model
 {
@@ -22,5 +23,12 @@ class Space extends Model
 
     public function images(): HasMany {
         return $this->hasMany(Image::class);
+    }
+
+    public function characteristics(): BelongsToMany {
+        return $this->belongsToMany(Characteristic::class, 'characteristicSpaces')
+                    ->using(CharacteristicSpace::class)
+                    ->withPivot('id');
+                    // ->withPivot('id', 'from' , 'to', 'created_at');
     }
 }

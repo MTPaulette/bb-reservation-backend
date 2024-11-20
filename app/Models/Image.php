@@ -14,12 +14,6 @@ class Image extends Model
         'src',
     ];
 
-    protected function src(): Attribute {
-        return Attribute::make(
-            get: fn ($value) => url('/storage/'.$value),
-        );
-    }
-
     public function space(): BelongsTo {
         return $this->belongsTo(Space::class);
     }

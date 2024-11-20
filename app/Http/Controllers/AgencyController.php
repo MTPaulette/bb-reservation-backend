@@ -7,8 +7,10 @@ use App\Models\Openingday;
 use App\Models\Ressource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class AgencyController extends Controller
 {
@@ -77,10 +79,10 @@ class AgencyController extends Controller
             abort(403);
         }
         $validator = Validator::make($request->all(),[
-            'name' => 'required|string|unique:agencies',
-            'email' => 'required|string|email',
-            'phonenumber' => 'required|string|min:9',
-            'address' => 'required|string|max:150'
+            'name' => 'required|string|unique:agencies|max:250',
+            'email' => 'required|string|email|max:250',
+            'phonenumber' => 'required|string|min:9|max:250',
+            'address' => 'required|string|max:250'
         ]);
 
         if($validator->fails()){
@@ -110,10 +112,10 @@ class AgencyController extends Controller
         ) {
             $validator = Validator::make($request->all(),[
                 // 'name' => 'required|string|unique:agencies',
-                'name' => 'required|string',
-                'email' => 'string|email',
-                'phonenumber' => 'string|min:9',
-                'address' => 'string|max:150'
+                // 'name' => 'required|string|max:250',
+                'email' => 'string|email|max:250',
+                'phonenumber' => 'string|min:9|max:250',
+                'address' => 'string|max:250'
             ]);
 
             if($validator->fails()){
@@ -124,6 +126,12 @@ class AgencyController extends Controller
             }
 
             $agency = Agency::findOrFail($request->id);
+            $request->validate([
+                'name' => [
+                    'required', 'string', 'max:250',
+                    Rule::unique('agencies', 'name')->ignore($request->id),
+                ],
+            ]);
             if($request->has('name') && isset($request->name)) {
                 $agency->name = $request->name;
             }
@@ -180,14 +188,14 @@ class AgencyController extends Controller
         }
     
         $has_ressource = Ressource::where('agency_id', $request->id)->exists();
-        // $ressource = AgencyOpeningday::where('agency_id', $request->id)->exists();
-        $has_ressource = User::where('work_at', $request->id)->exists();
+        $has_openingday = DB::table('agencyOpeningdays')->where('agency_id', $request->id)->exists();
+        $has_user = User::where('work_at', $request->id)->exists();
     
-        if($has_ressource || $has_ressource) {
+        if($has_ressource || $has_user || $has_openingday) {
             $response = [
-                'error' => "The $agency->name  has users or ressource. You can not delete it",
+                'error' => "The $agency->name has users or ressource or opening days. You can not delete it",
             ];
-            \LogActivity::addToLog("Fail to delete agency $agency->name . error: He has maked ressource.");
+            \LogActivity::addToLog("Fail to delete agency $agency->name . error: He has maked users or ressource or opening days.");
             return response($response, 422);
         } else {
             $agency->delete();
@@ -224,8 +232,8 @@ class AgencyController extends Controller
             } else {
                 /*
                 $validator = Validator::make($request->all(),[
-                    'reason_for_suspension_en' => 'required|string',
-                    'reason_for_suspension_fr' => 'required|string',
+                    'reason_for_suspension_en' => 'required|string|max:250',
+                    'reason_for_suspension_fr' => 'required|string|max:250',
                 ]);
     
                 if($validator->fails()){

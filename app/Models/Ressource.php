@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Ressource extends Model
@@ -30,13 +29,6 @@ class Ressource extends Model
 
     public function created_by(): BelongsTo {
         return $this->belongsTo(User::class);
-    }
-
-    public function characteristics(): BelongsToMany {
-        return $this->belongsToMany(Characteristic::class, 'characteristicRessources')
-                    ->using(CharacteristicRessource::class)
-                    ->withPivot('id');
-                    // ->withPivot('id', 'from' , 'to', 'created_at');
     }
 
     public function reservations(): HasMany {
