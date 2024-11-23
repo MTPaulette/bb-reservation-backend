@@ -13,6 +13,7 @@ use App\Http\Controllers\CharacteristicController;
 use App\Http\Controllers\OpeningdayController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\RessourceController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SpaceController;
 use App\Http\Controllers\SpaceImageController;
@@ -104,6 +105,14 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
 
     /* openingdays routes */
     Route::get("/openingdays",[OpeningdayController::class, "index"]);
+
+
+    /* space routes */
+    Route::get("/ressources",[RessourceController::class, "index"]);
+    Route::get("/ressource/{id}",[RessourceController::class, "show"]);
+    Route::post("/ressource/store",[RessourceController::class, "store"]);
+    Route::put("/ressource/{id}/update",[RessourceController::class, "update"]);
+    Route::put('/ressource/{id}/delete', [RessourceController::class, 'destroy']);
 
 });
 

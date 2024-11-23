@@ -18,6 +18,34 @@ class StaffController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    
+    public function userWithAgencyRoleParent($model)
+    {
+        return
+        // User::with('role')
+        // ->get()
+        $model
+        ->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'lastname' => $user->lastname,
+                'firstname' => $user->firstname,
+                'email' => $user->email,
+                'phonenumber' => $user->phonenumber,
+                'image' => $user->image,
+                'status' => $user->status,
+                'reason_for_suspension_en' => $user->reason_for_suspension_en,
+                'reason_for_suspension_fr' => $user->reason_for_suspension_fr,
+                'created_at' => $user->created_at,
+                'created_by' => $user->created_by,
+                'role' => $user->role->name,
+                'agency' => $user->work_at ? Agency::findOrFail($user->work_at)->name: null,
+                'parent_firstname' => $user->created_by ? User::findOrFail($user->created_by)->firstname: null,
+                'parent_lastname' => $user->created_by ? User::findOrFail($user->created_by)->lastname: null,
+            ];
+        });
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -29,20 +57,23 @@ class StaffController extends Controller
             abort(403);
         }
 
-        if($user->hasPermission('show_all_superadmin')) {
-            $all_staffs = User::withAgencyAndRole()->get();
-            return response()->json($all_staffs, 201);
-        }
-
         if($user->hasPermission('show_all_admin')) {
-            $all_staffs = User::withAgencyAndRole()->where('role', 'admin')->get();
-            return response()->json($all_staffs, 201);
+            $all_staffs = $this->userWithAgencyRoleParent(
+                User::with('role')->where('roles.name', 'admin')->get()
+            );
+            return response($all_staffs, 201);
         }
 
-        if($user->hasPermission('show_all_admin_of_agency')) {
-            $all_staffs = User::withAgencyAndRole()->get()->where('role', 'admin')->where('work_at', $user->work_at);
+        if($user->hasPermission('show_all_superadmin')) {
+            $all_staffs = $this->userWithAgencyRoleParent(User::with('role')->get());
             return response()->json($all_staffs, 201);
         }
+        /*
+        if($user->hasPermission('show_all_admin_of_agency')) {
+            $all_staffs = $this->userWithAgencyRoleParent()->where('role', 'admin')->where('work_at', $user->work_at);
+            return response()->json($all_staffs, 201);
+        }
+            */
     }
     
     /**
@@ -61,25 +92,25 @@ class StaffController extends Controller
         ) {
 
             if( $authUser->hasPermission('view_superadmin')){
-                $user = User::withRole()->findOrFail($request->id);
+                $user = $this->userWithAgencyRoleParent()->findOrFail($request->id);
                 if($user->role == 'superadmin') {
-                    $user = User::withAgencyAndRole()->where('users.id', $request->id)->get();//->toArray();
+                    $user = $this->userWithAgencyRoleParent()->where('users.id', $request->id)->first();//->toArray();
                     return response()->json($user, 201);
                 }
             }
 
             if( $authUser->hasPermission('view_admin')){
-                $user = User::withRole()->findOrFail($request->id);
+                $user = $this->userWithAgencyRoleParent()->findOrFail($request->id);
                 if($user->role == 'admin' && $user->work_at == $user->work_at) {
-                    $user = User::withAgencyAndRole()->where('users.id', $request->id)->get();
+                    $user = $this->userWithAgencyRoleParent()->where('users.id', $request->id)->first();
                     return response()->json($user, 201);
                 }
             }
 
             if( $authUser->hasPermission('view_admin_of_agency')){
-                $user = User::withRole()->findOrFail($request->id);
+                $user = $this->userWithAgencyRoleParent()->findOrFail($request->id);
                 if($user->role == 'admin' && $authUser->work_at == $user->work_at) {
-                    $user = User::withAgencyAndRole()->get()->where('id', $request->id);
+                    $user = $this->userWithAgencyRoleParent()->where('id', $request->id)->first();
                     return response()->json($user, 201);
                 }
             }
@@ -173,7 +204,7 @@ class StaffController extends Controller
             $authUser->hasPermission('edit_admin') ||
             $authUser->hasPermission('edit_superadmin')
         ) {
-            $user = User::withRole()->findOrFail($request->id);
+            $user = $this->userWithAgencyRoleParent()->findOrFail($request->id);
             if( $authUser->hasPermission('edit_admin')){
                 if($user->role == 'admin') {
                     if($request->has('agency_id') && isset($request->agency_id)) {
@@ -238,7 +269,7 @@ class StaffController extends Controller
             $request->user()->hasPermission('delete_superadmin')
         ) {
             $authUser = $request->user();
-            $user = User::withRole()->findOrFail($request->id);
+            $user = $this->userWithAgencyRoleParent()->findOrFail($request->id);
             if($user->role == 'admin') {
                 if (! Hash::check($request->password, $authUser->password)) {
                     $response = [
@@ -280,7 +311,7 @@ class StaffController extends Controller
     {
         $authUser = $request->user();
         if($authUser->hasPermission('suspend_staff')) {
-            $user = User::withRole()->findOrFail($request->id);
+            $user = $this->userWithAgencyRoleParent()->findOrFail($request->id);
             if (! Hash::check($request->password, $authUser->password)) {
                 $response = [
                     'password' => 'Wrong password.'

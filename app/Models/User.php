@@ -49,16 +49,10 @@ class User extends Authenticatable
             get: fn ($value) => asset('/storage/'.$value),
         );
     }*/
-
-    public function created_by(): BelongsTo {
-        return $this->belongsTo(User::class);
-    }
-    
     public function users(): HasMany {
         return $this->hasMany(User::class);
     }
 
-    //create agency
     public function agencies(): HasMany {
         return $this->hasMany(Agency::class);
     }
@@ -66,6 +60,11 @@ class User extends Authenticatable
     public function work_at(): BelongsTo {
         return $this->belongsTo(Agency::class);
     }
+
+    public function created_by(): BelongsTo {
+        return $this->belongsTo(User::class);
+    }
+    
 
     public function coupons(): BelongsToMany {
         return $this->belongsToMany(Coupon::class, 'couponUsers')
@@ -116,20 +115,9 @@ class User extends Authenticatable
 
     public function scopeWithAgencyAndRole(Builder $query): Builder{
         // return $query->join('agencies', 'users.work_at', '=', 'agencies.id')
-        return $query->join('agencies', 'users.work_at', 'agencies.id')
+        return $query->join('agencies', 'users.work_at', '=', 'agencies.id')
                     ->join('roles', 'users.role_id', '=', 'roles.id')
                     ->select('users.*', 'agencies.name as agency', 'roles.name as role')
                     ->orderByDesc('created_at');
-    }
-
-    public function scopeFilter(Builder $query, array $filters): Builder
-    {
-        return $query->when(
-            $filters['agency'] ?? false,
-            fn ($query, $value) => $query->where('agencies.name', '=', $value)
-        )->when(
-            $filters['role'] ?? false,
-            fn ($query, $value) => $query->where('roles.name', '=', $value)
-        );
     }
 }

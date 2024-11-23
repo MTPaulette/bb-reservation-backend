@@ -236,7 +236,19 @@ class DatabaseSeeder extends Seeder
             ['name'=>"delete_space", 'description'=> ["Delete space", "Supprimer l'espace"]],
             ['name'=>"create_space", 'description'=> ["Create new space", "Créer un nouvel espace"]],
             ['name'=>"manage_spaces", 'description'=> ["Manage spaces", "Gérer les espaces"]],
-        
+
+            //Resource
+            ['name'=>"show_all_ressource", 'description'=> ["List all resources", "Liste toutes les ressources"]],
+            ['name'=>"show_all_ressource_of_agency", 'description'=> ["List all resources of your agency", "Liste toutes les ressources de son agence"]],
+            // ['name'=>"view_ressource", 'description'=> ["View resource information", "Afficher les informations de la ressource"]],
+            ['name'=>"edit_ressource", 'description'=> ["Edit resource information", "Modifier les informations de la ressource"]],
+            ['name'=>"edit_ressource_of_agency", 'description'=> ["Edit resource information of his agency", "Modifier les informations de la ressource de son agence"]],
+            ['name'=>"delete_ressource", 'description'=> ["Delete the resource", "Supprimer la ressource"]],
+            ['name'=>"delete_ressource_of_agency", 'description'=> ["Delete the resource of his agency", "Supprimer la ressource de son agence"]],
+            ['name'=>"create_ressource", 'description'=> ["Create a new resource", "Créer une nouvelle ressource"]],
+            ['name'=>"create_ressource_of_agency", 'description'=> ["Create a new resource in his agency", "Créer une nouvelle ressource dans son agence"]],
+            ['name'=>"manage_ressource", 'description'=> ["Manage the resource", "Gérer la ressource"]],
+
             //Coupon
             ['name'=>"show_all_coupon", 'description'=> ["List all discount coupons", "Lister tous les coupons de reduction"]],
             ['name'=>"view_coupon", 'description'=> ["Show coupon information", "Afficher les informations du coupon"]],
@@ -267,17 +279,6 @@ class DatabaseSeeder extends Seeder
             ['name'=>"view_reservations", 'description'=> ["Show customer reservations", "Afficher les réservations du client"]],
             ['name'=>"cancel_own_reservation", 'description'=> ["Cancel a reservation made by yourself", "Annuler une réservation effectuée par soi-meme"]],
             ['name'=>"cancel_reservation_of_agency", 'description'=> ["Cancel a reservation made by your agency", "Annuler une réservation de son agence"]],
-            //Resource
-            ['name'=>"show_all_ressource", 'description'=> ["List all resources", "Liste toutes les ressources"]],
-            ['name'=>"show_all_ressource_of_agency", 'description'=> ["List all resources of your agency", "Liste toutes les ressources de son agence"]],
-            ['name'=>"view_ressource", 'description'=> ["View resource information", "Afficher les informations de la ressource"]],
-            ['name'=>"edit_ressource", 'description'=> ["Edit resource information", "Modifier les informations de la ressource"]],
-            ['name'=>"edit_ressource_of_agency", 'description'=> ["Edit resource information of his agency", "Modifier les informations de la ressource de son agence"]],
-            ['name'=>"delete_ressource", 'description'=> ["Delete the resource", "Supprimer la ressource"]],
-            ['name'=>"delete_ressource_of_agency", 'description'=> ["Delete the resource of his agency", "Supprimer la ressource de son agence"]],
-            ['name'=>"create_ressource", 'description'=> ["Create a new resource", "Créer une nouvelle ressource"]],
-            ['name'=>"create_ressource_of_agency", 'description'=> ["Create a new resource in his agency", "Créer une nouvelle ressource dans son agence"]],
-            ['name'=>"manage_ressource", 'description'=> ["Manage the resource", "Gérer la ressource"]],
         ];
 
         $i = 1;
