@@ -13,11 +13,6 @@ use Illuminate\Support\Facades\Validator;
 
 class StaffController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -30,17 +25,25 @@ class StaffController extends Controller
         }
 
         if($user->hasPermission('show_all_superadmin')) {
-            $all_staffs = User::withAgencyAndRole()->get();
+            $all_staffs = User::withAgencyAndRole()
+                                ->where('roles.name', 'superadmin')
+                                ->OrWhere('roles.name', 'admin')
+                                ->get();
             return response()->json($all_staffs, 201);
         }
 
         if($user->hasPermission('show_all_admin')) {
-            $all_staffs = User::withAgencyAndRole()->where('role', 'admin')->get();
+            $all_staffs = User::withAgencyAndRole()
+                                ->where('roles.name', 'admin')
+                                ->get();
             return response()->json($all_staffs, 201);
         }
 
         if($user->hasPermission('show_all_admin_of_agency')) {
-            $all_staffs = User::withAgencyAndRole()->get()->where('role', 'admin')->where('work_at', $user->work_at);
+            $all_staffs = User::withAgencyAndRole()
+                                ->where('roles.name', 'admin')
+                                ->where('users.work_at', $user->work_at)
+                                ->get();
             return response()->json($all_staffs, 201);
         }
     }
@@ -63,7 +66,9 @@ class StaffController extends Controller
             if( $authUser->hasPermission('view_superadmin')){
                 $user = User::withRole()->findOrFail($request->id);
                 if($user->role == 'superadmin') {
-                    $user = User::withAgencyAndRole()->where('users.id', $request->id)->get();//->toArray();
+                    $user = User::withAgencyAndRole()
+                                    ->where('users.id', $request->id)
+                                    ->get();
                     return response()->json($user, 201);
                 }
             }
@@ -71,7 +76,9 @@ class StaffController extends Controller
             if( $authUser->hasPermission('view_admin')){
                 $user = User::withRole()->findOrFail($request->id);
                 if($user->role == 'admin' && $user->work_at == $user->work_at) {
-                    $user = User::withAgencyAndRole()->where('users.id', $request->id)->get();
+                    $user = User::withAgencyAndRole()
+                                    ->where('users.id', $request->id)
+                                    ->get();
                     return response()->json($user, 201);
                 }
             }
@@ -79,7 +86,9 @@ class StaffController extends Controller
             if( $authUser->hasPermission('view_admin_of_agency')){
                 $user = User::withRole()->findOrFail($request->id);
                 if($user->role == 'admin' && $authUser->work_at == $user->work_at) {
-                    $user = User::withAgencyAndRole()->get()->where('id', $request->id);
+                    $user = User::withAgencyAndRole()
+                                    ->where('users.id', $request->id)
+                                    ->get();
                     return response()->json($user, 201);
                 }
             }

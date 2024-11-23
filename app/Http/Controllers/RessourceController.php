@@ -16,7 +16,7 @@ class RessourceController extends Controller
     {
         return
         Ressource::with([
-            // 'created_by',
+            'createdBy',
             'agency.openingdays',
             'reservations',
             'space.images',

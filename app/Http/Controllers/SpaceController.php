@@ -40,7 +40,7 @@ class SpaceController extends Controller
                             'id' => $image->id,
                             'src' => $image->src,
                         ];
-                    })->toArray(),
+                    })->toArray()
                 ];
         });
     }
@@ -114,7 +114,6 @@ class SpaceController extends Controller
             $request->user()->hasPermission('edit_space')
         ) {
             $validator = Validator::make($request->all(),[
-                // 'name' => 'required|string|unique:spaces|max:250',
                 'description_en' => 'required|string',
                 'description_fr' => 'required|string',
                 'nb_place' => 'required|integer|min:1',

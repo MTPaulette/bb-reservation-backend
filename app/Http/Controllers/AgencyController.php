@@ -18,7 +18,6 @@ class AgencyController extends Controller
     {
         return
         Agency::with([
-            
             'administrators',
             'createdBy',
             'suspendedBy',

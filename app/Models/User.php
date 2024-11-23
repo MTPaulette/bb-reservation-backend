@@ -120,7 +120,13 @@ class User extends Authenticatable
     }
     public function scopeWithRole(Builder $query): Builder{
         return $query->join('roles', 'users.role_id', '=', 'roles.id')
-                    ->select('users.*', 'roles.name as role')
+                    ->leftjoin('users as creators', 'users.created_by', '=', 'creators.id')
+                    ->select(
+                        'users.*',
+                        'roles.name as role',
+                        'creators.lastname as parent_lastname',
+                        'creators.firstname as parent_firstname'
+                    )
                     ->orderByDesc('created_at');
     }
 
@@ -130,11 +136,26 @@ class User extends Authenticatable
                     ->orderByDesc('created_at');
     }
 
-    public function scopeWithAgencyAndRole(Builder $query): Builder{
+    public function scopeWithAgencyAndRolee(Builder $query): Builder{
         // return $query->join('agencies', 'users.work_at', '=', 'agencies.id')
-        return $query->join('agencies', 'users.work_at', '=', 'agencies.id')
+        return $query->leftjoin('agencies', 'users.work_at', '=', 'agencies.id')
                     ->join('roles', 'users.role_id', '=', 'roles.id')
                     ->select('users.*', 'agencies.name as agency', 'roles.name as role')
+                    ->orderByDesc('created_at');
+    }
+
+    public function scopeWithAgencyAndRole(Builder $query): Builder{
+        // return $query->join('agencies', 'users.work_at', '=', 'agencies.id')
+        return $query->leftjoin('agencies', 'users.work_at', '=', 'agencies.id')
+                    ->join('roles', 'users.role_id', '=', 'roles.id')
+                    ->leftjoin('users as creators', 'users.created_by', '=', 'creators.id')
+                    ->select(
+                        'users.*',
+                        'agencies.name as agency',
+                        'roles.name as role',
+                        'creators.lastname as parent_lastname',
+                        'creators.firstname as parent_firstname'
+                    )
                     ->orderByDesc('created_at');
     }
 }
