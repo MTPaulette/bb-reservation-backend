@@ -25,23 +25,17 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
 
-            $table->enum('state_en', ['sollicit', 'partially payed', 'confirmed', 'totally payed'])->default('sollicit');
-            $table->enum('state_fr', ['sollicité', 'partiellement payé', 'confirmé', 'totallement payé'])->default('sollicité');
+            $table->enum('state', ['pending', 'partially paid', 'confirmed', 'totally paid', 'cancelled'])->default('pending');
             $table->unsignedInteger('amount_due');
             $table->text('note_en')->nullable();
             $table->text('note_fr')->nullable();
-            $table->boolean('is_gift')->default(0);
 
             $table->unsignedBigInteger('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('users');
 
-            $table->unsignedBigInteger('receiver_user_id')->nullable();
-            $table->foreign('receiver_user_id')->references('id')->on('users');
-
-            $table->unsignedBigInteger('giver_user_id')->nullable();
-            $table->foreign('giver_user_id')->references('id')->on('users');
-
-            $table->text('reason_for_gift')->nullable();
+            $table->unsignedBigInteger('cancelled_by')->nullable();
+            $table->foreign('cancelled_by')->references('id')->on('users');
+            $table->timestamp('cancelled_at')->nullable();
             $table->timestamps();
         });
     }
@@ -56,3 +50,15 @@ return new class extends Migration
         Schema::dropIfExists('reservations');
     }
 };
+
+
+
+            /*
+            $table->boolean('is_gift')->default(0);
+            $table->unsignedBigInteger('receiver_user_id')->nullable();
+            $table->foreign('receiver_user_id')->references('id')->on('users');
+
+            $table->unsignedBigInteger('giver_user_id')->nullable();
+            $table->foreign('giver_user_id')->references('id')->on('users');
+            $table->text('reason_for_gift')->nullable();
+            */

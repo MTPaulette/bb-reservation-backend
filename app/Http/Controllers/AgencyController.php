@@ -18,42 +18,50 @@ class AgencyController extends Controller
     {
         return
         Agency::with([
-            // 'administrators',
-            'openingdays',
+            
+            'administrators',
+            'createdBy',
+            'suspendedBy',
+            'openingdays' => function($query) {
+                $query->select('agency_id', 'openingday_id', 'from', 'to');
+            },
             'ressources.space',
             'ressources.reservations'
+            /*
+            'ressources' => function($query) {
+                $query->with([
+                    'space' => function($query) {
+                        $query->select(
+                            'spaces.id', 'spaces.name', 'spaces.nb_place'
+                        );
+                    },
+                    'reservations' => function($query) {
+                        $query->select(
+                            'reservations.start_date', 'reservations.end_date',
+                            'reservations.start_time', 'reservations.end_time',
+                            'reservations.state', 'reservations.amount_due'
+                        );
+                    }
+                ]);
+            },
+            */
         ]);
     }
 
     public function agencyWithOpeningDay()
     {
         return
-        Agency::with('openingdays')
-            ->get()->map(function ($agency) {
-                return [
-                    'id' => $agency->id,
-                    'name' => $agency->name,
-                    'address' => $agency->address,
-                    'email' => $agency->email,
-                    'phonenumber' => $agency->phonenumber,
-                    'status' => $agency->status,
-                    'reason_for_suspension_en' => $agency->reason_for_suspension_en,
-                    'reason_for_suspension_fr' => $agency->reason_for_suspension_fr,
-                    'created_at' => $agency->created_at,
-                    'created_by' => $agency->created_by,
-                    'parent_firstname' => $agency->created_by ? User::findOrFail($agency->created_by)->firstname: null,
-                    'parent_lastname' => $agency->created_by ? User::findOrFail($agency->created_by)->lastname: null,
-                    'openingdays' => $agency->openingdays->map(function ($openingday) {
-                        return [
-                            'id' => $openingday->id,
-                            'name_en' => $openingday->name_en,
-                            'name_fr' => $openingday->name_fr,
-                            'from' => $openingday->pivot->from,
-                            'to' => $openingday->pivot->to,
-                        ];
-                    })->toArray(),
-                ];
-        });
+        Agency::with([
+            'openingdays' => function($query) {
+                $query->select(
+                    'openingdays.id', 'openingdays.name_en', 'openingdays.name_fr',
+                    'agencyOpeningdays.from', 'agencyOpeningdays.to'
+                );
+            },
+            'createdBy' =>function($query) {
+                $query->select('users.id', 'users.firstname', 'users.lastname');
+            }
+        ]);
     }
 
     public function index(Request $request)
@@ -64,51 +72,35 @@ class AgencyController extends Controller
         ) {
             abort(403);
         }
-        $agencies = $this->agencyWithOpeningDay();
+        $agencies = $this->agencyWithOpeningDay()->get();
         return response()->json($agencies, 201);
     }
 
     public function show(Request $request)
     {
         $authUser = $request->user();
-        $agency = Agency::findOrFail($request->id);
-        if($authUser->hasPermission('manage_all_agencies')) {
-            // $agency = $this->agencyWithOpeningDay()->where('id', $request->id)->first();
-            $agency = $this->agencyAllInformations()->find($request->id);
-            return response()->json($agency, 201);
-        }
-        if($authUser->hasPermission('manage_agency')) {
-            if($authUser->work_at == $agency->id) {
-                // $agency = $this->agencyWithOpeningDay()->where('id', $request->id)->first();
-                $agency = $this->agencyAllInformations()->find($request->id);
-                return response()->json($agency, 201);
+        if(
+            $authUser->hasPermission('manage_all_agencies') ||
+            $authUser->hasPermission('manage_agency')
+        ) {
+            $agency = Agency::findOrFail($request->id);
+            if(
+                $authUser->hasPermission('manage_agency') &&
+                !$authUser->hasPermission('manage_all_agencies')
+            ) {
+                if($authUser->work_at != $agency->id) {
+                    abort(403);
+                }
             }
+            $agency = $this->agencyAllInformations()->findOrFail($request->id);
+            return response()->json($agency, 201);
         }
         abort(403);
     }
 
-
-    public function showw(Request $request)
-    {
-        if(
-            !$request->user()->hasPermission('manage_agency') &&
-            !$request->user()->hasPermission('manage_all_agencies')
-        ) {
-            abort(403);
-        }
-        // $agency = $this->agencyWithOpeningDay()->where('id', $request->id)->toArray();
-        $agency = $this->agencyWithOpeningDay()->where('id', $request->id)->first();
-        if(sizeof($agency) == 0){
-            abort(404);
-        }
-        return response()->json($agency, 201);
-    }
     public function store(Request $request)
     {
-        if(
-            !$request->user()->hasPermission('manage_agency') &&
-            !$request->user()->hasPermission('manage_all_agencies')
-        ) {
+        if(!$request->user()->hasPermission('create_agency')) {
             abort(403);
         }
         $validator = Validator::make($request->all(),[
@@ -139,13 +131,21 @@ class AgencyController extends Controller
 
     public function update(Request $request)
     {
+        $authUser = $request->user();
         if(
-            $request->user()->hasPermission('manage_agency') ||
-            $request->user()->hasPermission('manage_agency')
+            $authUser->hasPermission('manage_all_agencies') ||
+            $authUser->hasPermission('manage_agency')
         ) {
+            $agency = Agency::findOrFail($request->id);
+            if(
+                $authUser->hasPermission('manage_agency') &&
+                !$authUser->hasPermission('manage_all_agencies')
+            ) {
+                if($authUser->work_at != $agency->id) {
+                    abort(403);
+                }
+            }
             $validator = Validator::make($request->all(),[
-                // 'name' => 'required|string|unique:agencies',
-                // 'name' => 'required|string|max:250',
                 'email' => 'string|email|max:250',
                 'phonenumber' => 'string|min:9|max:250',
                 'address' => 'string|max:250'
@@ -158,7 +158,6 @@ class AgencyController extends Controller
                 ], 422);
             }
 
-            $agency = Agency::findOrFail($request->id);
             $request->validate([
                 'name' => [
                     'required', 'string', 'max:250',
@@ -200,14 +199,67 @@ class AgencyController extends Controller
         abort(403);
     }
 
-    
-    public function destroy(Request $request)
+    public function suspend(Request $request)
     {
         $authUser = $request->user();
         if(
-            !$authUser->hasPermission('manage_agency') &&
-            !$authUser->hasPermission('manage_all_agencies')
+            $authUser->hasPermission('manage_agency') ||
+            $authUser->hasPermission('manage_all_agencies')
         ) {
+            $agency = Agency::findOrFail($request->id);
+            if(
+                $authUser->hasPermission('manage_agency') &&
+                !$authUser->hasPermission('manage_all_agencies')
+            ) {
+                if($authUser->work_at != $agency->id) {
+                    abort(403);
+                }
+            }
+            if (!Hash::check($request->password, $authUser->password)) {
+                $response = [
+                    'password' => "Wrong password. $request->password"
+                ];
+                \LogActivity::addToLog("Agency $agency->name suspension failed. error: Wrong password");
+                return response($response, 422);
+            }
+
+            if($request->cancel_suspension){
+                $agency->status = 'active';
+                $response = [
+                    'message' => "The agency $agency->name 's suspension is stopped",
+                ];
+            } else {
+                $validator = Validator::make($request->all(),[
+                    'reason_for_suspension_en' => 'required|string|max:250',
+                    'reason_for_suspension_fr' => 'required|string|max:250',
+                ]);
+    
+                if($validator->fails()){
+                    \LogActivity::addToLog("Agency $agency->name suspension failed. ".$validator->errors());
+                    return response([
+                        'errors' => $validator->errors(),
+                    ], 422);
+                }
+                $agency->status = 'suspended';
+                $agency->reason_for_suspension_en = $request->reason_for_suspension_en;
+                $agency->reason_for_suspension_fr = $request->reason_for_suspension_fr;
+                $response = [
+                    'message' => "The agency $agency->name successfully suspended",
+                ];
+            }
+            $agency->suspended_by = $authUser->id;
+            $agency->suspended_at = now();
+            $agency->save();
+            \LogActivity::addToLog("The agency $agency->name status updated");
+            return response($response, 201);
+        }
+        abort(403);
+    }
+
+    public function destroy(Request $request)
+    {
+        $authUser = $request->user();
+        if(!$request->user()->hasPermission('delete_agency')) {
             abort(403);
         }
 
@@ -240,58 +292,5 @@ class AgencyController extends Controller
             return response($response, 201);
         }
     }
-
-    public function suspend(Request $request)
-    {
-        $authUser = $request->user();
-        if(
-            $authUser->hasPermission('manage_agency') ||
-            $authUser->hasPermission('manage_all_agencies')
-        ) {
-            $agency = Agency::findOrFail($request->id);
-            if (!Hash::check($request->password, $authUser->password)) {
-                $response = [
-                    'password' => "Wrong password. $request->password"
-                ];
-                \LogActivity::addToLog("Agency $agency->name suspension failed. error: Wrong password");
-                return response($response, 422);
-            }
-
-            if($request->cancel_suspension){
-                $agency->status = 'active';
-                $response = [
-                    'message' => "The agency $agency->name 's suspension is stopped",
-                ];
-            } else {
-                /*
-                $validator = Validator::make($request->all(),[
-                    'reason_for_suspension_en' => 'required|string|max:250',
-                    'reason_for_suspension_fr' => 'required|string|max:250',
-                ]);
-    
-                if($validator->fails()){
-                    \LogActivity::addToLog("Agency $agency->name suspension failed. ".$validator->errors());
-                    return response([
-                        'errors' => $validator->errors(),
-                    ], 422);
-                } */
-
-                $agency->status = 'suspended';
-                $agency->reason_for_suspension_en = $request->reason_for_suspension_en;
-                $agency->reason_for_suspension_fr = $request->reason_for_suspension_fr;
-                $response = [
-                    'message' => "The agency $agency->name successfully suspended",
-                ];
-            }
-            $agency->save();
-            \LogActivity::addToLog("The agency $agency->name status updated");
-            return response($response, 201);
-        }
-        abort(403);
-    }
 }
 
-
-
-
-// $u10->services()->attach($s1, ['by_cash' => true, 'credit' => '1']);

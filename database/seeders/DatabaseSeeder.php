@@ -90,12 +90,12 @@ class DatabaseSeeder extends Seeder
             'role_id' => 2
         ]);
 
-        \App\Models\User::factory(20)->create();
-        \App\Models\User::factory(2)->create([
+        \App\Models\User::factory(40)->create();
+        \App\Models\User::factory(5)->create([
             'role_id' => 1,
             'work_at' => 1,
         ]);
-        \App\Models\User::factory(2)->create([
+        \App\Models\User::factory(7)->create([
             'role_id' => 1,
             'work_at' => 2,
         ]);
@@ -191,6 +191,8 @@ class DatabaseSeeder extends Seeder
         $permissions = [
             //Agency
             ['name'=>"manage_agency", 'description'=> ["Manage your agency", "Gérer son agence"]],
+            ['name'=>"create_agency", 'description'=> ["Create new agency", "Créer une nouvelle agence"]],
+            ['name'=>"delete_agency", 'description'=> ["Delete agency", "Supprimer une agence"]],
             ['name'=>"manage_all_agencies", 'description'=> ["Manage all agencies", "Gérer toutes les agences"]],
             
             //Option & permission
@@ -202,7 +204,7 @@ class DatabaseSeeder extends Seeder
             ['name'=>"view_logactivity", 'description'=> ["View all activity logs", "Afficher toutes les logs d'activité"]],
             ['name'=>"delete_logactivity", 'description'=> ["Delete activity logs", "Supprimer les logs d'activité"]],
             // ['name'=>"view_logactivity_of_agency", 'description'=> ["View the activity logs of your agency", "Afficher les logs d'activité de son agence"],
-            
+
             //Client
             ['name'=>"show_all_client", 'description'=> ["List all clients", "Lister tous les clients"]],
             ['name'=>"view_client", 'description'=> ["View client information", "Afficher les informations du client"]],

@@ -13,7 +13,6 @@ class RoleController extends Controller
         if(!$request->user()->hasPermission('manage_permissions')) {
             abort(403);
         }
-        // $roles = Role::orderBy('name')->get(['id', 'name']);
         $roles = Role::with('permissions')
             ->get()->map(function ($role) {
                 return [

@@ -24,10 +24,16 @@ return new class extends Migration
             $table->string('phonenumber')->nullable();
             $table->string('image')->nullable();
             $table->enum('status', ['active', 'suspended'])->default('active');
+            $table->text('reason_for_suspension_en')->nullable();
+            $table->text('reason_for_suspension_fr')->nullable();
             $table->unsignedBigInteger('role_id')->default(2);
             $table->foreign('role_id')->references('id')->on('roles');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('users');
+
+            $table->unsignedBigInteger('suspended_by')->nullable();
+            $table->foreign('suspended_by')->references('id')->on('users');
+            $table->timestamp('suspended_at')->nullable();
 
             $table->timestamps();
         });

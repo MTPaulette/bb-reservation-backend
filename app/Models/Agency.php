@@ -28,12 +28,16 @@ class Agency extends Model
                     ->withPivot('id', 'from' , 'to', 'created_at');
     }
 
-    public function created_by(): BelongsTo {
-        return $this->belongsTo(User::class);
+    public function createdBy(): BelongsTo {
+        return $this->belongsTo(User::class, 'created_by', 'id');
+    }
+
+    public function suspendedBy(): BelongsTo {
+        return $this->belongsTo(User::class, 'suspended_by', 'id');
     }
 
     public function administrators(): HasMany {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'work_at', 'id');
     }
 
     public function ressources(): HasMany {

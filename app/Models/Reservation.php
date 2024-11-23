@@ -11,32 +11,31 @@ class Reservation extends Model
 {
     use HasFactory;
     protected $fillable = [
+        /*
+        'is_gift',
+        'receiver_user_id',
+        'giver_user_id',
+        'reason_for_gift',
+        */
         'prefix',
         'start_date',
         'end_date',
         'start_time',
         'end_time',
-        'state_en',
-        'state_fr',
+        'state',
         'amount_due',
         'note_en',
         'note_fr',
-        'is_gift',
-        'receiver_user_id',
-        'giver_user_id',
-        'reason_for_gift',
+        'cancelled_by',
+        'cancelled_at'
     ];
 
-    public function created_by(): BelongsTo {
-        return $this->belongsTo(User::class);
+    public function createdBy(): BelongsTo {
+        return $this->belongsTo(User::class, 'created_by', 'id');
     }
 
-    public function receiver_user_id(): BelongsTo {
-        return $this->belongsTo(User::class);
-    }
-
-    public function giver_user_id(): BelongsTo {
-        return $this->belongsTo(User::class);
+    public function cancelledBy(): BelongsTo {
+        return $this->belongsTo(User::class, 'cancelled_by', 'id');
     }
 
     public function ressource(): BelongsTo {
@@ -46,5 +45,15 @@ class Reservation extends Model
     public function payments(): HasMany {
         return $this->hasMany(Payment::class);
     }
+    /*
+    public function receiverUser(): BelongsTo {
+        return $this->belongsTo(User::class, 'receiver_user_id', 'id');
+    }
+
+    public function giverUser(): BelongsTo {
+        return $this->belongsTo(User::class, 'giver_user_id', 'id');
+    }
+        */
+
 
 }

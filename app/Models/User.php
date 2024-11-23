@@ -26,6 +26,8 @@ class User extends Authenticatable
         'phonenumber',
         'image',
         'status',
+        'reason_for_suspension_en',
+        'reason_for_suspension_fr',
     ];
 
     protected $hidden = [
@@ -50,21 +52,24 @@ class User extends Authenticatable
         );
     }*/
     public function users(): HasMany {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'created_by', 'id');
     }
 
     public function agencies(): HasMany {
-        return $this->hasMany(Agency::class);
+        return $this->hasMany(Agency::class, 'created_by', 'id');
     }
 
-    public function work_at(): BelongsTo {
-        return $this->belongsTo(Agency::class);
+    public function workAt(): BelongsTo {
+        return $this->belongsTo(Agency::class, 'work_at', 'id');
     }
 
-    public function created_by(): BelongsTo {
-        return $this->belongsTo(User::class);
+    public function createdBy(): BelongsTo {
+        return $this->belongsTo(User::class, 'created_by', 'id');
     }
-    
+
+    public function suspendedBy(): BelongsTo {
+        return $this->belongsTo(User::class, 'suspended_by', 'id');
+    }
 
     public function coupons(): BelongsToMany {
         return $this->belongsToMany(Coupon::class, 'couponUsers')
@@ -73,21 +78,33 @@ class User extends Authenticatable
     }
 
     public function ressources(): HasMany {
-        return $this->hasMany(Ressource::class);
+        return $this->hasMany(Ressource::class, 'created_by', 'id');
     }
 
     public function reservations(): HasMany {
-        return $this->hasMany(Reservation::class);
+        return $this->hasMany(Reservation::class, 'created_by', 'id');
     }
 
-    public function received_gifts(): HasMany {
-        return $this->hasMany(Reservation::class);
+    public function cancelledReservations(): HasMany {
+        return $this->hasMany(Reservation::class, 'cancelled_by', 'id');
     }
 
-    public function given_gifts(): HasMany {
-        return $this->hasMany(Reservation::class);
+    public function suspendedAgencies(): HasMany {
+        return $this->hasMany(Agency::class, 'suspended_by', 'id');
     }
 
+    public function suspendedUsers(): HasMany {
+        return $this->hasMany(User::class, 'suspended_by', 'id');
+    }
+    /*
+    public function receivedGifts(): HasMany {
+        return $this->hasMany(Reservation::class, 'giver_user_id', 'id');
+    }
+
+    public function givenGifts(): HasMany {
+        return $this->hasMany(Reservation::class, 'receiver_user_id', 'id');
+    }
+    */
     /*============================================ */
 
     public function permissions() {

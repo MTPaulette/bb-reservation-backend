@@ -24,6 +24,10 @@ return new class extends Migration
             $table->text('reason_for_suspension_fr')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('users');
+
+            $table->unsignedBigInteger('suspended_by')->nullable();
+            $table->foreign('suspended_by')->references('id')->on('users');
+            $table->timestamp('suspended_at')->nullable();
             $table->timestamps();
         });
     }

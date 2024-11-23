@@ -28,8 +28,8 @@ class Ressource extends Model
         return $this->belongsTo(Space::class);
     }
 
-    public function created_by(): BelongsTo {
-        return $this->belongsTo(User::class);
+    public function createdBy(): BelongsTo {
+        return $this->belongsTo(User::class, 'created_by', 'id');
     }
 
     public function reservations(): HasMany {
