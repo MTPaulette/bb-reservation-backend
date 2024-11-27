@@ -59,6 +59,10 @@ class User extends Authenticatable
         return $this->hasMany(Agency::class, 'created_by', 'id');
     }
 
+    public function couponsCreated(): HasMany {
+        return $this->hasMany(Coupon::class, 'created_by', 'id');
+    }
+
     public function workAt(): BelongsTo {
         return $this->belongsTo(Agency::class, 'work_at', 'id');
     }

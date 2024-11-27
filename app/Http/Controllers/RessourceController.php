@@ -16,11 +16,19 @@ class RessourceController extends Controller
     {
         return
         Ressource::with([
-            'createdBy',
-            'agency.openingdays',
-            'reservations',
-            'space.images',
-            'space.characteristics'
+            'createdBy' => function($query) {
+                $query->select('id', 'lastname', 'firstname');
+            },
+            'agency' => function($query) {
+                $query->select('id', 'name');
+            },
+            // 'reservations',
+            'space' => [
+                'images',
+                'characteristics' => function($query) {
+                    $query->select('name_en', 'name_fr');
+                },
+            ]
         ]);
     }
 
@@ -56,12 +64,19 @@ class RessourceController extends Controller
                 $authUser->hasPermission('show_all_ressource')
             ) {
                 $ressource = $this->ressourceAllInformations()->find($request->id);
-                return response()->json($ressource, 201);
+                $response = [
+                    'ressource' => $ressource,
+                    // 'ressources' => $ressources,
+                ];
+                return response()->json($response, 201);
             }
             if($authUser->hasPermission('show_all_ressource_of_agency')) {
                 if($authUser->work_at == $ressource->agency_id) {
                     $ressource = $this->ressourceAllInformations()->find($request->id);
-                    return response()->json($ressource, 201);
+                    $response = [
+                        'ressource' => $ressource,
+                    ];
+                    return response()->json($response, 201);
                 }
             }
         }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Agency;
 use App\Models\Openingday;
+use App\Models\Reservation;
 use App\Models\Ressource;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -18,15 +19,28 @@ class AgencyController extends Controller
     {
         return
         Agency::with([
+            'createdBy' => function($query) {
+                $query->select('id', 'lastname', 'firstname');
+            },
+            'suspendedBy' => function($query) {
+                $query->select('id', 'lastname', 'firstname');
+            },
             'administrators',
-            'createdBy',
-            'suspendedBy',
+            'openingdays' => function($query) {
+                $query->select(
+                    'openingdays.id', 'openingdays.name_en', 'openingdays.name_fr',
+                    'agencyOpeningdays.from', 'agencyOpeningdays.to'
+                );
+            }
+            /*
+            'ressources' => [
+                'space', 'reservations'
+            ],
             'openingdays' => function($query) {
                 $query->select('agency_id', 'openingday_id', 'from', 'to');
             },
             'ressources.space',
             'ressources.reservations'
-            /*
             'ressources' => function($query) {
                 $query->with([
                     'space' => function($query) {
@@ -92,7 +106,15 @@ class AgencyController extends Controller
                 }
             }
             $agency = $this->agencyAllInformations()->findOrFail($request->id);
-            return response()->json($agency, 201);
+            $ressources = Ressource::withAgencySpaceUser()->where('ressources.agency_id', $request->id)->get();
+            // $reservationsCount = [
+            //     'pending' => Reservation::where()->count()
+            // ];
+            $response = [
+                'agency' => $agency,
+                'ressources' => $ressources,
+            ];
+            return response()->json($response, 201);
         }
         abort(403);
     }
@@ -245,9 +267,9 @@ class AgencyController extends Controller
                 $response = [
                     'message' => "The agency $agency->name successfully suspended",
                 ];
+                $agency->suspended_by = $authUser->id;
+                $agency->suspended_at = now();
             }
-            $agency->suspended_by = $authUser->id;
-            $agency->suspended_at = now();
             $agency->save();
             \LogActivity::addToLog("The agency $agency->name status updated");
             return response($response, 201);

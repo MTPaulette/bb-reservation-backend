@@ -15,14 +15,17 @@ return new class extends Migration
     {
         Schema::create('coupons', function (Blueprint $table) {
             $table->id();
-            $table->string('code');
+            $table->string('name')->unique();
+            $table->string('code')->unique()->default('123456789');
             $table->unsignedInteger('total_usage')->default(1);
-            $table->boolean('has_expired')->default(0);
+            $table->enum('status', ['active', 'expired'])->default('active');
             $table->dateTime('expired_on');
             $table->float('percent')->nullable();
             $table->float('amount')->nullable();
             $table->text('note_en')->nullable();
             $table->text('note_fr')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->foreign('created_by')->references('id')->on('users');
             $table->timestamps();
         });
     }

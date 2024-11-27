@@ -126,13 +126,12 @@ class DatabaseSeeder extends Seeder
         $char_5 = \App\Models\Characteristic::find(5);
         $spaces = [
             ['name'=>"Open space", 'nb_place'=>"1"],
-            ['name'=>"Bureaux privés standards", 'nb_place'=>"1"],
             ['name'=>"Meeting Corner", 'nb_place'=>"1"],
             ['name'=>"Grand Bureau Privé ", 'nb_place'=>"1"],
             ['name'=>"Maxi Bureau", 'nb_place'=>"1"],
             ['name'=>"Petits bureaux (Kitch + Toil)", 'nb_place'=>"1"],
             ['name'=>"Bureaux privés terrasse", 'nb_place'=>"1"],
-            ['name'=>"Bureau Privé standards", 'nb_place'=>"1"],
+            ['name'=>"Bureaux Privé standards", 'nb_place'=>"1"],
             ['name'=>"Bureaux privés Premium", 'nb_place'=>"1"],
             ['name'=>"Mini salle Reunion", 'nb_place'=>"1"],
             ['name'=>"Salle conference", 'nb_place'=>"1"],
@@ -249,7 +248,7 @@ class DatabaseSeeder extends Seeder
             ['name'=>"delete_ressource_of_agency", 'description'=> ["Delete the resource of his agency", "Supprimer la ressource de son agence"]],
             ['name'=>"create_ressource", 'description'=> ["Create a new resource", "Créer une nouvelle ressource"]],
             ['name'=>"create_ressource_of_agency", 'description'=> ["Create a new resource in his agency", "Créer une nouvelle ressource dans son agence"]],
-            ['name'=>"manage_ressource", 'description'=> ["Manage the resource", "Gérer la ressource"]],
+            ['name'=>"manage_ressources", 'description'=> ["Manage resources", "Gérer les ressources"]],
 
             //Coupon
             ['name'=>"show_all_coupon", 'description'=> ["List all discount coupons", "Lister tous les coupons de reduction"]],
@@ -257,7 +256,7 @@ class DatabaseSeeder extends Seeder
             ['name'=>"edit_coupon", 'description'=> ["Edit coupon information", "Modifier les informations du coupon"]],
             ['name'=>"delete_coupon", 'description'=> ["Delete coupon", "Supprimer le coupon"]],
             ['name'=>"create_coupon", 'description'=> ["Create a new coupon", "Créer un nouveau coupon"]],
-            ['name'=>"use_coupon", 'description'=> ["Use coupon", "Utiliser le coupon"]],
+            ['name'=>"manage_coupons", 'description'=> ["Manage coupons", "Gérer les coupons"]],
             //Payment
             ['name'=>"show_all_payment", 'description'=> ["List all payments made", "Lister tous les paiements effectués"]],
             ['name'=>"view_payment", 'description'=> ["View payment information", "Afficher les informations du paiement"]],

@@ -18,7 +18,9 @@ class AgencyController extends Controller
     {
         return
         Agency::with([
-            // 'administrators',
+            'createdBy',
+            'suspendedBy',
+            'administrators',
             'openingdays',
             'ressources.space',
             'ressources.reservations'

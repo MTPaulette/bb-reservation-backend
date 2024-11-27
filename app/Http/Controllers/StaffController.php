@@ -13,6 +13,21 @@ use Illuminate\Support\Facades\Validator;
 
 class StaffController extends Controller
 {
+    public function userAllInformations()
+    {
+        return
+        User::with([
+            'createdBy' => function($query) {
+                $query->select('id', 'lastname', 'firstname');
+            },
+            'suspendedBy' => function($query) {
+                $query->select('id', 'lastname', 'firstname');
+            },
+            'workAt'=> function($query) {
+                $query->select('id', 'name');
+            },
+        ]);
+    }
     public function index(Request $request)
     {
         $user = $request->user();
@@ -47,13 +62,7 @@ class StaffController extends Controller
             return response()->json($all_staffs, 201);
         }
     }
-    
-    /**
-     * Display the specified resource.
-     *
-     * @param  $id
-     * @return \Illuminate\Http\Response
-     */
+
     public function show(Request $request)
     {
         $authUser = $request->user();
@@ -69,7 +78,12 @@ class StaffController extends Controller
                     $user = User::withAgencyAndRole()
                                     ->where('users.id', $request->id)
                                     ->get();
-                    return response()->json($user, 201);
+                    $user = $this->userAllInformations()->findOrFail($request->id);
+                    $response = [
+                        'user' => $user,
+                        // 'ressources' => $ressources,
+                    ];
+                    return response()->json($response, 201);
                 }
             }
 
@@ -79,7 +93,11 @@ class StaffController extends Controller
                     $user = User::withAgencyAndRole()
                                     ->where('users.id', $request->id)
                                     ->get();
-                    return response()->json($user, 201);
+                    $user = $this->userAllInformations()->findOrFail($request->id);
+                    $response = [
+                        'user' => $user,
+                    ];
+                    return response()->json($response, 201);
                 }
             }
 
@@ -89,20 +107,17 @@ class StaffController extends Controller
                     $user = User::withAgencyAndRole()
                                     ->where('users.id', $request->id)
                                     ->get();
-                    return response()->json($user, 201);
+                    $user = $this->userAllInformations()->findOrFail($request->id);
+                    $response = [
+                        'user' => $user,
+                    ];
+                    return response()->json($response, 201);
                 }
             }
         }
         abort(403);
     }
 
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         if(
@@ -169,12 +184,6 @@ class StaffController extends Controller
         return response($response, 201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request)
     {
         $authUser = $request->user();
@@ -234,12 +243,6 @@ class StaffController extends Controller
         abort(403);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(Request $request)
     {
         if(
@@ -304,14 +307,29 @@ class StaffController extends Controller
                         'message' => "The $user->role $user->lastname $user->firstname's suspension is stopped",
                     ];
                 } else {
+                    $validator = Validator::make($request->all(),[
+                        'reason_for_suspension_en' => 'required|string|max:250',
+                        'reason_for_suspension_fr' => 'required|string|max:250',
+                    ]);
+        
+                    if($validator->fails()){
+                        \LogActivity::addToLog("The $user->role $user->lastname $user->firstname  suspension failed. ".$validator->errors());
+                        return response([
+                            'errors' => $validator->errors(),
+                        ], 422);
+                    }
                     $user->status = 'suspended';
+                    $user->reason_for_suspension_en = $request->reason_for_suspension_en;
+                    $user->reason_for_suspension_fr = $request->reason_for_suspension_fr;
+                    $user->suspended_by = $authUser->id;
+                    $user->suspended_at = now();
                     $response = [
                         'message' => "The $user->role $user->lastname $user->firstname successfully suspended",
                     ];
                 }
                 $user->save();
 
-                \LogActivity::addToLog("The $user->role  $user->lastname $user->firstname status updated");
+                \LogActivity::addToLog("The $user->role $user->lastname $user->firstname status updated");
                 return response($response, 201);
             }
         }

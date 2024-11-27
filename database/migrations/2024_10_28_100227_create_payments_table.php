@@ -21,6 +21,7 @@ return new class extends Migration
             $table->enum('payment_method', ['Bank', 'MTN Money', 'Cash', 'Orange Money']);
             $table->string('payment_status')->nullable();
             $table->string('transaction_id')->nullable();
+            $table->string('bill_number')->nullable();
 
             $table->timestamps();
         });
