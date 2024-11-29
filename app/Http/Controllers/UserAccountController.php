@@ -65,7 +65,7 @@ class UserAccountController extends Controller
         }
     
         // $user = User::where('email', $request->email)->first();
-        $user = User::withRole()->where('email', $request->email)->first();
+        $user = User::withRole()->where('users.email', $request->email)->first();
  
         if (! $user || ! Hash::check($request->password, $user->password)) {
             \LogActivity::addToLog("Fail to log in. Current password and old password do not match.");

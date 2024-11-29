@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agency;
-use App\Models\Reservation;
 use App\Models\Coupon;
-use App\Models\Space;
+use App\Models\User;
+use App\Notifications\NewCouponReceived;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -22,7 +22,7 @@ class CouponController extends Controller
             'createdBy' => function($query) {
                 $query->select('id', 'lastname', 'firstname');
             }
-        ]);
+        ])->withCount('users');
     }
 
     public function couponAllInformations()
@@ -33,7 +33,7 @@ class CouponController extends Controller
                 $query->select('id', 'lastname', 'firstname');
             },
             'users' => function($query) {
-                $query->select('id', 'lastname', 'firstname');
+                $query->select('user_id', 'lastname', 'firstname');
             }
         ]);
     }
@@ -45,7 +45,7 @@ class CouponController extends Controller
             $authUser->hasPermission('manage_coupons') ||
             $authUser->hasPermission('show_all_coupon')
         ) {
-            $coupons = $this->couponAllInformations()->get();
+            $coupons = $this->couponWithCreator()->get();
             return response()->json($coupons, 201);
         }
 
@@ -57,9 +57,10 @@ class CouponController extends Controller
         $authUser = $request->user();
         if(
             $authUser->hasPermission('manage_coupons') ||
+            $authUser->hasPermission('edit_coupon') ||
             $authUser->hasPermission('view_coupon')
         ) {
-            $coupon = $this->couponWithCreator()->findOrFail($request->id);
+            $coupon = $this->couponAllInformations()->findOrFail($request->id);
             return response()->json($coupon, 201);
         }
 
@@ -110,93 +111,76 @@ class CouponController extends Controller
 
     public function update(Request $request)
     {
-        $authUser = $request->user();
         if(
-            !$authUser->hasPermission('manage_coupons') &&
-            !$authUser->hasPermission('edit_coupon') &&
-            !$authUser->hasPermission('edit_coupon_of_agency')
+            $request->user()->hasPermission('manage_coupons') ||
+            $request->user()->hasPermission('edit_coupon')
         ) {
-            abort(403);
-        }
-        $validator = Validator::make($request->all(),[
-            'quantity' => 'required|integer|min:1',
-            'price_hour' => 'required|integer|min:1',
-            'price_midday' => 'required|integer|min:1',
-            'price_day' => 'required|integer|min:1',
-            'price_week' => 'required|integer|min:1',
-            'price_month' => 'required|integer|min:1',
-        ]);
+            $validator = Validator::make($request->all(),[
+                'total_usage' => 'required|integer|min:1',
+                'percent' => 'nullable|integer|min:1',
+                'amount' => 'nullable|integer|min:1',
+                'expired_on' => 'required|date|after:'.Carbon::today()->format('Y-m-d H:m:s'), //after, before
+                'note_en' => 'string|nullable',
+                'note_fr' => 'string|nullable',
+            ]);
 
-        if($validator->fails()){
-            \LogActivity::addToLog("Coupon updation failed. ".$validator->errors());
-            return response([
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $agency = Agency::findOrFail($request->agency_id);
-        $space = Space::findOrFail($request->space_id);
-        $coupon = Coupon::findOrFail($request->id);
-
-        $existing_coupon = Coupon::where('agency_id', $agency->id)
-        ->where('space_id', $space->id)->first();
-
-        if($authUser->hasPermission('edit_coupon_of_agency')) {
-            if(
-                $agency->id != $authUser->work_at &&
-                !$authUser->hasPermission('manage_coupons') &&
-                !$authUser->hasPermission('edit_coupon')
-            ) {
-                abort(403);
+            if($validator->fails()){
+                \LogActivity::addToLog("Coupon updation failed. ".$validator->errors());
+                return response([
+                    'errors' => $validator->errors(),
+                ], 422);
             }
-            $confirm_agency_id = $authUser->work_at;
-        }
 
-        if($existing_coupon && $existing_coupon->id != $request->id){
-            \LogActivity::addToLog("Coupon updation failed. Error: The selected space has been already created in this agency");
-            return response([
-                'errors' => "The selected space has been already created in this agency.",
-            ], 422);
-        }
+            $coupon = Coupon::findOrFail($request->id);
+            $request->validate([
+                'name' => [
+                    'required', 'string', 'max:250',
+                    Rule::unique('coupons', 'name')->ignore($request->id),
+                ],
+            ]);
+            if($request->has('name') && isset($request->name)) {
+                $coupon->name = $request->name;
+            }
+            if($request->has('total_usage') && isset($request->total_usage)) {
+                $coupon->total_usage = $request->total_usage;
+            }
+            if($request->has('percent') && isset($request->percent)) {
+                $coupon->percent = $request->percent;
+            }
+            if($request->has('amount') && isset($request->amount)) {
+                $coupon->amount = $request->amount;
+            }
+            if($request->has('expired_on') && isset($request->expired_on)) {
+                $coupon->expired_on = $request->expired_on;
+            }
+            if($request->has('note_en') && isset($request->note_en)) {
+                $coupon->note_en = $request->note_en;
+            }
+            if($request->has('note_fr') && isset($request->note_fr)) {
+                $coupon->note_fr = $request->note_fr;
+            }
+            if($request->has('clients') && isset($request->clients)) {
+                $coupon->users()->detach();
+                $clients = $request->clients;
+                foreach ($clients as $client_id) {
+                    $client = User::findOrFail($client_id);
+                    $coupon->users()->attach($client);
+                }
+            }
 
-        if(
-            $authUser->hasPermission('manage_coupons') ||
-            $authUser->hasPermission('edit_coupon')
-        ) {
-            $confirm_agency_id = $agency->id;
-        }
+            $coupon->update();
+            $response = [
+                'message' => "The $coupon->name successfully updated",
+            ];
+            foreach($coupon->users as $user) {
+                $user->notify(new NewCouponReceived($coupon));
+            }
 
-        $coupon = Coupon::findOrFail($request->id);
-        if($request->has('quantity') && isset($request->quantity)) {
-            $coupon->quantity = $request->quantity;
+            \LogActivity::addToLog("The coupon $coupon->name has been updated.");
+            // return response($coupon, 201);
+            return response($response, 201);
         }
-        if($request->has('price_hour') && isset($request->price_hour)) {
-            $coupon->price_hour = $request->price_hour;
-        }
-        if($request->has('price_midday') && isset($request->price_midday)) {
-            $coupon->price_midday = $request->price_midday;
-        }
-        if($request->has('price_day') && isset($request->price_day)) {
-            $coupon->price_day = $request->price_day;
-        }
-        if($request->has('price_week') && isset($request->price_week)) {
-            $coupon->price_week = $request->price_week;
-        }
-        if($request->has('price_month') && isset($request->price_month)) {
-            $coupon->price_month = $request->price_month;
-        }
-        $coupon->space_id = $space->id;
-        $coupon->created_by = $authUser->id;
-        $coupon->agency_id = $confirm_agency_id;
-        $coupon->update();
-
-        $response = [
-            'message' => "The coupon $coupon->id successfully updated.",
-        ];
-
-        \LogActivity::addToLog("The coupon $coupon->id has been update");
-
-        return response($response, 201);
+        abort(403);
     }
 
     public function destroy(Request $request)

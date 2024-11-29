@@ -11,17 +11,19 @@ use Illuminate\Support\Facades\Validator;
 
 class ClientController extends Controller
 {
-    /*
-    public function __construct()
+    public function userAllInformations()
     {
-        $this->authorizeResource(User::class, 'user');
+        return
+        User::with([
+            'createdBy' => function($query) {
+                $query->select('id', 'lastname', 'firstname');
+            },
+            'suspendedBy' => function($query) {
+                $query->select('id', 'lastname', 'firstname');
+            },
+        ]);
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index(Request $request)
     {
         if(!$request->user()->hasPermission('show_all_client')) {
@@ -30,13 +32,6 @@ class ClientController extends Controller
         $clients = User::withRole()->where('roles.name', 'client')->get()->toArray();
         return response()->json($clients, 201);
     }
-    
-    /**
-     * Display the specified resource.
-     *
-     * @param  $id
-     * @return \Illuminate\Http\Response
-     */
 
     public function show(Request $request)
     {
@@ -44,7 +39,13 @@ class ClientController extends Controller
         if( $authUser->hasPermission('view_client') || $request->id == $authUser->id ){
             $user = User::withRole()->findOrFail($request->id);
             if($user->role == 'client') {
-                return response()->json($user, 201);
+                $user = $this->userAllInformations()->findOrFail($request->id);
+                $response = [
+                    'user' => $user,
+                    'coupons' => $user->coupons,
+                ];
+                return response()->json($response, 201);
+                // return response()->json($user, 201);
             }
         }
         abort(403);

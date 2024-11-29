@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('coupons', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->string('code')->unique()->default('123456789');
+            $table->string('code')->unique()->nullable();
             $table->unsignedInteger('total_usage')->default(1);
             $table->enum('status', ['active', 'expired'])->default('active');
             $table->dateTime('expired_on');

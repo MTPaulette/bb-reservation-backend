@@ -78,7 +78,7 @@ class User extends Authenticatable
     public function coupons(): BelongsToMany {
         return $this->belongsToMany(Coupon::class, 'couponUsers')
                     ->using(CouponUser::class)
-                    ->withPivot('id', 'nb_usage', 'used_on', 'created_at');
+                    ->withPivot('id', 'created_at');
     }
 
     public function ressources(): HasMany {
@@ -131,7 +131,7 @@ class User extends Authenticatable
                         'creators.lastname as parent_lastname',
                         'creators.firstname as parent_firstname'
                     )
-                    ->orderByDesc('created_at');
+                    ->orderByDesc('users.lastname');
     }
 
     public function scopeWithAgency(Builder $query): Builder{

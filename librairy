@@ -1,0 +1,119 @@
+Pour envoyer des notifications par email avec un modèle personnalisé dans Laravel, vous pouvez suivre les étapes suivantes :
+
+1. Créez un nouveau modèle de notification en exécutant la commande suivante dans votre terminal :
+
+php artisan make:notification MyCustomNotification --markdown=emails.my-custom-notification
+
+Cette commande créera un nouveau fichier MyCustomNotification.php dans le dossier app/Notifications et un nouveau fichier my-custom-notification.blade.php dans le dossier resources/views/emails.
+
+1. Ouvrez le fichier MyCustomNotification.php et modifiez la méthode via pour spécifier que la notification doit être envoyée par email :
+
+namespace App\Notifications;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+
+class MyCustomNotification extends Notification
+{
+    use Queueable;
+
+    public function via($notifiable)
+    {
+        return ['mail'];
+    }
+
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->subject('Mon sujet de notification')
+            ->markdown('emails.my-custom-notification', [
+                'name' => $notifiable->name,
+                'message' => 'Mon message de notification',
+            ]);
+    }
+}
+
+1. Ouvrez le fichier my-custom-notification.blade.php et créez votre modèle de notification personnalisé :
+
+<h1>Bonjour {{ $name }} !</h1>
+
+<p>{{ $message }}</p>
+
+<p>Cordialement,</p>
+<p>Votre nom</p>
+
+1. Pour envoyer la notification, vous pouvez utiliser la méthode notify sur un objet User ou Notifiable :
+
+use App\Notifications\MyCustomNotification;
+use App\Models\User;
+
+$user = User::find(1);
+$user->notify(new MyCustomNotification());
+
+La notification sera envoyée à l'utilisateur avec le modèle personnalisé que vous avez créé.
+
+
+======================================================================================================
+Pour créer un footer pour tous les emails envoyés avec Laravel Notification Markdown, vous pouvez utiliser la fonctionnalité de "footer" intégrée à Laravel.
+
+Voici un exemple de code qui montre comment créer un footer avec des liens et des logos des réseaux sociaux de l'entreprise :
+
+// dans le fichier resources/views/vendor/mail/html/footer.blade.php
+
+<footer>
+    <table>
+        <tr>
+            <td>
+                <a href="{{ url('/') }}">Accueil</a>
+            </td>
+            <td>
+                <a href="{{ url('/contact') }}">Contact</a>
+            </td>
+            <td>
+                <a href="{{ url('/mentions-legales') }}">Mentions légales</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="(link unavailable)" target="_blank">
+                    <img src="{{ asset('images/facebook.png') }}" alt="Facebook">
+                </a>
+            </td>
+            <td>
+                <a href="(link unavailable)" target="_blank">
+                    <img src="{{ asset('images/twitter.png') }}" alt="Twitter">
+                </a>
+            </td>
+            <td>
+                <a href="(link unavailable)" target="_blank">
+                    <img src="{{ asset('images/instagram.png') }}" alt="Instagram">
+                </a>
+            </td>
+        </tr>
+    </table>
+</footer>
+
+Dans cet exemple, nous créons un footer avec des liens vers les pages d'accueil, de contact et de mentions légales de l'entreprise. Nous ajoutons également des logos des réseaux sociaux de l'entreprise.
+
+Pour utiliser ce footer dans vos notifications, vous devez créer un fichier footer.blade.php dans le dossier resources/views/vendor/mail/html/.
+
+Ensuite, dans votre notification, vous pouvez utiliser la méthode footer pour afficher le footer :
+
+// dans votre notification
+
+use Illuminate\Notifications\Messages\MailMessage;
+
+class MonNotification extends Notification
+{
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->subject('Mon sujet')
+            ->line('Mon message')
+            ->footer('footer');
+    }
+}
+
+Dans cet exemple, nous utilisons la méthode footer pour afficher le footer dans la notification. Le footer sera affiché en bas de la notification.

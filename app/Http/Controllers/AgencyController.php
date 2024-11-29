@@ -25,7 +25,11 @@ class AgencyController extends Controller
             'suspendedBy' => function($query) {
                 $query->select('id', 'lastname', 'firstname');
             },
-            'administrators',
+            'administrators' => [
+                'createdBy' => function($query) {
+                    $query->select('id', 'lastname', 'firstname');
+                },
+            ],
             'openingdays' => function($query) {
                 $query->select(
                     'openingdays.id', 'openingdays.name_en', 'openingdays.name_fr',

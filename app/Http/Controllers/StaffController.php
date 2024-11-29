@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity_log;
 use App\Models\Agency;
+use App\Models\Coupon;
 use App\Models\Reservation;
+use App\Models\Ressource;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -25,9 +27,10 @@ class StaffController extends Controller
             },
             'workAt'=> function($query) {
                 $query->select('id', 'name');
-            },
+            }
         ]);
     }
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -72,48 +75,39 @@ class StaffController extends Controller
             $authUser->hasPermission('view_superadmin')
         ) {
 
-            if( $authUser->hasPermission('view_superadmin')){
-                $user = User::withRole()->findOrFail($request->id);
-                if($user->role == 'superadmin') {
-                    $user = User::withAgencyAndRole()
-                                    ->where('users.id', $request->id)
-                                    ->get();
-                    $user = $this->userAllInformations()->findOrFail($request->id);
-                    $response = [
-                        'user' => $user,
-                        // 'ressources' => $ressources,
-                    ];
-                    return response()->json($response, 201);
+            $user = User::withRole()->findOrFail($request->id);
+            if($authUser->hasPermission('view_superadmin')) {
+                if($user->role != 'superadmin' && $user->role != 'admin') {
+                    abort(403);
                 }
+            } else {
+                if($authUser->hasPermission('view_admin')) {
+                    if($user->role != 'admin') {
+                        abort(403);
+                    }
+                } else {
+                    if($authUser->hasPermission('view_admin_of_agency')) {
+                        if($user->role != 'admin' || $authUser->work_at != $user->work_at) {
+                            abort(403);
+                        }
+                    }
+                } 
             }
 
-            if( $authUser->hasPermission('view_admin')){
-                $user = User::withRole()->findOrFail($request->id);
-                if($user->role == 'admin' && $user->work_at == $user->work_at) {
-                    $user = User::withAgencyAndRole()
-                                    ->where('users.id', $request->id)
+            $coupons = Coupon::where('coupons.created_by', $request->id)->get();
+            $clients = User::where('users.created_by', $request->id)->get(['id', 'lastname', 'firstname']);
+            $ressources = Ressource::withAgencySpaceUser()
+                                    ->where('ressources.agency_id', $request->id)
                                     ->get();
-                    $user = $this->userAllInformations()->findOrFail($request->id);
-                    $response = [
-                        'user' => $user,
-                    ];
-                    return response()->json($response, 201);
-                }
-            }
-
-            if( $authUser->hasPermission('view_admin_of_agency')){
-                $user = User::withRole()->findOrFail($request->id);
-                if($user->role == 'admin' && $authUser->work_at == $user->work_at) {
-                    $user = User::withAgencyAndRole()
-                                    ->where('users.id', $request->id)
-                                    ->get();
-                    $user = $this->userAllInformations()->findOrFail($request->id);
-                    $response = [
-                        'user' => $user,
-                    ];
-                    return response()->json($response, 201);
-                }
-            }
+            
+            $user = $this->userAllInformations()->findOrFail($request->id);
+            $response = [
+                'user' => $user,
+                'coupons' => $coupons,
+                'ressources' => $ressources,
+                'clients' => $clients,
+            ];
+            return response()->json($response, 201);
         }
         abort(403);
     }
@@ -335,5 +329,4 @@ class StaffController extends Controller
         }
         abort(403);
     }
-
 }

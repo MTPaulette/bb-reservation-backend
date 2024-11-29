@@ -59,26 +59,21 @@ class RessourceController extends Controller
             $authUser->hasPermission('show_all_ressource_of_agency')
         ) {
             $ressource = Ressource::findOrFail($request->id);
+
             if(
-                $authUser->hasPermission('manage_ressources') ||
-                $authUser->hasPermission('show_all_ressource')
+                !$authUser->hasPermission('manage_ressources') &&
+                !$authUser->hasPermission('show_all_ressource') &&
+                $authUser->hasPermission('show_all_ressource_of_agency')
             ) {
-                $ressource = $this->ressourceAllInformations()->find($request->id);
-                $response = [
-                    'ressource' => $ressource,
-                    // 'ressources' => $ressources,
-                ];
-                return response()->json($response, 201);
-            }
-            if($authUser->hasPermission('show_all_ressource_of_agency')) {
-                if($authUser->work_at == $ressource->agency_id) {
-                    $ressource = $this->ressourceAllInformations()->find($request->id);
-                    $response = [
-                        'ressource' => $ressource,
-                    ];
-                    return response()->json($response, 201);
+                if($authUser->work_at != $ressource->agency_id) {
+                    abort(403);
                 }
             }
+            $ressource = $this->ressourceAllInformations()->find($request->id);
+            $response = [
+                'ressource' => $ressource,
+            ];
+            return response()->json($response, 201);
         }
 
         abort(403);

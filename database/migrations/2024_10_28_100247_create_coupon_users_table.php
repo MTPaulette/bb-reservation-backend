@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('coupon_users', function (Blueprint $table) {
+        Schema::create('couponUsers', function (Blueprint $table) {
             $table->id();
 
             $table->unsignedBigInteger('coupon_id')->onDelete('cascade');
@@ -22,8 +22,6 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users');
 
-            $table->unsignedInteger('nb_usage')->default(1);
-            $table->dateTime('used_on')->nullable();
             $table->timestamps();
         });
     }
