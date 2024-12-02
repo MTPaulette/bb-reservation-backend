@@ -2,6 +2,8 @@
 
 namespace App\Console;
 
+use App\Jobs\SendCouponNotifications;
+use App\Models\Coupon;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -16,6 +18,13 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        $coupon = Coupon::latest()->first();
+        if ($coupon && !$coupon->sent) {
+            // $schedule->job(new SendCouponNotifications($coupon))->dailyAt('08:00');
+            $schedule->job(new SendCouponNotifications($coupon))->everyMinute();
+            $coupon->sent = true;
+            $coupon->save();
+        }
     }
 
     /**

@@ -45,7 +45,6 @@ class ClientController extends Controller
                     'coupons' => $user->coupons,
                 ];
                 return response()->json($response, 201);
-                // return response()->json($user, 201);
             }
         }
         abort(403);

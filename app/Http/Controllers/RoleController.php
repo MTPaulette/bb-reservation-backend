@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Option;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ class RoleController extends Controller
 {
     public function index(Request $request)
     {
+        return Option::where('name', 'smtp_email')->first()->value;
         if(!$request->user()->hasPermission('manage_permissions')) {
             abort(403);
         }

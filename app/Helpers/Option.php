@@ -2,7 +2,6 @@
 
 namespace App\Helpers;
 
-use Request;
 use App\Models\Option as OptionModel;
 
 

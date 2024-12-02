@@ -21,6 +21,7 @@ class Coupon extends Model
         'amount',
         'note_en',
         'note_fr',
+        'sent'
     ];
 
     public function users(): BelongsToMany {

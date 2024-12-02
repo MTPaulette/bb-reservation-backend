@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Coupon;
 use App\Models\User;
-use App\Notifications\NewCouponReceived;
+use App\Notifications\NewCouponSent;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -173,7 +173,7 @@ class CouponController extends Controller
                 'message' => "The $coupon->name successfully updated",
             ];
             foreach($coupon->users as $user) {
-                $user->notify(new NewCouponReceived($coupon));
+                $user->notify(new NewCouponSent($coupon));
             }
 
             \LogActivity::addToLog("The coupon $coupon->name has been updated.");

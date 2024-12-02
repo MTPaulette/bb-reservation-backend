@@ -73,6 +73,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'mayogue@yahoo.com',
             'role_id' => 1,
             'work_at' => 1,
+            'created_by' => 1,
         ]);
 
         \App\Models\User::factory()->create([
@@ -81,27 +82,44 @@ class DatabaseSeeder extends Seeder
             'email' => 'mayoguepaulette@gmail.com',
             'role_id' => 1,
             'work_at' => 2,
+            'created_by' => 1,
         ]);
 
         \App\Models\User::factory()->create([
             'lastname' => 'test',
             'firstname' => 'client',
             'email' => 'client@test.fr',
-            'role_id' => 2
+            'role_id' => 2,
+            'created_by' => 2,
         ]);
 
-        \App\Models\User::factory(40)->create();
+        \App\Models\User::factory(15)->create([
+            'created_by' => 57,
+        ]);
+        
+        \App\Models\User::factory(10)->create([
+            'created_by' => 2,
+        ]);
+        \App\Models\User::factory(10)->create([
+            'created_by' => 3,
+        ]);
+        \App\Models\User::factory(5)->create([
+            'created_by' => 1,
+        ]);
         \App\Models\User::factory(5)->create([
             'role_id' => 1,
             'work_at' => 1,
+            'created_by' => 1,
         ]);
         \App\Models\User::factory(7)->create([
             'role_id' => 1,
             'work_at' => 2,
+            'created_by' => 2,
         ]);
         \App\Models\User::factory(1)->create([
             'role_id' => 3,
             'work_at' => 2,
+            'created_by' => 3,
         ]);
 
 

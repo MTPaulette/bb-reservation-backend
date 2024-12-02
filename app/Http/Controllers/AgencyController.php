@@ -25,11 +25,6 @@ class AgencyController extends Controller
             'suspendedBy' => function($query) {
                 $query->select('id', 'lastname', 'firstname');
             },
-            'administrators' => [
-                'createdBy' => function($query) {
-                    $query->select('id', 'lastname', 'firstname');
-                },
-            ],
             'openingdays' => function($query) {
                 $query->select(
                     'openingdays.id', 'openingdays.name_en', 'openingdays.name_fr',
@@ -114,9 +109,14 @@ class AgencyController extends Controller
             // $reservationsCount = [
             //     'pending' => Reservation::where()->count()
             // ];
+            $administrators = User::withAgencyAndRole()
+                                    ->where('roles.name', 'admin')
+                                    ->where('agencies.id', '=', $request->id)
+                                    ->get();
             $response = [
                 'agency' => $agency,
                 'ressources' => $ressources,
+                'administrators' => $administrators
             ];
             return response()->json($response, 201);
         }

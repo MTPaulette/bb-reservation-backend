@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewCouponReceived extends Notification
+class NewCouponSent extends Notification
 {
     use Queueable;
 
@@ -44,7 +44,20 @@ class NewCouponReceived extends Notification
         return
         (new MailMessage)
         ->subject('Nouveau Coupon')
-        ->markdown('notifications.new-coupon-received', [
+        ->markdown('notifications.new-coupon-sent', [
+            'name' => $notifiable->lastname,
+            'coupon' => $this->coupon,
+            'url' => $btn_url
+        ]);
+    }
+
+    public function toMaill($notifiable)
+    {
+        $btn_url = env('APP_FRONTEND_URL').'/fr/admin/clients/'.$notifiable->id;
+        return
+        (new MailMessage)
+        ->subject('Nouveau Coupon')
+        ->markdown('notifications.new-coupon-sended', [
             'name' => $notifiable->lastname,
             'message' => "Vous avez reçu un coupon de réduction ({$this->coupon->name}).
             Il vous donne droit à une réduction de {$this->coupon->percent}% ou {$this->coupon->amount} FCFA 

@@ -1,6 +1,6 @@
 @php
 
-$company_name = \Options::getValue('company_name');
+$companyname = \Options::getValue('companyname');
 $address = \Options::getValue('address');
 $city = \Options::getValue('city');
 $phonenumber = \Options::getValue('phonenumber');
@@ -26,7 +26,7 @@ $twitter = \Options::getValue('twitter');
 <hr size="2px" width="100%" color="black" style="margin-top: 40px; margin-bottom: 20px;" />
 <p>
   <address>
-    <b style="color:black; font-weight: 700px;">{{ $company_name }}</b>
+    <b style="color:black; font-weight: 700px;">{{ $companyname }}</b>
     <br> {{ $address }}
     <br> {{ $city }}
     <br> Tel: {{ $phonenumber }}

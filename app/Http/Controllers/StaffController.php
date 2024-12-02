@@ -94,18 +94,34 @@ class StaffController extends Controller
                 } 
             }
 
-            $coupons = Coupon::where('coupons.created_by', $request->id)->get();
-            $clients = User::where('users.created_by', $request->id)->get(['id', 'lastname', 'firstname']);
+            $coupons = Coupon::with([
+                                'createdBy' => function($query) {
+                                    $query->select('id', 'lastname', 'firstname');
+                                }
+                            ])
+                            ->withCount('users')
+                            ->where('coupons.created_by', $request->id)->get();
             $ressources = Ressource::withAgencySpaceUser()
-                                    ->where('ressources.agency_id', $request->id)
+                                    ->where('ressources.created_by', $request->id)
                                     ->get();
             
             $user = $this->userAllInformations()->findOrFail($request->id);
+            $created_clients = User::withRole()
+                                    ->where('users.created_by', $request->id)
+                                    ->where('roles.name', 'client')
+                                    ->get()
+                                    ->toArray();
+            $created_staff = User::withAgencyAndRole()
+                                    ->where('roles.name', 'admin')
+                                    // ->OrWhere('roles.name', 'admin')
+                                    ->where('users.created_by', '=', $request->id)
+                                    ->get();
             $response = [
                 'user' => $user,
                 'coupons' => $coupons,
                 'ressources' => $ressources,
-                'clients' => $clients,
+                'created_clients' => $created_clients,
+                'created_staff' => $created_staff,
             ];
             return response()->json($response, 201);
         }

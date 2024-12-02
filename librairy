@@ -117,3 +117,135 @@ class MonNotification extends Notification
 }
 
 Dans cet exemple, nous utilisons la méthode footer pour afficher le footer dans la notification. Le footer sera affiché en bas de la notification.
+
+
+=================================================
+
+Pour programmer une tâche cron pour envoyer les emails contenant les informations sur le coupon de réduction à tous les utilisateurs ayant été sélectionné pour recevoir ce coupon, vous pouvez suivre les étapes suivantes :
+
+1. Créez un nouveau fichier dans le répertoire app/Jobs de votre projet Laravel, par exemple SendCouponEmails.php.
+
+namespace App\Jobs;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+
+class SendCouponEmails implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public $coupon;
+
+    public function __construct($coupon)
+    {
+        $this->coupon = $coupon;
+    }
+
+    public function handle()
+    {
+        // Envoi des emails aux utilisateurs sélectionnés
+        $users = User::where('selected_for_coupon', true)->get();
+
+        foreach ($users as $user) {
+            $user->notify(new CouponNotification($this->coupon));
+        }
+    }
+}
+
+Dans cette classe, nous utilisons la méthode handle pour envoyer les emails aux utilisateurs sélectionnés.
+
+1. Créez un nouveau fichier dans le répertoire app/Notifications de votre projet Laravel, par exemple CouponNotification.php.
+
+namespace App\Notifications;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+
+class CouponNotification extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    public $coupon;
+
+    public function __construct($coupon)
+    {
+        $this->coupon = $coupon;
+    }
+
+    public function via($notifiable)
+    {
+        return ['mail'];
+    }
+
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->subject('Coupon de réduction')
+            ->markdown('emails.coupon', ['coupon' => $this->coupon]);
+    }
+}
+
+Dans cette classe, nous utilisons la méthode toMail pour définir le contenu de l'email.
+
+1. Créez un nouveau fichier dans le répertoire resources/views/emails de votre projet Laravel, par exemple coupon.blade.php.
+
+@component('mail::message')
+# Coupon de réduction
+
+Vous avez été sélectionné pour recevoir un coupon de réduction !
+
+@component('mail::panel')
+    Code : {{ $coupon->code }}
+    Montant : {{ $coupon->amount }}%
+@endcomponent
+
+Merci de votre fidélité !
+
+@component('mail::button', ['url' => ''])
+    Utiliser mon coupon
+@endcomponent
+
+Cordialement,
+{{ config('app.name') }}
+@endcomponent
+
+Dans ce fichier, nous utilisons les variables code et amount pour afficher les informations sur le coupon.
+
+1. Pour programmer la tâche cron, vous devez ajouter la ligne suivante dans le fichier 
+app/Console/Kernel.php de votre projet Laravel :
+
+protected function schedule(Scheduler $scheduler)
+{
+    $scheduler->job(new SendCouponEmails($coupon))->dailyAt('08:00');
+}
+
+Dans cette ligne, nous utilisons la méthode job pour programmer la tâche cron. Nous passons une instance de la classe SendCouponEmails avec le coupon en paramètre. Nous utilisons également la méthode dailyAt pour programmer la tâche cron pour être exécutée tous les jours à 8h00.
+
+1. Enfin, vous devez ajouter la ligne suivante dans le fichier config/crontab de votre projet Laravel :
+
+* * * * * cd /path/to/your/project && php artisan schedule:run >> /dev/null 2>&1
+
+Dans cette ligne, nous utilisons la commande schedule:run pour exécuter la tâche cron programmée.
+
+Maintenant, lorsque vous créez un nouveau coupon, la tâche cron sera exécutée automatiquement pour envoyer les emails aux utilisateurs sélectionnés.
+
+
+=============================================
+
+
+protected function schedule(Scheduler $scheduler)
+{
+    $coupon = Coupon::latest()->first();
+
+    if ($coupon && !$coupon->sent) {
+        $scheduler->job(new SendCouponEmails($coupon))->dailyAt('08:00');
+        $coupon->sent = true;
+        $coupon->save();
+    }
+}

@@ -78,6 +78,8 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
     /* option */
     Route::get('/options', [OptionController::class, 'index']);
     Route::post('/option/store', [OptionController::class, 'store']);
+    Route::put("/option/{id}/update",[OptionController::class, "update"]);
+    Route::post('/option/holidays/store', [OptionController::class, 'save_holidays']);
 
     /* agency routes */
     Route::get("/agencies",[AgencyController::class, "index"]);
@@ -91,7 +93,6 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
     Route::get("/spaces",[SpaceController::class, "index"]);
     Route::get("/space/{id}",[SpaceController::class, "show"]);
     Route::post("/space/store",[SpaceController::class, "store"]);
-    Route::put("/space/{id}/update",[SpaceController::class, "update"]);
     Route::put('/space/{id}/delete', [SpaceController::class, 'destroy']);
 
     /* space images routes */
