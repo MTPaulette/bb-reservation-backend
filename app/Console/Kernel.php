@@ -20,7 +20,6 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $coupon = Coupon::latest()->first();
         if ($coupon && !$coupon->sent) {
-            // $schedule->job(new SendCouponNotifications($coupon))->dailyAt('08:00');
             $schedule->job(new SendCouponNotifications($coupon))->everyMinute();
             $coupon->sent = true;
             $coupon->save();

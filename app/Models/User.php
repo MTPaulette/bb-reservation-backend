@@ -85,8 +85,12 @@ class User extends Authenticatable
         return $this->hasMany(Ressource::class, 'created_by', 'id');
     }
 
-    public function reservations(): HasMany {
+    public function createdReservations(): HasMany {
         return $this->hasMany(Reservation::class, 'created_by', 'id');
+    }
+
+    public function reservations(): HasMany {
+        return $this->hasMany(Reservation::class, 'user_id', 'id');
     }
 
     public function cancelledReservations(): HasMany {
@@ -131,7 +135,8 @@ class User extends Authenticatable
                         'creators.lastname as parent_lastname',
                         'creators.firstname as parent_firstname'
                     )
-                    ->orderByDesc('users.lastname');
+                    ->orderBy('users.lastname');
+                    // ->orderByDesc('users.lastname');
     }
 
     public function scopeWithAgency(Builder $query): Builder{

@@ -94,7 +94,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         \App\Models\User::factory(15)->create([
-            'created_by' => 57,
+            'created_by' => 1,
         ]);
         
         \App\Models\User::factory(10)->create([
@@ -237,9 +237,7 @@ class DatabaseSeeder extends Seeder
             ['name'=>"create_admin", 'description'=> ["Create a new admin member", "Creer un nouveau membre de l'admin"]],
             ['name'=>"edit_admin", 'description'=> ["Edit admin information", "Modifier les informations de l'admin"]],
             ['name'=>"delete_admin", 'description'=> ["Delete an admin", "Supprimer un admin"]],
-            
-            ['name'=>"manage_reservations", 'description'=> ["Manage reservations", "Gérer les réservations"]],
-            ['name'=>"manage_resources", 'description'=> ["Manage resources", "Gérer les ressources"]],
+
             //Superadmin
             ['name'=>"show_all_superadmin", 'description'=> ["List all superadmins", "Lister tous les superadmin"]],
             ['name'=>"view_superadmin", 'description'=> ["Show all superadmin information", "Afficher les informations de tous les superadmin"]],
@@ -275,6 +273,30 @@ class DatabaseSeeder extends Seeder
             ['name'=>"delete_coupon", 'description'=> ["Delete coupon", "Supprimer le coupon"]],
             ['name'=>"create_coupon", 'description'=> ["Create a new coupon", "Créer un nouveau coupon"]],
             ['name'=>"manage_coupons", 'description'=> ["Manage coupons", "Gérer les coupons"]],
+
+            //Reservation
+            ['name'=>"show_all_reservation", 'description'=> ["List all reservations made", "Lister toutes les réservation effectués"]],
+            ['name'=>"show_all_reservation_of_agency", 'description'=> ["List all reservations made in your agency", "Lister toutes les réservation effectués dans son agence"]],
+            ['name'=>"view_reservation", 'description'=> ["Show reservation information", "Afficher les informations de la réservation"]],
+            ['name'=>"view_reservation_of_agency", 'description'=> ["Show reservation information of your agency", "Afficher les informations de la réservation de son agence"]],
+
+            ['name'=>"create_reservation", 'description'=> ["Create a new reservation", "Créer une nouvelle réservation"]],
+            ['name'=>"create_reservation_of_agency", 'description'=> ["Create a new reservation in his agency", "Créer une nouvelle réservation dans son agence"]],
+
+            ['name'=>"edit_reservation", 'description'=> ["Edit any reservation information", "Modifier les informations de la réservation quelconque"]],
+            ['name'=>"edit_own_reservation", 'description'=> ["Edit the information of the reservation made by yourself", "Modifier les informations de la réservation effectuée par soi-meme"]],
+            ['name'=>"edit_reservation_of_agency", 'description'=> ["Edit the information of the reservation made in your agency", "Modifier les informations de la réservation effectuée dans son agence"]],
+
+            ['name'=>"cancel_all_reservation", 'description'=> ["Cancel any reservation", "Annuler une réservation quelconque"]],
+            ['name'=>"cancel_own_reservation", 'description'=> ["Cancel a reservation made by yourself", "Annuler une réservation effectuée par soi-meme"]],
+            ['name'=>"cancel_reservation_of_agency", 'description'=> ["Cancel a reservation made by your agency", "Annuler une réservation de son agence"]],
+
+            ['name'=>"manage_reservations", 'description'=> ["Manage reservation", "Gérer les réservations"]],
+
+            // ['name'=>"delete_reservation", 'description'=> ["Delete any reservation", "Supprimer la réservation quelconque"]],
+            // ['name'=>"delete_own_reservation", 'description'=> ["Delete the reservation made by yourself", "Supprimer la réservation effectuée par soi-meme"]],
+            // ['name'=>"delete_reservation_of_agency", 'description'=> ["Delete the reservation made in your agency", "Supprimer la réservation effectuée dans son agence"]],
+
             //Payment
             ['name'=>"show_all_payment", 'description'=> ["List all payments made", "Lister tous les paiements effectués"]],
             ['name'=>"view_payment", 'description'=> ["View payment information", "Afficher les informations du paiement"]],
@@ -282,22 +304,7 @@ class DatabaseSeeder extends Seeder
             ['name'=>"delete_payment", 'description'=> ["Delete payment", "Supprimer le paiement"]],
             ['name'=>"create_payment", 'description'=> ["Create a new payment", "Créer un nouveau paiement"]],
             ['name'=>"process_payment", 'description'=> ["Process payment","Traiter le paiement"]],
-            //Reservation
-            ['name'=>"show_all_reservation", 'description'=> ["List all reservations made", "Lister toutes les réservation effectués"]],
-            ['name'=>"show_all_reservation_of_agency", 'description'=> ["List all reservations made in your agency", "Lister toutes les réservation effectués dans son agence"]],
-            ['name'=>"view_reservation", 'description'=> ["Show reservation information", "Afficher les informations de la réservation"]],
-            ['name'=>"view_reservation_of_agency", 'description'=> ["Show reservation information of your agency", "Afficher les informations de la réservation de son agence"]],
-            ['name'=>"edit_reservation", 'description'=> ["Edit any reservation information", "Modifier les informations de la réservation quelconque"]],
-            ['name'=>"edit_own_reservation", 'description'=> ["Edit the information of the reservation made by yourself", "Modifier les informations de la réservation effectuée par soi-meme"]],
-            ['name'=>"edit_reservation_of_agency", 'description'=> ["Edit the information of the reservation made in your agency", "Modifier les informations de la réservation effectuée dans son agence"]],
-            ['name'=>"delete_reservation", 'description'=> ["Delete any reservation", "Supprimer la réservation quelconque"]],
-            ['name'=>"delete_own_reservation", 'description'=> ["Delete the reservation made by yourself", "Supprimer la réservation effectuée par soi-meme"]],
-            ['name'=>"delete_reservation_of_agency", 'description'=> ["Delete the reservation made in your agency", "Supprimer la réservation effectuée dans son agence"]],
-            ['name'=>"create_reservation", 'description'=> ["Create a new reservation", "Créer une nouvelle réservation"]],
-            ['name'=>"cancel_reservation", 'description'=> ["Cancel any reservation", "Annuler la réservation quelconque"]],
-            ['name'=>"view_reservations", 'description'=> ["Show customer reservations", "Afficher les réservations du client"]],
-            ['name'=>"cancel_own_reservation", 'description'=> ["Cancel a reservation made by yourself", "Annuler une réservation effectuée par soi-meme"]],
-            ['name'=>"cancel_reservation_of_agency", 'description'=> ["Cancel a reservation made by your agency", "Annuler une réservation de son agence"]],
+            
         ];
 
         $i = 1;

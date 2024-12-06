@@ -23,6 +23,9 @@ return new class extends Migration
             $table->string('transaction_id')->nullable();
             $table->string('bill_number')->nullable();
 
+            $table->unsignedBigInteger('reservation_id')->nullable();
+            $table->foreign('reservation_id')->references('id')->on('reservations');
+
             $table->timestamps();
         });
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Coupon;
+use App\Models\Reservation;
 use App\Models\User;
 use App\Notifications\NewCouponSent;
 use Carbon\Carbon;
@@ -172,9 +173,9 @@ class CouponController extends Controller
             $response = [
                 'message' => "The $coupon->name successfully updated",
             ];
-            foreach($coupon->users as $user) {
-                $user->notify(new NewCouponSent($coupon));
-            }
+            // foreach($coupon->users as $user) {
+            //     $user->notify(new NewCouponSent($coupon));
+            // }
 
             \LogActivity::addToLog("The coupon $coupon->name has been updated.");
             // return response($coupon, 201);
@@ -219,4 +220,79 @@ class CouponController extends Controller
             return response($response, 201);
         }
     }
+
+    public function apply(Request $request)
+    {
+        //verifie si le client existe
+        if(!User::where("id", $request->client_id)->exists()) {
+            \LogActivity::addToLog("Applying coupon failed. Client with id: $request->client_id not found.");
+            return response([
+                'errors' => [
+                    'en' => "client not found",
+                    'fr' => "client non trouvé",
+                ]
+            ], 404);
+        }
+        $client = User::find($request->client_id);
+
+        //verifie si le coupon existe
+        if(!Coupon::where("code", $request->coupon_code)->exists()) {
+            \LogActivity::addToLog("Applying coupon failed for client $client->lastname $client->fisrtname. Coupon with code: $request->coupon_code not found.");
+            return response([
+                'errors' => [
+                    'en' => "coupon not found",
+                    'fr' => "coupon non trouvé",
+                ]
+            ], 404);
+        }
+        $coupon = Coupon::where('code', $request->coupon_code)->first();
+        $client_coupons_ids = [];
+        foreach ($client->coupons as $item) {
+            array_push($client_coupons_ids, $item->id);
+        }
+
+        //verifie le client a recu le coupon
+        if(!in_array($coupon->id, $client_coupons_ids)) {
+            \LogActivity::addToLog("Applying coupon failed for client $client->lastname $client->fisrtname. Coupon $coupon->name | $coupon->code is not available for this client.");
+            return response([
+                'errors' => [
+                    'en' => "coupon not available for this client",
+                    'fr' => "coupon non disponible pour ce client",
+                ]
+            ], 500);
+        }
+
+        //verifie si le coupon est encore actif
+        if($coupon->status == "expired") {
+            \LogActivity::addToLog("Applying coupon failed for client $client->lastname $client->fisrtname. Coupon $coupon->name | $coupon->code has expired.");
+            return response([
+                'errors' => [
+                    'en' => "coupon has expired",
+                    'fr' => "le coupon a expiré",
+                ]
+            ], 500);
+        }
+
+        //verifie si le coupon n'a pas depasse le nombre maximum d'utilisation
+        $total_client_usage = Reservation::where('client_id', $client->id)
+                                            ->where('coupon_id', $coupon->id)
+                                            ->count();
+
+        if($total_client_usage >= $coupon->total_usage) {
+            \LogActivity::addToLog("Applying coupon failed for client $client->lastname $client->fisrtname. Coupon $coupon->name | $coupon->code total usage($coupon->total_usage) exceded.");
+            return response([
+                'errors' => [
+                    'en' => "coupon total usage($coupon->total_usage) exceded",
+                    'fr' => "le nombre d'utilisaton maximum du coupon ($coupon->total_usage) est atteint",
+                ]
+            ], 500);
+        }
+
+        $response = [
+            'coupon' => $coupon,
+            'message' => "The coupon $coupon->name is valid.",
+        ];
+        return response($response, 201);
+    }
+
 }

@@ -14,6 +14,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\OpeningdayController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RessourceController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SpaceController;
@@ -93,6 +94,7 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
     Route::get("/spaces",[SpaceController::class, "index"]);
     Route::get("/space/{id}",[SpaceController::class, "show"]);
     Route::post("/space/store",[SpaceController::class, "store"]);
+    Route::put('/space/{id}/update', [SpaceController::class, 'update']);
     Route::put('/space/{id}/delete', [SpaceController::class, 'destroy']);
 
     /* space images routes */
@@ -121,7 +123,14 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
     Route::post("/coupon/store",[CouponController::class, "store"]);
     Route::put("/coupon/{id}/update",[CouponController::class, "update"]);
     Route::put('/coupon/{id}/delete', [CouponController::class, 'destroy']);
+    Route::post("/coupon/apply",[CouponController::class, "apply"]);
 
+    /* reservation routes */
+    Route::get("/reservations",[ReservationController::class, "index"]);
+    Route::get("/reservation/{id}",[ReservationController::class, "show"]);
+    Route::post("/reservation/store",[ReservationController::class, "store"]);
+    Route::put("/reservation/{id}/update",[ReservationController::class, "update"]);
+    Route::put('/reservation/{id}/cancel', [ReservationController::class, 'cancel']);
 
 });
 
