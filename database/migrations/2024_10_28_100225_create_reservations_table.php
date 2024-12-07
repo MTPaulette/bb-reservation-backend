@@ -24,8 +24,8 @@ return new class extends Migration
 
             $table->dateTime('start_date');
             $table->dateTime('end_date');
-            $table->time('start_time');
-            $table->time('end_time');
+            $table->time('start_hour');
+            $table->time('end_hour');
 
             $table->unsignedInteger('initial_amount');
             $table->unsignedInteger('amount_due');

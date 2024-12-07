@@ -21,8 +21,8 @@ class Reservation extends Model
         */
         'start_date',
         'end_date',
-        'start_time',
-        'end_time',
+        'start_hour',
+        'end_hour',
         'initial_amount',
         'amount_due',
         'state',

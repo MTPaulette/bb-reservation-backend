@@ -3,9 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agency;
+use App\Models\Openingday;
 use App\Models\Reservation;
+use App\Models\Ressource;
 use App\Models\Space;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 
@@ -96,21 +101,35 @@ class ReservationController extends Controller
 
     public function store(Request $request)
     {
+        // return 'yes';
         $authUser = $request->user();
         if(
-            !$authUser->hasPermission('manage_reservation') &&
+            !$authUser->hasPermission('manage_reservations') &&
             !$authUser->hasPermission('create_reservation') &&
             !$authUser->hasPermission('create_reservation_of_agency')
         ) {
             abort(403);
         }
+
+        // verifie si le client et la ressouce existe bien en BD
+        $client = User::findOrFail($request->client_id);
+        $ressource = Ressource::findOrFail($request->ressource_id);
+        $agency_id = $ressource->agency_id;
+
+        if($authUser->hasPermission('create_reservation_of_agency')) {
+            if($authUser->work_at != $agency_id) {
+                abort(403);
+            }
+        }
+
         $validator = Validator::make($request->all(),[
+            // 'client_id' => 'required|integer|min:1',
+            // 'ressource_id' => 'required|integer|min:1',
+            'validity' => 'required|string',
+            'midday_period' => 'string',
             'quantity' => 'required|integer|min:1',
-            'price_hour' => 'required|integer|min:1',
-            'price_midday' => 'required|integer|min:1',
-            'price_day' => 'required|integer|min:1',
-            'price_week' => 'required|integer|min:1',
-            'price_month' => 'required|integer|min:1',
+            'start_date' => 'required|date',
+            'start_hour' => 'required|string',
         ]);
 
         if($validator->fails()){
@@ -120,9 +139,44 @@ class ReservationController extends Controller
             ], 422);
         }
 
-        $agency = Agency::findOrFail($request->agency_id);
-        $space = Space::findOrFail($request->space_id);
+        //recuperer les jours feries de l'entreprise et on verifie si la date choisie n'est pas feriee
+        $holidays = explode("," , \Options::getValue('holidays'));
+        $start_date = $request->start_date;
 
+        if (in_array($start_date, $holidays)) {
+            \LogActivity::addToLog("Reservation creation failed for client $client->lastname $client->fisrtname | ressource $ressource->id. The date $start_date is holiday.");
+            return response([
+                'errors' => [
+                    'en' => "The date $start_date is holiday.",
+                    'fr' => "La date $start_date est fériée.",
+                ]
+            ], 422);
+        }
+
+        //reuperer le jour de la semaine de la date de debut
+        $start_date_carbon = Carbon::parse($start_date);
+        $dayOfWeek = $start_date_carbon->translatedFormat('l');
+
+        if(
+            Openingday::where("name_en", $dayOfWeek)
+                    ->orWhere("name_fr", $dayOfWeek)
+                    ->exists()
+        ){
+            $openingday_id = Openingday::where("name_en", $dayOfWeek)
+                                        ->orWhere("name_fr", $dayOfWeek)
+                                        ->first()
+                                        ->id;
+
+            if(DB::table('agencyOpeningdays')->where('agency_id', $agency_id)->where("openingday_id", $openingday_id)->exists()) {
+                $agency_openingday = DB::table('agencyOpeningdays')->where("agency_id", $agency_id)
+                                                    ->where("openingday_id", $openingday_id)
+                                                    ->first();
+                
+                return $agency_openingday;
+            }
+            return 'wanda';
+        }
+        return '';
         if(
             Reservation::where('agency_id', $agency->id)
                     ->where('space_id', $space->id
@@ -301,14 +355,20 @@ class ReservationController extends Controller
                 }
                 // if(0 < $reservation->amount_due < ($reservation->initial_amount/2)){
                 $half_amount = $reservation->initial_amount/2;
-                if(0 < $reservation->amount_due && $reservation->amount_due < $half_amount){
+                // if(0 < $reservation->amount_due && $reservation->amount_due < $half_amount){
+                if(
+                    $reservation->amount_due < $reservation->initial_amount &&
+                    $reservation->amount_due > $half_amount
+                ){
                     $reservation->state = 'partially paid';
                 }
                 if($reservation->amount_due == $reservation->initial_amount ){
                     $reservation->state = 'pending';
                 }
                 $response = [
-                    'message' => "The reservation $reservation->id 's cancellation is stopped",
+                    'message' => "The reservation $reservation->id 's cancellation is stopped 
+                    half_amount $half_amount
+                    due $reservation->amount_due initial $reservation->initial_amount",
                 ];
             } else {
                 $validator = Validator::make($request->all(),[
