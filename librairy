@@ -1,251 +1,137 @@
-Pour envoyer des notifications par email avec un modèle personnalisé dans Laravel, vous pouvez suivre les étapes suivantes :
+Pour créer des tâches cron dans Laravel, vous devez utiliser la commande schedule dans le fichier app/Console/Kernel.php.
 
-1. Créez un nouveau modèle de notification en exécutant la commande suivante dans votre terminal :
+Voici un exemple de code qui crée deux tâches cron pour envoyer un coupon par email et pour invalider le coupon :
 
-php artisan make:notification MyCustomNotification --markdown=emails.my-custom-notification
+// app/Console/Kernel.php
 
-Cette commande créera un nouveau fichier MyCustomNotification.php dans le dossier app/Notifications et un nouveau fichier my-custom-notification.blade.php dans le dossier resources/views/emails.
+namespace App\Console;
 
-1. Ouvrez le fichier MyCustomNotification.php et modifiez la méthode via pour spécifier que la notification doit être envoyée par email :
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
-namespace App\Notifications;
-
-use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
-
-class MyCustomNotification extends Notification
+class Kernel extends ConsoleKernel
 {
-    use Queueable;
+    /**
+     * The Artisan commands provided by your application.
+     *
+     * @var array
+     */
+    protected $commands = [
+        // ...
+    ];
 
-    public function via($notifiable)
+    /**
+     * Define the application's command schedule.
+     *
+     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+     * @return void
+     */
+    protected function schedule(Schedule $schedule)
     {
-        return ['mail'];
-    }
+        // Envoyer le coupon par email
+        $schedule->command('envoyer:coupon')
+            ->dailyAt('08:00'); // Exécution quotidienne à 8h00
 
-    public function toMail($notifiable)
-    {
-        return (new MailMessage)
-            ->subject('Mon sujet de notification')
-            ->markdown('emails.my-custom-notification', [
-                'name' => $notifiable->name,
-                'message' => 'Mon message de notification',
-            ]);
+        // Invalider le coupon
+        $schedule->command('invalider:coupon')
+            ->dailyAt('23:59'); // Exécution quotidienne à 23h59
     }
 }
 
-1. Ouvrez le fichier my-custom-notification.blade.php et créez votre modèle de notification personnalisé :
+Ensuite, vous devez créer les commandes envoyer:coupon et invalider:coupon dans le fichier app/Console/Commands/EnvoyerCoupon.php et app/Console/Commands/InvaliderCoupon.php respectivement.
 
-<h1>Bonjour {{ $name }} !</h1>
+Voici un exemple de code pour la commande envoyer:coupon :
 
-<p>{{ $message }}</p>
+// app/Console/Commands/EnvoyerCoupon.php
 
-<p>Cordialement,</p>
-<p>Votre nom</p>
+namespace App\Console\Commands;
 
-1. Pour envoyer la notification, vous pouvez utiliser la méthode notify sur un objet User ou Notifiable :
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
-use App\Notifications\MyCustomNotification;
-use App\Models\User;
-
-$user = User::find(1);
-$user->notify(new MyCustomNotification());
-
-La notification sera envoyée à l'utilisateur avec le modèle personnalisé que vous avez créé.
-
-
-======================================================================================================
-Pour créer un footer pour tous les emails envoyés avec Laravel Notification Markdown, vous pouvez utiliser la fonctionnalité de "footer" intégrée à Laravel.
-
-Voici un exemple de code qui montre comment créer un footer avec des liens et des logos des réseaux sociaux de l'entreprise :
-
-// dans le fichier resources/views/vendor/mail/html/footer.blade.php
-
-<footer>
-    <table>
-        <tr>
-            <td>
-                <a href="{{ url('/') }}">Accueil</a>
-            </td>
-            <td>
-                <a href="{{ url('/contact') }}">Contact</a>
-            </td>
-            <td>
-                <a href="{{ url('/mentions-legales') }}">Mentions légales</a>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <a href="(link unavailable)" target="_blank">
-                    <img src="{{ asset('images/facebook.png') }}" alt="Facebook">
-                </a>
-            </td>
-            <td>
-                <a href="(link unavailable)" target="_blank">
-                    <img src="{{ asset('images/twitter.png') }}" alt="Twitter">
-                </a>
-            </td>
-            <td>
-                <a href="(link unavailable)" target="_blank">
-                    <img src="{{ asset('images/instagram.png') }}" alt="Instagram">
-                </a>
-            </td>
-        </tr>
-    </table>
-</footer>
-
-Dans cet exemple, nous créons un footer avec des liens vers les pages d'accueil, de contact et de mentions légales de l'entreprise. Nous ajoutons également des logos des réseaux sociaux de l'entreprise.
-
-Pour utiliser ce footer dans vos notifications, vous devez créer un fichier footer.blade.php dans le dossier resources/views/vendor/mail/html/.
-
-Ensuite, dans votre notification, vous pouvez utiliser la méthode footer pour afficher le footer :
-
-// dans votre notification
-
-use Illuminate\Notifications\Messages\MailMessage;
-
-class MonNotification extends Notification
+class EnvoyerCoupon extends Command
 {
-    public function toMail($notifiable)
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'envoyer:coupon';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Envoyer le coupon par email';
+
+    /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
     {
-        return (new MailMessage)
-            ->subject('Mon sujet')
-            ->line('Mon message')
-            ->footer('footer');
-    }
-}
-
-Dans cet exemple, nous utilisons la méthode footer pour afficher le footer dans la notification. Le footer sera affiché en bas de la notification.
-
-
-=================================================
-
-Pour programmer une tâche cron pour envoyer les emails contenant les informations sur le coupon de réduction à tous les utilisateurs ayant été sélectionné pour recevoir ce coupon, vous pouvez suivre les étapes suivantes :
-
-1. Créez un nouveau fichier dans le répertoire app/Jobs de votre projet Laravel, par exemple SendCouponEmails.php.
-
-namespace App\Jobs;
-
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-
-class SendCouponEmails implements ShouldQueue
-{
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    public $coupon;
-
-    public function __construct($coupon)
-    {
-        $this->coupon = $coupon;
+        parent::__construct();
     }
 
+    /**
+     * Execute the console command.
+     *
+     * @return mixed
+     */
     public function handle()
     {
-        // Envoi des emails aux utilisateurs sélectionnés
-        $users = User::where('selected_for_coupon', true)->get();
-
-        foreach ($users as $user) {
-            $user->notify(new CouponNotification($this->coupon));
-        }
+        // Code pour envoyer le coupon par email
+        Mail::to('email@example.com')->send(new CouponEmail());
     }
 }
 
-Dans cette classe, nous utilisons la méthode handle pour envoyer les emails aux utilisateurs sélectionnés.
+Et voici un exemple de code pour la commande invalider:coupon :
 
-1. Créez un nouveau fichier dans le répertoire app/Notifications de votre projet Laravel, par exemple CouponNotification.php.
+// app/Console/Commands/InvaliderCoupon.php
 
-namespace App\Notifications;
+namespace App\Console\Commands;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Console\Command;
+use App\Models\Coupon;
 
-class CouponNotification extends Notification implements ShouldQueue
+class InvaliderCoupon extends Command
 {
-    use Queueable;
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'invalider:coupon';
 
-    public $coupon;
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Invalider le coupon';
 
-    public function __construct($coupon)
+    /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
     {
-        $this->coupon = $coupon;
+        parent::__construct();
     }
 
-    public function via($notifiable)
+    /**
+     * Execute the console command.
+     *
+     * @return mixed
+     */
+    public function handle()
     {
-        return ['mail'];
-    }
-
-    public function toMail($notifiable)
-    {
-        return (new MailMessage)
-            ->subject('Coupon de réduction')
-            ->markdown('emails.coupon', ['coupon' => $this->coupon]);
+        // Code pour invalider le coupon
+        Coupon::where('status', 'actif')->update(['status' => 'inactif']);
     }
 }
 
-Dans cette classe, nous utilisons la méthode toMail pour définir le contenu de l'email.
-
-1. Créez un nouveau fichier dans le répertoire resources/views/emails de votre projet Laravel, par exemple coupon.blade.php.
-
-@component('mail::message')
-# Coupon de réduction
-
-Vous avez été sélectionné pour recevoir un coupon de réduction !
-
-@component('mail::panel')
-    Code : {{ $coupon->code }}
-    Montant : {{ $coupon->amount }}%
-@endcomponent
-
-Merci de votre fidélité !
-
-@component('mail::button', ['url' => ''])
-    Utiliser mon coupon
-@endcomponent
-
-Cordialement,
-{{ config('app.name') }}
-@endcomponent
-
-Dans ce fichier, nous utilisons les variables code et amount pour afficher les informations sur le coupon.
-
-1. Pour programmer la tâche cron, vous devez ajouter la ligne suivante dans le fichier 
-app/Console/Kernel.php de votre projet Laravel :
-
-protected function schedule(Scheduler $scheduler)
-{
-    $scheduler->job(new SendCouponEmails($coupon))->dailyAt('08:00');
-}
-
-Dans cette ligne, nous utilisons la méthode job pour programmer la tâche cron. Nous passons une instance de la classe SendCouponEmails avec le coupon en paramètre. Nous utilisons également la méthode dailyAt pour programmer la tâche cron pour être exécutée tous les jours à 8h00.
-
-1. Enfin, vous devez ajouter la ligne suivante dans le fichier config/crontab de votre projet Laravel :
-
-* * * * * cd /path/to/your/project && php artisan schedule:run >> /dev/null 2>&1
-
-Dans cette ligne, nous utilisons la commande schedule:run pour exécuter la tâche cron programmée.
-
-Maintenant, lorsque vous créez un nouveau coupon, la tâche cron sera exécutée automatiquement pour envoyer les emails aux utilisateurs sélectionnés.
-
-
-=============================================
-
-
-protected function schedule(Scheduler $scheduler)
-{
-    $coupon = Coupon::latest()->first();
-
-    if ($coupon && !$coupon->sent) {
-        $scheduler->job(new SendCouponEmails($coupon))->dailyAt('08:00');
-        $coupon->sent = true;
-        $coupon->save();
-    }
-}
+Notez que ces exemples de code sont juste des illustrations et que vous devez adapter le code pour répondre à vos besoins spécifiques.

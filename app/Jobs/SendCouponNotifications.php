@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Coupon;
 use App\Notifications\NewCouponSent;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,19 +14,35 @@ class SendCouponNotifications implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $coupon;
-
-    public function __construct($coupon)
-    {
-        $this->coupon = $coupon;
-    }
+    public function __construct() {}
 
     public function handle()
     {
-        $users = $this->coupon->users;
+        $coupons = Coupon::where("sent", false)->get();
+        foreach($coupons as $coupon) {
+            $users = $coupon->users;
 
-        foreach ($users as $user) {
-            $user->notify(new NewCouponSent($this->coupon));
+            foreach ($users as $user) {
+                $user->notify(new NewCouponSent($coupon));
+            }
+            $coupon->sent = true;
+            $coupon->save();
         }
     }
 }
+
+/*
+    public function handle()
+    {
+        $coupon = Coupon::latest()->first();
+        if ($coupon && !$coupon->sent) {
+            $users = $coupon->users;
+
+            foreach ($users as $user) {
+                $user->notify(new NewCouponSent($coupon));
+            }
+            $coupon->sent = true;
+            $coupon->save();
+        }
+    }
+        */

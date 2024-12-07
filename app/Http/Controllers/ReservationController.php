@@ -16,6 +16,18 @@ use Illuminate\Support\Facades\Hash;
 
 class ReservationController extends Controller
 {
+    public function formatHour($hour) {
+        return $hour->format("H:i");
+    }
+
+    public function getCarbonHour($hour) {
+        return Carbon::createFromFormat("H:i", $hour);
+    }
+
+    public function getCarbonDate($date) {
+        return Carbon::createFromFormat("Y-m-d H:i:s", $date);
+    }
+
     public function reservationAllInformations()
     {
         return
@@ -101,7 +113,6 @@ class ReservationController extends Controller
 
     public function store(Request $request)
     {
-        // return 'yes';
         $authUser = $request->user();
         if(
             !$authUser->hasPermission('manage_reservations') &&
@@ -129,7 +140,7 @@ class ReservationController extends Controller
             'midday_period' => 'string',
             'quantity' => 'required|integer|min:1',
             'start_date' => 'required|date',
-            'start_hour' => 'required|string',
+            'start_hour' => 'required|string'
         ]);
 
         if($validator->fails()){
@@ -153,30 +164,128 @@ class ReservationController extends Controller
             ], 422);
         }
 
-        //reuperer le jour de la semaine de la date de debut
+        //recuperer le jour de la semaine de la date de debut
         $start_date_carbon = Carbon::parse($start_date);
         $dayOfWeek = $start_date_carbon->translatedFormat('l');
 
+        //verifie si le jour existe en bd
         if(
-            Openingday::where("name_en", $dayOfWeek)
+            !Openingday::where("name_en", $dayOfWeek)
                     ->orWhere("name_fr", $dayOfWeek)
                     ->exists()
         ){
-            $openingday_id = Openingday::where("name_en", $dayOfWeek)
-                                        ->orWhere("name_fr", $dayOfWeek)
-                                        ->first()
-                                        ->id;
-
-            if(DB::table('agencyOpeningdays')->where('agency_id', $agency_id)->where("openingday_id", $openingday_id)->exists()) {
-                $agency_openingday = DB::table('agencyOpeningdays')->where("agency_id", $agency_id)
-                                                    ->where("openingday_id", $openingday_id)
-                                                    ->first();
-                
-                return $agency_openingday;
-            }
-            return 'wanda';
+            $agency_name = $ressource->agency->name;
+            \LogActivity::addToLog("Reservation creation failed. Error: $dayOfWeek is not a day of the week.");
+            return response([
+                'errors' => [
+                    'en' => "$dayOfWeek is not a day of the week.",
+                    'fr' => "$dayOfWeek n'est pas un jour de la semaine.",
+                ]
+            ], 422);
         }
+
+
+        //verifier si ce jour fait partie des jours d'ouverture de l'agence
+        $openingday_id = Openingday::where("name_en", $dayOfWeek)
+                                    ->orWhere("name_fr", $dayOfWeek)
+                                    ->first()
+                                    ->id;
+        if(
+            !DB::table('agencyOpeningdays')
+                ->where('agency_id', $agency_id)
+                ->where("openingday_id", $openingday_id)
+                ->exists()
+        ) {
+            $agency_name = $ressource->agency->name;
+            \LogActivity::addToLog("Reservation creation failed. Error: The agency $agency_name don't open on $dayOfWeek.");
+            return response([
+                'errors' => [
+                    'en' => "The agency $agency_name don't open on $dayOfWeek.",
+                    'fr' => "L'agence $agency_name n'ouvre pas le $dayOfWeek.",
+                ]
+            ], 422);
+        }
+
+        //on recupere l'heure d'ouverture et de fermeture de l'agence
+        $agency_openingday = DB::table('agencyOpeningdays')->where("agency_id", $agency_id)
+                                ->where("openingday_id", $openingday_id)
+                                ->first();
+
+        $opening_hour = $this->getCarbonHour($agency_openingday->to);
+        $closing_hour = $this->getCarbonHour($agency_openingday->from);
+        $start_hour = $this->getCarbonHour($request->start_hour);
+
+        //et on les compare a lheure de debut choisie par le client
+        if(!$start_hour->between($opening_hour, $closing_hour)) {
+            $agency_name = $ressource->agency->name;
+            \LogActivity::addToLog("Reservation creation failed. Error: The agency $agency_name is closed $dayOfWeek at $request->start_hour");
+            return response([
+                'errors' => [
+                    'en' => "The agency $agency_name is closed $dayOfWeek at $request->start_hour",
+                    'fr' => "L'agence $agency_name est fermée $dayOfWeek à $request->start_hour",
+                ]
+            ], 422);
+        }
+
+        // on determine la date et lheure de fin en fonction de la validite et de la quantite entree par le client
+        $validity = $request->validity;
+        $quantity_time = $request->quantity;
+        $start_hour_confirmed = '';
+        $end_hour_confirmed = '';
+        switch ($validity) {
+            case 'hour':
+                $start_hour_confirmed = $this->formatHour($start_hour);
+                $end_hour_confirmed = $this->formatHour($start_hour->addHours($quantity_time));
+                break;
+            case 'midday':
+                $midday_period = '';
+                if($request->has("midday_period") && isset($request->midday_period)) {
+                    if($request->midday_period == "afternoon") {
+                        $midday_period = "afternoon";
+                    } else {
+                        $midday_period = "morning";
+                    }
+                } else {
+                    $midday_period = "morning";
+                }
+
+                if($midday_period == "morning") {
+                    $start_hour_confirmed = $this->formatHour($this->getCarbonHour("08:00"));
+                    $end_hour_confirmed = $this->formatHour($this->getCarbonHour("14:00"));
+                }
+
+                if($midday_period == "afternoon") {
+                    $start_hour_confirmed = $this->formatHour($this->getCarbonHour("14:00"));
+                    $end_hour_confirmed = $this->formatHour($this->getCarbonHour("19:00"));
+                }
+                break;
+            case 'day':
+                $start_hour_confirmed = $this->formatHour($start_hour);
+                $end_hour_confirmed = $this->formatHour($start_hour->addHours($quantity_time));
+                break;
+            default:
+                # code...
+                break;
+        }
+
+        return "start_hour: $start_hour_confirmed end_hour: $end_hour_confirmed";
+
+        //on verifie la ressource est disponible ce jour a cette heure
+        $reservations_of_ressource = Reservation::where("ressource_id", $ressource->id)
+                                                ->where("start_date", $request->start_date)
+                                                ->count();
+
+
+
+        return $reservations_of_ressource;
+
+        // =============== creation de la reservation proprement dite =============
         return '';
+
+
+
+
+
         if(
             Reservation::where('agency_id', $agency->id)
                     ->where('space_id', $space->id
@@ -396,3 +505,11 @@ class ReservationController extends Controller
         abort(403);
     }
 }
+
+// 'start_hour' => "in: 05:00, 06:00, 07:00, 08:00, 09:00, 10:00, 11:00, 12:00, 13:00,
+// 14:00, 15:00, 16:00, 17:00, 18:00, 19:00, 20:00, 21:00, 22:00",
+
+// 'start_hour' => "in: 
+// '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00',
+// '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'
+// ",
