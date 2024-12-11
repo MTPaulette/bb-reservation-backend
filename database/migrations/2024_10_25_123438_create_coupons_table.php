@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('code')->unique()->nullable();
             $table->unsignedInteger('total_usage')->default(1);
             $table->enum('status', ['active', 'expired'])->default('active');
-            $table->dateTime('expired_on');
+            $table->date('expired_on');
             $table->float('percent')->nullable();
             $table->float('amount')->nullable();
             $table->text('note_en')->nullable();

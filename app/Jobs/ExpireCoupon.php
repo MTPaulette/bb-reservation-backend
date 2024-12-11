@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\Coupon;
-use App\Notifications\NewCouponSent;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

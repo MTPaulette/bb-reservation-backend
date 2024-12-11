@@ -3,7 +3,7 @@
 namespace App\Console;
 
 use App\Jobs\ExpireCoupon;
-use App\Jobs\SendCouponNotifications;
+use App\Jobs\SendCoupon;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -18,7 +18,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
-        $schedule->job(new SendCouponNotifications())->everyMinute();
+        $schedule->job(new SendCoupon())->everyMinute();
         $schedule->job(new ExpireCoupon())->everyMinute();
     }
 
@@ -27,7 +27,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $coupon = Coupon::latest()->first();
         if ($coupon && !$coupon->sent) {
-            $schedule->job(new SendCouponNotifications($coupon))->everyMinute();
+            $schedule->job(new SendCoupon($coupon))->everyMinute();
             $coupon->sent = true;
             $coupon->save();
         }

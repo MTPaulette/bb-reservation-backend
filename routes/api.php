@@ -128,7 +128,8 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
     /* reservation routes */
     Route::get("/reservations",[ReservationController::class, "index"]);
     Route::get("/reservation/{id}",[ReservationController::class, "show"]);
-    Route::post("/reservation/store",[ReservationController::class, "store"]);
+    Route::post("/reservation/store",[ReservationController::class, "store_draft"]);
+    Route::post("/reservation/store/confirm",[ReservationController::class, "store"]);
     Route::put("/reservation/{id}/update",[ReservationController::class, "update"]);
     Route::put('/reservation/{id}/cancel', [ReservationController::class, 'cancel']);
 

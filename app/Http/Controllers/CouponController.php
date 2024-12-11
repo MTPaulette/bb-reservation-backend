@@ -236,8 +236,8 @@ class CouponController extends Controller
         $client = User::find($request->client_id);
 
         //verifie si le coupon existe
-        if(!Coupon::where("code", $request->coupon_code)->exists()) {
-            \LogActivity::addToLog("Applying coupon failed for client $client->lastname $client->fisrtname. Coupon with code: $request->coupon_code not found.");
+        if(!Coupon::where("code", $request->coupon)->exists()) {
+            \LogActivity::addToLog("Applying coupon failed for client $client->lastname $client->fisrtname. Coupon with code: $request->coupon not found.");
             return response([
                 'errors' => [
                     'en' => "coupon not found",
@@ -245,7 +245,7 @@ class CouponController extends Controller
                 ]
             ], 404);
         }
-        $coupon = Coupon::where('code', $request->coupon_code)->first();
+        $coupon = Coupon::where('code', $request->coupon)->first();
         $client_coupons_ids = [];
         foreach ($client->coupons as $item) {
             array_push($client_coupons_ids, $item->id);
@@ -276,6 +276,10 @@ class CouponController extends Controller
         //verifie si le coupon n'a pas depasse le nombre maximum d'utilisation
         $total_client_usage = Reservation::where('client_id', $client->id)
                                             ->where('coupon_id', $coupon->id)
+                                            ->where(function ($query) {
+                                                $query->where('state', 'confirmed')
+                                                    ->orWhere('state', 'totally paid');
+                                            })
                                             ->count();
 
         if($total_client_usage >= $coupon->total_usage) {

@@ -42,7 +42,6 @@ class SendCoupon extends Command
         // Code pour envoyer le coupon par email
         $coupon = Coupon::latest()->first();
         if ($coupon && !$coupon->sent) {
-            // new SendCouponNotifications($coupon);
             $users = $coupon->users;
     
             foreach ($users as $user) {

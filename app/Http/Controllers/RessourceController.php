@@ -89,6 +89,7 @@ class RessourceController extends Controller
         ) {
             abort(403);
         }
+
         $validator = Validator::make($request->all(),[
             'quantity' => 'required|integer|min:1',
             'price_hour' => 'required|integer|min:1',
