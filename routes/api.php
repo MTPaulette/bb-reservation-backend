@@ -13,6 +13,7 @@ use App\Http\Controllers\CharacteristicController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\OpeningdayController;
 use App\Http\Controllers\OptionController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RessourceController;
@@ -132,6 +133,13 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
     Route::post("/reservation/store/confirm",[ReservationController::class, "store"]);
     Route::put("/reservation/{id}/update",[ReservationController::class, "update"]);
     Route::put('/reservation/{id}/cancel', [ReservationController::class, 'cancel']);
+
+    /* payment routes */
+    Route::get("/payments",[PaymentController::class, "index"]);
+    Route::get("/payment/{id}",[PaymentController::class, "show"]);
+    Route::post("/payment/store",[PaymentController::class, "store"]);
+    Route::put("/payment/{id}/update",[PaymentController::class, "update"]);
+    Route::put('/payment/{id}/cancel', [PaymentController::class, 'cancel']);
 
 });
 

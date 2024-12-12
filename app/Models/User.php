@@ -63,6 +63,10 @@ class User extends Authenticatable
         return $this->hasMany(Coupon::class, 'created_by', 'id');
     }
 
+    public function paymentsProcessed(): HasMany {
+        return $this->hasMany(Payment::class, 'processed_by', 'id');
+    }
+
     public function workAt(): BelongsTo {
         return $this->belongsTo(Agency::class, 'work_at', 'id');
     }

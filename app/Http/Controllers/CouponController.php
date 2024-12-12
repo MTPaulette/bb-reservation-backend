@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Coupon;
 use App\Models\Reservation;
 use App\Models\User;
-use App\Notifications\NewCouponSent;
+// use App\Notifications\NewCouponSent;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

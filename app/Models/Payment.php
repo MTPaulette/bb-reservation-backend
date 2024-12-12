@@ -11,8 +11,6 @@ class Payment extends Model
     use HasFactory;
     protected $fillable = [
         'amount',
-        'note_en',
-        'note_fr',
         'payment_method',
         'payment_status',
         'transaction_id',
@@ -21,5 +19,9 @@ class Payment extends Model
 
     public function reservation(): BelongsTo {
         return $this->belongsTo(Reservation::class);
+    }
+
+    public function processedBy(): BelongsTo {
+        return $this->belongsTo(User::class, 'processed_by', 'id');
     }
 }

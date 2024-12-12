@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Reservation as HelpersReservation;
 use App\Models\Agency;
 use App\Models\Coupon;
 use App\Models\Openingday;
@@ -130,7 +131,7 @@ class ReservationController extends Controller
         //====================================================================================
         $validator = Validator::make($request->all(),[
             'validity' => 'required|string|in:hour,midday,day,week,month',
-            'midday_period' => 'string',
+            'midday_period' => 'nullable|string',
             'start_date' => 'required|date|after:'.$this->formatDate(Carbon::yesterday()),
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'start_hour' => 'string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00',
@@ -163,9 +164,12 @@ class ReservationController extends Controller
         // a l'heur actuelle
         $now = Carbon::now();
         $start_date = $request->start_date;
-        $end_date = $request->has("end_date") && isset($request->end_date) ? $request->end_date : $request->start_date;
-        $start_hour = $request->has("start_hour") && isset($request->start_hour) ? $request->start_hour : $this->formatHour($now->copy()->addHour());
-        $end_hour = $request->has("end_hour") && isset($request->end_hour) ? $request->end_hour : $this->formatHour($now->copy()->addHours(2));
+        $end_date = $request->has("end_date") && isset($request->end_date) ?
+                        $request->end_date : $request->start_date;
+        $start_hour = $request->has("start_hour") && isset($request->start_hour) ?
+                        $request->start_hour : $this->formatHour($now->copy()->addHour());
+        $end_hour = $request->has("end_hour") && isset($request->end_hour) ?
+                        $request->end_hour : $this->formatHour($now->copy()->addHours(2));
         $start_date_carbon = Carbon::parse($start_date);
         $end_date_carbon = Carbon::parse($end_date);
         if($this->formatDate($start_date_carbon) == $this->formatDate($now)) {
@@ -302,7 +306,7 @@ class ReservationController extends Controller
         $end_hour = $this->getCarbonHour($end_hour);
 
         //et on verifie que l'heure de debut est compris entre l'heure d'ouverture et de fermeture
-        if(!$start_hour->between($opening_hour, $closing_hour)) {
+        if(!$start_hour->between($opening_hour, $closing_hour) && $request->validity == 'hour') {
             $agency_name = $ressource->agency->name;
             \LogActivity::addToLog("Reservation creation failed. Error: The agency $agency_name open at $opening_hour and closes at $closing_hour at $start_hour");
             return response([
@@ -316,7 +320,7 @@ class ReservationController extends Controller
 
         /*-------- end hour --------- */
         //et on verifie que l'heure de fin est avant l'heure de fermeture de l'agence
-        if($end_hour->isAfter($closing_hour)) {
+        if($end_hour->isAfter($closing_hour) && $request->validity == 'hour') {
             // return "end_hour: $end_hour | opening_hour: $opening_hour | closing_hour: $closing_hour";
             $agency_name = $ressource->agency->name;
             \LogActivity::addToLog("Reservation creation failed. Error: The end hour $end_hour must after the closing hour $end_date_dayOfWeek for the agency $agency_name.");
@@ -439,6 +443,7 @@ class ReservationController extends Controller
 
         // ====== application du coupon de reduction sur le prix de la reservation ========
         $amount_due = $initial_amount;
+        $coupon = null;
         if($request->has("coupon") && isset($request->coupon)) {
             $apply_coupon = $this->apply($client, $request->coupon);
             if($apply_coupon['success']) {
@@ -464,14 +469,15 @@ class ReservationController extends Controller
         $reservation_draft->amount_due = $amount_due;
         $reservation_draft->coupon_id = $request->has("coupon") && isset($request->coupon) ? $apply_coupon['coupon']->id : null;
         $reservation_draft->created_by = $authUser->id;
-        // $reservation_draft->save();
+        $reservation_draft->save();
 
         $response = [
             'reservation_draft' => $reservation_draft,
-            // 'message' => "The reservation draft $reservation_draft->id successfully created",
+            'coupon' => $coupon,
+            'message' => "The reservation draft $reservation_draft->id successfully created",
         ];
 
-        // \LogActivity::addToLog("New reservation draft created. reservation draft id: $reservation_draft->id");
+        \LogActivity::addToLog("New reservation draft created. reservation draft id: $reservation_draft->id");
 
         return response($response, 201);
     }
@@ -506,7 +512,7 @@ class ReservationController extends Controller
         $reservation->end_hour = $reservation_draft->end_hour;
         $reservation->initial_amount = $reservation_draft->initial_amount;
         $reservation->amount_due = $reservation_draft->amount_due;
-        $reservation->state = 'pending';
+        $reservation->state = HelpersReservation::getState($reservation_draft->initial_amount, $reservation_draft->amount_due);
         $reservation->coupon_id = $reservation_draft->coupon_id;
         $reservation->created_by = $reservation_draft->created_by;
 
@@ -515,6 +521,7 @@ class ReservationController extends Controller
 
         $response = [
             'message' => "The reservation $reservation->id successfully created",
+            'reservation_id' => $reservation->id
         ];
 
         \LogActivity::addToLog("New reservation created. reservation id: $reservation->id");
@@ -648,28 +655,9 @@ class ReservationController extends Controller
             }
 
             if($request->undo_cancellation){
-                if($reservation->amount_due == 0 ){
-                    $reservation->state = 'totally paid';
-                }
-                if($reservation->amount_due >= $reservation->initial_amount ){
-                    $reservation->state = 'confirmed';
-                }
-                // if(0 < $reservation->amount_due < ($reservation->initial_amount/2)){
-                $half_amount = $reservation->initial_amount/2;
-                // if(0 < $reservation->amount_due && $reservation->amount_due < $half_amount){
-                if(
-                    $reservation->amount_due < $reservation->initial_amount &&
-                    $reservation->amount_due > $half_amount
-                ){
-                    $reservation->state = 'partially paid';
-                }
-                if($reservation->amount_due == $reservation->initial_amount ){
-                    $reservation->state = 'pending';
-                }
+                $reservation->state = HelpersReservation::getState($reservation->initial_amount, $reservation->amount_due);;
                 $response = [
-                    'message' => "The reservation $reservation->id 's cancellation is stopped 
-                    half_amount $half_amount
-                    due $reservation->amount_due initial $reservation->initial_amount",
+                    'message' => "The reservation $reservation->id 's cancellation is stopped"
                 ];
             } else {
                 $validator = Validator::make($request->all(),[
@@ -730,6 +718,7 @@ class ReservationController extends Controller
 
         $diff_months = $end_date->diffInMonths($start_date);
         $rest_days= $end_date->diffInDays($start_date) % 30;
+        $diff_middays = 0;
         
         if ($rest_days> 0) {
             $diff_weeks = floor($rest_days/ 7);

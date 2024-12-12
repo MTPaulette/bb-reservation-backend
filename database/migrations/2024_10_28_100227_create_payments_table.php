@@ -16,15 +16,16 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('amount');
-            $table->text('note_en')->nullable();
-            $table->text('note_fr')->nullable();
-            $table->enum('payment_method', ['Bank', 'MTN Money', 'Cash', 'Orange Money']);
+            $table->enum('payment_method', ['Bank', 'Cash', 'MTN Money', 'Orange Money']);
             $table->string('payment_status')->nullable();
             $table->string('transaction_id')->nullable();
             $table->string('bill_number')->nullable();
 
             $table->unsignedBigInteger('reservation_id')->nullable();
             $table->foreign('reservation_id')->references('id')->on('reservations');
+
+            $table->unsignedBigInteger('processed_by')->nullable();
+            $table->foreign('processed_by')->references('id')->on('users');
 
             $table->timestamps();
         });
