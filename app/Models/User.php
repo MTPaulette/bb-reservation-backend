@@ -26,6 +26,7 @@ class User extends Authenticatable
         'phonenumber',
         'image',
         'status',
+        'language',
         'reason_for_suspension_en',
         'reason_for_suspension_fr',
     ];

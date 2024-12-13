@@ -150,12 +150,6 @@ class ReservationController extends Controller
             $apply_coupon = $this->apply($client, $request->coupon);
             if(!$apply_coupon['success']) {
                 \LogActivity::addToLog("Reservation creation failed. Error: Invalid coupon $request->coupon.");
-                // return response([
-                //     'errors' => [
-                //         'en' => "Invalid coupon $request->coupon",
-                //         'fr' => "Coupon $request->coupon invalide",
-                //     ]
-                // ], 422);
                 return response($apply_coupon["errors"], 422);
             }
         }
@@ -517,6 +511,11 @@ class ReservationController extends Controller
         $reservation->created_by = $reservation_draft->created_by;
 
         $reservation->save();
+        
+            // foreach($coupon->users as $user) {
+            //     $user->notify(new NewCouponSent($coupon));
+            // }
+
         $reservation_draft->delete();
 
         $response = [

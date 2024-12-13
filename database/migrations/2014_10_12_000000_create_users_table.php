@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('phonenumber')->nullable();
             $table->string('image')->nullable();
             $table->enum('status', ['active', 'suspended'])->default('active');
+            $table->enum('language', ['en', 'fr'])->default('fr');
             $table->text('reason_for_suspension_en')->nullable();
             $table->text('reason_for_suspension_fr')->nullable();
             $table->unsignedBigInteger('role_id')->default(2);

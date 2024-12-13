@@ -51,24 +51,6 @@ class NewCouponSent extends Notification
         ]);
     }
 
-    public function toMaill($notifiable)
-    {
-        $btn_url = env('APP_FRONTEND_URL').'/fr/admin/clients/'.$notifiable->id;
-        return
-        (new MailMessage)
-        ->subject('Nouveau Coupon')
-        ->markdown('notifications.new-coupon-sended', [
-            'name' => $notifiable->lastname,
-            'message' => "Vous avez reçu un coupon de réduction ({$this->coupon->name}).
-            Il vous donne droit à une réduction de {$this->coupon->percent}% ou {$this->coupon->amount} FCFA 
-            sur le montant de la réservation où vous l'utiliseriez.
-            Il est utilisable {$this->coupon->total_usage} fois et expire avant le {$this->coupon->expired_on}.
-            Vous pouvez utiliser dès présent",
-            'action_name' => 'RESERVEZ MAINTENANT',
-            'url' => $btn_url
-        ]);
-    }
-
     /**
      * Get the array representation of the notification.
      *

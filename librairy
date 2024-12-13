@@ -1,123 +1,287 @@
-$reservations = Reservation::where('agence_id', 1)
-    ->where(function ($query) {
-        $query->where('start_hour', '08:00')
-            ->orWhere('status', 'pending');
-    })
-    ->where(function ($query) {
-        $query->whereIn('end_hour', ['13:00', '14:00'])
-            ->orWhere('status', 'confirmed');
-    })
-    ->get();
 
+==================================================
 
-    ==================================================================
-    Pour trouver la différence entre les deux dates, vous pouvez utiliser les méthodes diffInMonths, diffInWeeks, diffInDays et diffInHours de la classe Carbon dans Laravel.
+paiement
+Voici les exemples de mail adaptés :
 
-Voici un exemple de code :
+Pour les clients :
 
-use Carbon\Carbon;
+Objet : Confirmation de paiement pour votre réservation
 
-$date1 = '2024-08-02';
-$date2 = '2024-09-22';
+Bonjour [Nom du client],
 
-$diff_mois = Carbon::parse($date2)->diffInMonths(Carbon::parse($date1));
-$reste_jours = Carbon::parse($date2)->diffInDays(Carbon::parse($date1)) % 30;
+Nous sommes ravis de vous confirmer que votre paiement pour la réservation [Numéro de réservation] a été effectué avec succès.
 
-if ($reste_jours > 0) {
-    $diff_semaines = floor($reste_jours / 7);
-    $reste_jours_semaine = $reste_jours % 7;
+Cependant, nous vous rappelons que pour confirmer votre réservation, il est nécessaire de payer au moins 50% du montant total. Si vous n'avez pas encore effectué ce paiement, nous vous invitons à le compléter dès que possible pour éviter que la ressource sollicitée ne soit attribuée à quelqu'un d'autre.
 
-    if ($reste_jours_semaine > 0) {
-        $diff_jours = $reste_jours_semaine;
-        $reste_heures = Carbon::parse($date2)->diffInHours(Carbon::parse($date1)) % 24;
-    } else {
-        $diff_jours = 0;
-        $reste_heures = 0;
-    }
-} else {
-    $diff_semaines = 0;
-    $diff_jours = 0;
-    $reste_heures = Carbon::parse($date2)->diffInHours(Carbon::parse($date1));
-}
+Voici les détails de votre réservation :
 
-echo "Différence en mois : $diff_mois mois";
-echo "Différence en semaines : $diff_semaines semaines";
-echo "Différence en jours : $diff_jours jours";
-echo "Différence en heures : $reste_heures heures";
+- Numéro de réservation : [Numéro de réservation]
+- Date d'arrivée : [Date d'arrivée]
+- Date de départ : [Date de départ]
+- Type de chambre : [Type de chambre]
+- Nombre de personnes : [Nombre de personnes]
+- Tarif total : [Tarif total]
+- Montant payé : [Montant payé]
+- Montant restant à payer : [Montant restant à payer]
 
-En exécutant ce code, vous obtiendrez les résultats suivants :
+Pour compléter le paiement, vous pouvez utiliser le lien suivant : [Lien de paiement]
 
-- Différence en mois : 1 mois
-- Différence en semaines : 2 semaines
-- Différence en jours : 2 jours
-- Différence en heures : 10 heures
+Nous vous remercions de votre attention et nous nous réjouissons de vous accueillir dans notre établissement.
 
-Notez que les résultats peuvent varier en fonction de la façon dont vous définissez les dates et les heures.
+Cordialement,
 
+[Votre nom]
+[Votre établissement]
 
-'05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00',
-                '14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00'
+Pour les admins :
 
+Objet : Notification de paiement pour la réservation [Numéro de réservation]
 
-                $reservations_of_ressource_hour_midday =
-        Reservation::where('ressource_id', $ressource->id)
-        ->where(function ($query) use($start_date_confirmed, $end_date_confirmed) {
-            $query->where('start_date', $start_date_confirmed)
-                ->where('end_date', $end_date_confirmed);
-        })
+Bonjour [Nom de l'admin],
 
-        ->where(function ($query) use($start_hour_confirmed, $end_hour_confirmed) {
-            $query->where('start_hour', '>', $start_hour_confirmed)
-                ->where('start_hour', '<', $end_hour_confirmed);
-        })
-        ->orWhere(function ($query) use($start_hour_confirmed, $end_hour_confirmed) {
-            $query->where('end_hour', '>', $start_hour_confirmed)
-                ->where('end_hour', '<', $end_hour_confirmed);
-        })
-        ->orWhere(function ($query) use($start_hour_confirmed, $end_hour_confirmed) {
-            $query->where('start_hour', '=', $start_hour_confirmed)
-                ->where('end_hour', '=', $end_hour_confirmed);
-        })
-        ->orWhere(function ($query) use($start_hour_confirmed, $end_hour_confirmed) {
-            $query->where('start_hour', '<', $start_hour_confirmed)
-                ->where('end_hour', '>', $end_hour_confirmed);
-        })
+Nous vous informons que le paiement pour la réservation [Numéro de réservation] a été effectué avec succès.
 
-        ->where(function ($query) {
-            $query->where('state', 'confirmed')
-                ->orWhere('state', 'totally paid');
-        })
-        ->toSql();
-        /*
-        ->where(function ($query) {
-            $query->where('start_hour', '<=', $start_hour_confirmed)
-                ->where('end_hour', '>=', $end_hour_confirmed)
-                ->where('end_hour', '>=', $end_hour_confirmed);
-        })
-        ->where(function ($query) {
-            $query->where('state', 'confirmed')
-                ->orWhere('state', 'totally paid');
-        })
-        ->count(); */
+Cependant, nous vous rappelons que pour confirmer la réservation, il est nécessaire de payer au moins 50% du montant total. Si le client n'a pas encore effectué ce paiement, nous vous invitons à le contacter pour le rappeler.
 
+Voici les détails de la réservation :
 
-        ===============================================
-        Voici un exemple de requête Laravel qui sélectionne les réservations de l'agence ID 1 en fonction des critères que vous avez spécifiés :
+- Numéro de réservation : [Numéro de réservation]
+- Date d'arrivée : [Date d'arrivée]
+- Date de départ : [Date de départ]
+- Type de chambre : [Type de chambre]
+- Nombre de personnes : [Nombre de personnes]
+- Tarif total : [Tarif total]
+- Montant payé : [Montant payé]
+- Montant restant à payer : [Montant restant à payer]
+- Ressource réservée : [Nom de la ressource]
+- Admin ayant effectué le paiement : [Nom de l'admin]
 
-$statutVariable = 'variable_calculé'; // remplacez par la valeur calculée
-$statutParametre = request()->input('statut'); // récupère la valeur du paramètre 'statut'
+Nous vous remercions de votre attention et nous vous invitons à vérifier les détails de la réservation.
 
-$reservations = Reservation::where('agence_id', 1)
-    ->where('heure_debut', '08:00')
-    ->where(function ($query) use ($statutVariable, $statutParametre) {
-        $query->where(function ($query) use ($statutVariable) {
-            $query->where('statut', $statutVariable);
-        })
-        ->orWhere(function ($query) use ($statutParametre) {
-            $query->where(function ($query) {
-                $query->whereBetween('heure_fin', ['13:00', '14:00']);
-            })
-            ->orWhere('statut', $statutParametre);
-        });
-    })
-    ->get();
+Cordialement,
+
+[Votre nom]
+[Votre établissement]
+======================================================
+new Reservation
+🛑🛑🛑 nouvelle réservation 
+
+Voici les exemples de mail adaptés :
+
+Pour les clients :
+
+Objet : Confirmation de votre réservation
+
+Bonjour [Nom du client],
+
+Nous sommes ravis de vous confirmer que votre réservation pour [Nom de la ressource] a été effectuée avec succès. Voici les détails de votre réservation :
+
+- Numéro de réservation : [Numéro de réservation]
+- Date d'arrivée : [Date d'arrivée]
+- Date de départ : [Date de départ]
+- Type de ressource : [Type de ressource]
+- Tarif total : [Tarif total]
+
+Cependant, nous vous informons que malgré la réservation, rien ne garantit que la ressource vous soit attribuée. Pour y remédier, il est nécessaire de payer au moins 50% du montant total de la réservation. Le reste des 50% devra être payé avant l'heure de début de la réservation.
+
+Nous vous invitons à effectuer le paiement dès que possible pour garantir la disponibilité de la ressource. Vous pouvez utiliser le lien suivant pour effectuer le paiement : [Lien de paiement]
+
+Nous vous remercions de votre attention et nous nous réjouissons de vous accueillir dans notre établissement.
+
+Cordialement,
+
+[Votre nom]
+[Votre établissement]
+
+Pour les admins :
+
+Objet : Notification de réservation pour [Nom de la ressource]
+
+Bonjour [Nom de l'admin],
+
+Nous vous informons que la réservation pour [Nom de la ressource] a été effectuée avec succès. Voici les détails de la réservation :
+
+- Numéro de réservation : [Numéro de réservation]
+- Date d'arrivée : [Date d'arrivée]
+- Date de départ : [Date de départ]
+- Type de ressource : [Type de ressource]
+- Tarif total : [Tarif total]
+- Client : [Nom du client]
+- État de la réservation : En attente de paiement
+
+Nous vous rappelons que le client doit payer au moins 50% du montant total de la réservation pour garantir la disponibilité de la ressource. Le reste des 50% devra être payé avant l'heure de début de la réservation.
+
+Nous vous invitons à suivre l'état de la réservation et à contacter le client si nécessaire.
+
+Cordialement,
+
+[Votre nom]
+[Votre établissement]
+==================================================================
+new coupon
+
+coupon de réduction 
+
+Voici un exemple de contenu d'un email à envoyer à un utilisateur après qu'il vient de recevoir un nouveau coupon de réduction :
+
+Objet : Nouveau coupon de réduction !
+
+Bonjour [Nom de l'utilisateur],
+
+Nous sommes ravis de vous annoncer que vous venez de recevoir un nouveau coupon de réduction ! Voici les détails de votre coupon :
+
+- Code de coupon : [Code de coupon]
+- Pourcentage de réduction : [Pourcentage de réduction]%
+- Montant maximum de réduction : [Montant maximum de réduction]
+- Date de début de validité : [Date de début de validité]
+- Date de fin de validité : [Date de fin de validité]
+- Conditions d'utilisation : [Conditions d'utilisation]
+
+Vous pouvez utiliser ce coupon pour bénéficier d'une réduction sur votre prochaine réservation. Pour utiliser le coupon, simplement saisissez le code de coupon lors de la réservation.
+
+Nous vous remercions de votre fidélité et nous nous réjouissons de vous accueillir dans notre établissement.
+
+Cordialement,
+
+[Votre nom]
+[Votre établissement]
+
+P.S. N'oubliez pas de vérifier les conditions d'utilisation du coupon avant de l'utiliser.
+
+===========================================================
+debute dans 30 min
+début dans 30min 
+
+Voici les exemples de mail adaptés :
+
+Pour les clients :
+
+Objet : Rappel de votre réservation - Début dans 30 minutes !
+
+Bonjour [Nom du client],
+
+Nous vous rappelons que votre réservation pour [Nom de la ressource] commence dans 30 minutes ! Voici les détails de votre réservation :
+
+- Numéro de réservation : [Numéro de réservation]
+- Date et heure de début : [Date et heure de début]
+- Date et heure de fin : [Date et heure de fin]
+- Type de ressource : [Type de ressource]
+- Tarif total : [Tarif total]
+- Montant payé : [Montant payé]
+- Montant restant à payer : [Montant restant à payer]
+
+Nous vous rappelons que si le paiement n'est pas effectif ou total, vous devrez payer avant le début de l'heure de la réservation. De plus, si les 50% de la réservation n'ont pas été versés, rien ne garantit que la ressource soit disponible en agence.
+
+Nous vous invitons à vérifier votre paiement et à nous contacter si vous avez des questions ou des préoccupations.
+
+Cordialement,
+
+[Votre nom]
+[Votre établissement]
+
+Pour les admins :
+
+Objet : Rappel de réservation - Début dans 30 minutes !
+
+Bonjour [Nom de l'admin],
+
+Nous vous rappelons que la réservation pour [Nom de la ressource] commence dans 30 minutes ! Voici les détails de la réservation :
+
+- Numéro de réservation : [Numéro de réservation]
+- Date et heure de début : [Date et heure de début]
+- Date et heure de fin : [Date et heure de fin]
+- Type de ressource : [Type de ressource]
+- Tarif total : [Tarif total]
+- Montant payé : [Montant payé]
+- Montant restant à payer : [Montant restant à payer]
+- Client : [Nom du client]
+
+Nous vous rappelons que si le paiement n'est pas effectif ou total, le client devra payer avant le début de l'heure de la réservation. De plus, si les 50% de la réservation n'ont pas été versés, rien ne garantit que la ressource soit disponible en agence.
+
+Nous vous invitons à vérifier le paiement et à contacter le client si nécessaire.
+
+Cordialement,
+
+[Votre nom]
+[Votre établissement]
+
+=======================================================
+fin dans 30min
+
+fin dans 30min
+
+Voici les exemples de mail adaptés :
+
+Pour les clients :
+
+Objet : Rappel de fin de réservation - 30 minutes avant la fin !
+
+Bonjour [Nom du client],
+
+Nous vous rappelons que votre réservation pour [Nom de la ressource] se termine dans 30 minutes ! Voici les détails de votre réservation :
+
+- Numéro de réservation : [Numéro de réservation]
+- Date et heure de début : [Date et heure de début]
+- Date et heure de fin : [Date et heure de fin]
+- Type de ressource : [Type de ressource]
+- Tarif total : [Tarif total]
+- Montant payé : [Montant payé]
+
+Nous vous invitons à préparer vos affaires et à quitter les lieux avant la fin de la réservation. Si vous avez des questions ou des préoccupations, n'hésitez pas à nous contacter.
+
+Cordialement,
+
+[Votre nom]
+[Votre établissement]
+
+Pour les admins :
+
+Objet : Rappel de fin de réservation - 30 minutes avant la fin !
+
+Bonjour [Nom de l'admin],
+
+Nous vous rappelons que la réservation pour [Nom de la ressource] se termine dans 30 minutes ! Voici les détails de la réservation :
+
+- Numéro de réservation : [Numéro de réservation]
+- Date et heure de début : [Date et heure de début]
+- Date et heure de fin : [Date et heure de fin]
+- Type de ressource : [Type de ressource]
+- Tarif total : [Tarif total]
+- Montant payé : [Montant payé]
+- Client : [Nom du client]
+
+Nous vous invitons à vérifier que le client a quitté les lieux avant la fin de la réservation et à procéder à la vérification des lieux et des équipements.
+
+Cordialement,
+
+[Votre nom]
+[Votre établissement]
+
+=========================================================
+coupon expire
+
+oupon expiré 
+
+Voici un exemple d'un email à envoyer à un client pour lui rappeler que le coupon de réduction qu'il a reçu a expiré :
+
+Objet : Coupon de réduction expiré
+
+Bonjour [Nom du client],
+
+Nous vous rappelons que le coupon de réduction que vous avez reçu pour [Nom de la ressource] a expiré le [Date d'expiration]. Voici les détails du coupon :
+
+- Code de coupon : [Code de coupon]
+- Pourcentage de réduction : [Pourcentage de réduction]%
+- Montant maximum de réduction : [Montant maximum de réduction]
+- Date de début de validité : [Date de début de validité]
+- Date d'expiration : [Date d'expiration]
+
+Nous regrettons que vous n'ayez pas pu utiliser ce coupon avant son expiration. Si vous souhaitez continuer à bénéficier de réductions et d'offres spéciales, nous vous invitons à vous inscrire à notre newsletter ou à suivre nos réseaux sociaux.
+
+Nous vous remercions de votre fidélité et nous nous réjouissons de vous accueillir dans notre établissement.
+
+Cordialement,
+
+[Votre nom]
+[Votre établissement]
