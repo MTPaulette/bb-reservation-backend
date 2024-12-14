@@ -1,123 +1,4 @@
 
-==================================================
-
-paiement
-Voici les exemples de mail adaptés :
-
-Pour les clients :
-
-Objet : Confirmation de paiement pour votre réservation
-
-Bonjour [Nom du client],
-
-Nous sommes ravis de vous confirmer que votre paiement pour la réservation [Numéro de réservation] a été effectué avec succès.
-
-Cependant, nous vous rappelons que pour confirmer votre réservation, il est nécessaire de payer au moins 50% du montant total. Si vous n'avez pas encore effectué ce paiement, nous vous invitons à le compléter dès que possible pour éviter que la ressource sollicitée ne soit attribuée à quelqu'un d'autre.
-
-Voici les détails de votre réservation :
-
-- Numéro de réservation : [Numéro de réservation]
-- Date d'arrivée : [Date d'arrivée]
-- Date de départ : [Date de départ]
-- Type de chambre : [Type de chambre]
-- Nombre de personnes : [Nombre de personnes]
-- Tarif total : [Tarif total]
-- Montant payé : [Montant payé]
-- Montant restant à payer : [Montant restant à payer]
-
-Pour compléter le paiement, vous pouvez utiliser le lien suivant : [Lien de paiement]
-
-Nous vous remercions de votre attention et nous nous réjouissons de vous accueillir dans notre établissement.
-
-Cordialement,
-
-[Votre nom]
-[Votre établissement]
-
-Pour les admins :
-
-Objet : Notification de paiement pour la réservation [Numéro de réservation]
-
-Bonjour [Nom de l'admin],
-
-Nous vous informons que le paiement pour la réservation [Numéro de réservation] a été effectué avec succès.
-
-Cependant, nous vous rappelons que pour confirmer la réservation, il est nécessaire de payer au moins 50% du montant total. Si le client n'a pas encore effectué ce paiement, nous vous invitons à le contacter pour le rappeler.
-
-Voici les détails de la réservation :
-
-- Numéro de réservation : [Numéro de réservation]
-- Date d'arrivée : [Date d'arrivée]
-- Date de départ : [Date de départ]
-- Type de chambre : [Type de chambre]
-- Nombre de personnes : [Nombre de personnes]
-- Tarif total : [Tarif total]
-- Montant payé : [Montant payé]
-- Montant restant à payer : [Montant restant à payer]
-- Ressource réservée : [Nom de la ressource]
-- Admin ayant effectué le paiement : [Nom de l'admin]
-
-Nous vous remercions de votre attention et nous vous invitons à vérifier les détails de la réservation.
-
-Cordialement,
-
-[Votre nom]
-[Votre établissement]
-======================================================
-new Reservation
-🛑🛑🛑 nouvelle réservation 
-
-Voici les exemples de mail adaptés :
-
-Pour les clients :
-
-Objet : Confirmation de votre réservation
-
-Bonjour [Nom du client],
-
-Nous sommes ravis de vous confirmer que votre réservation pour [Nom de la ressource] a été effectuée avec succès. Voici les détails de votre réservation :
-
-- Numéro de réservation : [Numéro de réservation]
-- Date d'arrivée : [Date d'arrivée]
-- Date de départ : [Date de départ]
-- Type de ressource : [Type de ressource]
-- Tarif total : [Tarif total]
-
-Cependant, nous vous informons que malgré la réservation, rien ne garantit que la ressource vous soit attribuée. Pour y remédier, il est nécessaire de payer au moins 50% du montant total de la réservation. Le reste des 50% devra être payé avant l'heure de début de la réservation.
-
-Nous vous invitons à effectuer le paiement dès que possible pour garantir la disponibilité de la ressource. Vous pouvez utiliser le lien suivant pour effectuer le paiement : [Lien de paiement]
-
-Nous vous remercions de votre attention et nous nous réjouissons de vous accueillir dans notre établissement.
-
-Cordialement,
-
-[Votre nom]
-[Votre établissement]
-
-Pour les admins :
-
-Objet : Notification de réservation pour [Nom de la ressource]
-
-Bonjour [Nom de l'admin],
-
-Nous vous informons que la réservation pour [Nom de la ressource] a été effectuée avec succès. Voici les détails de la réservation :
-
-- Numéro de réservation : [Numéro de réservation]
-- Date d'arrivée : [Date d'arrivée]
-- Date de départ : [Date de départ]
-- Type de ressource : [Type de ressource]
-- Tarif total : [Tarif total]
-- Client : [Nom du client]
-- État de la réservation : En attente de paiement
-
-Nous vous rappelons que le client doit payer au moins 50% du montant total de la réservation pour garantir la disponibilité de la ressource. Le reste des 50% devra être payé avant l'heure de début de la réservation.
-
-Nous vous invitons à suivre l'état de la réservation et à contacter le client si nécessaire.
-
-Cordialement,
-
-[Votre nom]
-[Votre établissement]
 ==================================================================
 new coupon
 
@@ -285,3 +166,57 @@ Cordialement,
 
 [Votre nom]
 [Votre établissement]
+
+
+/==============@@@@@@@@@@@@@@@@@@@@@@@@@@@@@========================/
+
+
+Pour récupérer les réservations qui commencent dans 30 minutes exactement et celles qui finissent dans 30 minutes exactement, vous pouvez utiliser les méthodes de requête de Laravel pour filtrer les données.
+
+Voici un exemple de code qui montre comment faire :
+
+use App\Models\Reservation;
+use Carbon\Carbon;
+
+$now = Carbon::now();
+
+// Récupérer les réservations qui commencent dans 30 minutes exactement
+$reservationsStartingSoon = Reservation::where('start_at', $now->addMinutes(30)->toDateTimeString())->get();
+
+// Récupérer les réservations qui finissent dans 30 minutes exactement
+$reservationsEndingSoon = Reservation::where('end_at', $now->addMinutes(30)->toDateTimeString())->get();
+
+Pour créer une tâche cron qui envoie des notifications aux utilisateurs de ces réservations, vous pouvez utiliser le système de tâches planifiées de Laravel.
+
+Voici un exemple de code qui montre comment faire :
+
+use App\Models\Reservation;
+use App\Notifications\ReservationNotification;
+use Carbon\Carbon;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+
+class Kernel extends ConsoleKernel
+{
+    protected function schedule(Schedule $schedule)
+    {
+        $schedule->call(function () {
+            $now = Carbon::now();
+
+            // Récupérer les réservations qui commencent dans 30 minutes exactement
+            $reservationsStartingSoon = Reservation::where('start_at', $now->addMinutes(30)->toDateTimeString())->get();
+
+            // Récupérer les réservations qui finissent dans 30 minutes exactement
+            $reservationsEndingSoon = Reservation::where('end_at', $now->addMinutes(30)->toDateTimeString())->get();
+
+            // Envoyer des notifications aux utilisateurs de ces réservations
+            foreach ($reservationsStartingSoon as $reservation) {
+                $reservation->user->notify(new ReservationNotification($reservation, 'Votre réservation va commencer dans 30 minutes.'));
+            }
+
+            foreach ($reservationsEndingSoon as $reservation) {
+                $reservation->user->notify(new ReservationNotification($reservation, 'Votre réservation va se terminer dans 30 minutes.'));
+            }
+        })->everyMinute();
+    }
+}

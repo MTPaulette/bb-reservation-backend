@@ -1,71 +1,71 @@
 @component('mail::message')
-
 <h1 class="name">Hello {{ $notifiable->lastname }},</h1>
 @if ($notifiable->role_id == 2)
 <div class="main-content">
-  Nous sommes ravis de vous confirmer que votre paiement pour la
-  réservation <span class="bold">{{ $reservation->id }}</span> a été effectué avec succès.
+  We are pleased to confirm that your payment for the
+  reservation <span class="bold">{{ $reservation->id }}</span> was completed successfully.
 
-  Cependant, nous vous rappelons que pour confirmer votre réservation,
-  il est nécessaire de payer au moins <span class="bold">50%</span> du montant total.
-  Si vous n'avez pas encore effectué ce paiement, nous vous invitons à le compléter dès que possible
-  pour éviter que la ressource sollicitée ne soit attribuée à quelqu'un d'autre.
+  However, we remind you that to confirm your reservation,
+  it is necessary to pay at least <span class="bold">50%</span> of the total amount.
+  If you have not yet made this payment, we invite you to complete it as soon as possible
+  to prevent the requested resource from being allocated to someone else.
 
-  Voici les détails de votre réservation :
+  Here are the details of your reservation:
   <ul>
-    <li><span class="bold">Numéro de réservation :</span> {{ $reservation->id }}</li>
-    <li><span class="bold">Date de début :</span> {{ $reservation->start_date }}</li>
-    <li><span class="bold">Date de fin :</span> {{ $reservation->end_date }}</li>
-    <li><span class="bold">Heure de début :</span> {{ $reservation->start_hour }} (GMT+1)</li>
-    <li><span class="bold">Heure de fin :</span> {{ $reservation->end_hour }} (GMT+1)</li>
-    <li><span class="bold">Ressource sollicitée :</span> {{ $reservation->ressource->space->name }}</li>
-    <li><span class="bold">Agence :</span> {{ $reservation->ressource->agency->name }}</li>
-    <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
-    <li><span class="bold">Montant payé :</span> {{ $payment->amount }} FCFA</li>
-    <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Reservation number:</span> {{ $reservation->id }}</li>
+    <li><span class="bold">Start date:</span> {{ $reservation->start_date }}</li>
+    <li><span class="bold">End date:</span> {{ $reservation->end_date }}</li>
+    <li><span class="bold">Start time:</span> {{ $reservation->start_hour }} (GMT+1)</li>
+    <li><span class="bold">End time:</span> {{ $reservation->end_hour }} (GMT+1)</li>
+    <li><span class="bold">Requested resource:</span> {{ $reservation->ressource->space->name }}</li>
+    <li><span class="bold">Agency:</span> {{ $reservation->ressource->agency->name }}</li>
+    <li><span class="bold">Total amount:</span> {{ $reservation->initial_amount }} FCFA</li>
+    <li><span class="bold">Amount paid:</span> {{ $payment->amount }} FCFA</li>
+    <li><span class="bold">Amount remaining to be paid:</span> {{ $reservation->amount_due }} FCFA</li>
   </ul>
-  Pour compléter le paiement, vous pouvez utiliser le lien suivant :
-  <a href="{{ url($client_url) }}" class="link">voir le paiement</a>
+  To complete the payment, you can use the following link:
+  <a href="{{ url($client_url) }}" class="link">view payment</a>
 
-  Nous vous remercions de votre attention et nous nous réjouissons de vous accueillir
-  dans notre établissement.
+  We thank you for your attention and we look forward to welcoming you
+  in our establishment.
 
-  Cordialement,
+  Sincerely,
 </div>
 @else
 <div class="main-content">
-  Nous vous informons que le paiement pour la
-  réservation <span class="bold">{{ $reservation->id }}</span> a été effectué avec succès.
+  We inform you that payment for the
+  reservation <span class="bold">{{ $reservation->id }}</span> was completed successfully.
 
-  Cependant, nous vous rappelons que pour confirmer la réservation,
-  il est nécessaire de payer au moins <span class="bold">50%</span> du montant total.
-  Si le client n'a pas encore effectué ce paiement,
-  nous vous invitons à le contacter pour le rappeler.
+  However, we remind you that to confirm the reservation,
+  it is necessary to pay at least <span class="bold">50%</span> of the total amount.
+  If the customer has not yet made this payment,
+  we invite you to contact him to call him back.
 
-  Voici les détails de la réservation :
+  Here are the reservation details:
 
   <ul>
-    <li><span class="bold">Numéro de réservation :</span> {{ $reservation->id }}</li>
-    <li><span class="bold">Date de début :</span> {{ $reservation->start_date }}</li>
-    <li><span class="bold">Date de fin :</span> {{ $reservation->end_date }}</li>
-    <li><span class="bold">Heure de début :</span> {{ $reservation->start_hour }} (GMT+1)</li>
-    <li><span class="bold">Heure de fin :</span> {{ $reservation->end_hour }} (GMT+1)</li>
-    <li><span class="bold">Ressource sollicitée :</span> {{ $reservation->ressource->space->name }}</li>
-    <li><span class="bold">Agence :</span> {{ $reservation->ressource->agency->name }}</li>
-    <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
-    <li><span class="bold">Montant payé :</span> {{ $payment->amount }} FCFA</li>
-    <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
-  </ul>
+    <li><span class="bold">Reservation number:</span> {{ $reservation->id }}</li>
+    <li><span class="bold">Start date:</span> {{ $reservation->start_date }}</li>
+    <li><span class="bold">End date:</span> {{ $reservation->end_date }}</li>
+    <li><span class="bold">Start time:</span> {{ $reservation->start_hour }} (GMT+1)</li>
+    <li><span class="bold">End time:</span> {{ $reservation->end_hour }} (GMT+1)</li>
+    <li><span class="bold">Requested resource:</span> {{ $reservation->ressource->space->name }}</li>
+    <li><span class="bold">Agency:</span> {{ $reservation->ressource->agency->name }}</li>
+    <li><span class="bold">Total amount:</span> {{ $reservation->initial_amount }} FCFA</li>
+    <li><span class="bold">Amount paid:</span> {{ $payment->amount }} FCFA</li>
+    <li><span class="bold">Amount remaining to be paid:</span> {{ $reservation->amount_due }} FCFA</li>
+  </ul>To view the reservation, you can use the following link:
+  <a href="{{ url($admin_url) }}" class="link">see reservation</a>
 
-  Pour consulter la réservation, vous pouvez utiliser le lien suivant :
-  <a href="{{ url($admin_url) }}" class="link">voir la réservation</a>
+  We thank you for your attention and invite you to check the
+  reservation details.
 
-  Nous vous remercions de votre attention et nous vous invitons à vérifier les
-  détails de la réservation.
-
-  Cordialement,
+  Sincerely,
 </div>
 @endif
+<h2 style="color:black;">
+  The Management.
+</h2>
 @include('notifications.footer')
 @endcomponent
 

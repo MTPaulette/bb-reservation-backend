@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Reservation as HelpersReservation;
+use App\Helpers\User as HelpersUser;
 use App\Models\Agency;
+use App\Models\Coupon;
 use App\Models\Openingday;
 use App\Models\Reservation;
+use App\Models\Reservation_draft;
 use App\Models\Ressource;
 use App\Models\Space;
 use App\Models\User;
+use App\Notifications\NewReservation;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -99,7 +104,7 @@ class ReservationController extends Controller
         abort(403);
     }
 
-    public function store(Request $request)
+    public function store_draft(Request $request)
     {
         $authUser = $request->user();
         if(
@@ -128,14 +133,12 @@ class ReservationController extends Controller
         //====================================================================================
         $validator = Validator::make($request->all(),[
             'validity' => 'required|string|in:hour,midday,day,week,month',
-            'midday_period' => 'string',
+            'midday_period' => 'nullable|string',
             'start_date' => 'required|date|after:'.$this->formatDate(Carbon::yesterday()),
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'start_hour' => 'string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,
-                            13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00',
-            'end_hour' => 'string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,
-                            13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00|after:start_hour',
-            'coupon' => 'string',
+            'start_hour' => 'string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00',
+            'end_hour' => 'string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00|after:start_hour',
+            'coupon' => 'nullable|string',
         ]);
 
         if($validator->fails()){
@@ -145,21 +148,51 @@ class ReservationController extends Controller
             ], 422);
         }
 
+        if($request->validity == "hour"){
+            $validator = Validator::make($request->all(),[
+                'start_hour' => 'required|string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00',
+                'end_hour' => 'required|string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00|after:start_hour',
+            ]);
+    
+            if($validator->fails()){
+                \LogActivity::addToLog("Reservation creation failed. ".$validator->errors());
+                return response([
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+        }
+
+        if($request->has("coupon") && isset($request->coupon)) {
+            $apply_coupon = $this->apply($client, $request->coupon);
+            if(!$apply_coupon['success']) {
+                \LogActivity::addToLog("Reservation creation failed. Error: Invalid coupon $request->coupon.");
+                return response($apply_coupon["errors"], 422);
+            }
+        }
         //=====================================================================================
         //on verifie que si la start_date est aujourdhui alors l'start_hour doit etre superieur 
         // a l'heur actuelle
+        $now = Carbon::now();
         $start_date = $request->start_date;
-        $end_date = $request->end_date;
+        $end_date = $request->has("end_date") && isset($request->end_date) ?
+                        $request->end_date : $request->start_date;
+        /*
+        $start_hour = $request->start_hour;
+        $end_hour = $request->end_hour; */
+        $start_hour = $request->has("start_hour") && isset($request->start_hour) ?
+                        $request->start_hour : $this->formatHour($now->copy()->addHour());
+        $end_hour = $request->has("end_hour") && isset($request->end_hour) ?
+                        $request->end_hour : $this->formatHour($now->copy()->addHours(2));
         $start_date_carbon = Carbon::parse($start_date);
         $end_date_carbon = Carbon::parse($end_date);
-        $now = Carbon::now();
         if($this->formatDate($start_date_carbon) == $this->formatDate($now)) {
-            if($this->formatHour(Carbon::parse($request->start_hour)) <= $this->formatHour($now)) {
-                \LogActivity::addToLog("Reservation creation failed. Error: Invalid start hour $request->start_hour.");
+            // if($this->formatHour(Carbon::parse($start_hour)) <= $this->formatHour($now) && $request->validity == 'hour') {
+            if($this->formatHour(Carbon::parse($start_hour)) <= $this->formatHour($now)) {
+                \LogActivity::addToLog("Reservation creation failed. Error: Invalid start hour $start_hour.");
                 return response([
                     'errors' => [
-                        'en' => "Invalid start hour $request->start_hour",
-                        'fr' => "Heure de debut invalide $request->start_hour",
+                        'en' => "Invalid start hour $start_hour",
+                        'fr' => "Heure de debut invalide $start_hour",
                     ]
                 ], 422);
             }
@@ -283,17 +316,17 @@ class ReservationController extends Controller
 
         $opening_hour = $this->getCarbonHour($agency_openingday->from);
         $closing_hour = $this->getCarbonHour($agency_openingday->to);
-        $start_hour = $this->getCarbonHour($request->start_hour);
-        $end_hour = $this->getCarbonHour($request->end_hour);
+        $start_hour = $this->getCarbonHour($start_hour);
+        $end_hour = $this->getCarbonHour($end_hour);
 
         //et on verifie que l'heure de debut est compris entre l'heure d'ouverture et de fermeture
-        if(!$start_hour->between($opening_hour, $closing_hour)) {
+        if(!$start_hour->between($opening_hour, $closing_hour) && $request->validity == 'hour') {
             $agency_name = $ressource->agency->name;
-            \LogActivity::addToLog("Reservation creation failed. Error: The agency $agency_name open at $opening_hour and closes at $closing_hour at $request->start_hour");
+            \LogActivity::addToLog("Reservation creation failed. Error: The agency $agency_name open at $opening_hour and closes at $closing_hour at $start_hour");
             return response([
                 'errors' => [
-                    'en' => "The agency $agency_name is openend at $opening_hour and closes at $closing_hour at $request->start_hour",
-                    'fr' => "L'agence $agency_name ouvre à $opening_hour et ferme à $closing_hour le $request->start_hour",
+                    'en' => "The agency $agency_name is openend at $opening_hour and closes at $closing_hour at $start_hour",
+                    'fr' => "L'agence $agency_name ouvre à $opening_hour et ferme à $closing_hour le $start_hour",
                 ]
             ], 422);
         }
@@ -301,14 +334,14 @@ class ReservationController extends Controller
 
         /*-------- end hour --------- */
         //et on verifie que l'heure de fin est avant l'heure de fermeture de l'agence
-        if($end_hour->isAfter($closing_hour)) {
-            return "end_hour: $end_hour | opening_hour: $opening_hour | closing_hour: $closing_hour";
+        if($end_hour->isAfter($closing_hour) && $request->validity == 'hour') {
+            // return "end_hour: $end_hour | opening_hour: $opening_hour | closing_hour: $closing_hour";
             $agency_name = $ressource->agency->name;
-            \LogActivity::addToLog("Reservation creation failed. Error: The end hour $request->end_hour must after the closing hour $end_date_dayOfWeek for the agency $agency_name.");
+            \LogActivity::addToLog("Reservation creation failed. Error: The end hour $end_hour must after the closing hour $end_date_dayOfWeek for the agency $agency_name.");
             return response([
                 'errors' => [
-                    'en' => "The end hour $request->end_hour must after the closing hour $closing_hour for the agency $agency_name at $end_date_dayOfWeek.",
-                    'fr' => "L'heure de fin $request->end_hour doit etre avant l'heure de fermeture $closing_hour pour l'agence $agency_name le $end_date_dayOfWeek.",
+                    'en' => "The end hour $end_hour must after the closing hour $closing_hour for the agency $agency_name at $end_date_dayOfWeek.",
+                    'fr' => "L'heure de fin $end_hour doit etre avant l'heure de fermeture $closing_hour pour l'agence $agency_name le $end_date_dayOfWeek.",
                 ]
             ], 422);
         }
@@ -321,70 +354,49 @@ class ReservationController extends Controller
         $start_hour_confirmed = '';
         $end_hour_confirmed = '';
 
-        switch ($validity) {
-            case 'hour':
-                $start_date_confirmed = $this->formatDate($start_date_carbon);
-                $end_date_confirmed = $this->formatDate($start_date_carbon);
-                $start_hour_confirmed = $this->formatHour($start_hour);
-                $end_hour_confirmed = $this->formatHour($end_hour);
-                break;
-            case 'midday':
-                $start_date_confirmed = $this->formatDate($start_date_carbon);
-                $end_date_confirmed = $this->formatDate($start_date_carbon);
-                $midday_period = '';
-                if($request->has("midday_period") && isset($request->midday_period)) {
-                    if($request->midday_period == "afternoon") {
-                        $midday_period = "afternoon";
-                    } else {
-                        $midday_period = "morning";
-                    }
+        if($validity == 'hour') {
+            $start_date_confirmed = $this->formatDate($start_date_carbon);
+            $end_date_confirmed = $this->formatDate($start_date_carbon);
+            $start_hour_confirmed = $this->formatHour($start_hour);
+            $end_hour_confirmed = $this->formatHour($end_hour);
+        }
+        if($validity == 'midday') {
+            $start_date_confirmed = $this->formatDate($start_date_carbon);
+            $end_date_confirmed = $this->formatDate($start_date_carbon);
+            $midday_period = '';
+            if($request->has("midday_period") && isset($request->midday_period)) {
+                if($request->midday_period == "afternoon") {
+                    $midday_period = "afternoon";
                 } else {
                     $midday_period = "morning";
                 }
+            } else {
+                $midday_period = "morning";
+            }
 
-                if($midday_period == "morning") {
-                    $start_hour_confirmed = $this->formatHour($this->getCarbonHour("08:00"));
-                    $end_hour_confirmed = $this->formatHour($this->getCarbonHour("14:00"));
-                }
+            if($midday_period == "morning") {
+                $start_hour_confirmed = $this->formatHour($this->getCarbonHour("08:00"));
+                $end_hour_confirmed = $this->formatHour($this->getCarbonHour("13:00"));
+            }
 
-                if($midday_period == "afternoon") {
-                    $start_hour_confirmed = $this->formatHour($this->getCarbonHour("14:00"));
-                    $end_hour_confirmed = $this->formatHour($this->getCarbonHour("19:00"));
-                }
-                break;
-            case 'day':
-                $start_date_confirmed = $this->formatDate($start_date_carbon);
-                $end_date_confirmed = $this->formatDate($end_date_carbon);
-                $start_hour_confirmed = $this->formatHour($opening_hour);
-                $end_hour_confirmed = $this->formatHour($closing_hour);
-                break;
-            case 'week':
-                $start_date_confirmed = $this->formatDate($start_date_carbon);
-                $end_date_confirmed = $this->formatDate($end_date_carbon);
-                $start_hour_confirmed = $this->formatHour($opening_hour);
-                $end_hour_confirmed = $this->formatHour($closing_hour);
-                break;
-            case 'month':
-                $start_date_confirmed = $this->formatDate($start_date_carbon);
-                $end_date_confirmed = $this->formatDate($end_date_carbon);
-                $start_hour_confirmed = $this->formatHour($opening_hour);
-                $end_hour_confirmed = $this->formatHour($closing_hour);
-                break;
-            default:
-                # code...
-                break;
+            if($midday_period == "afternoon") {
+                $start_hour_confirmed = $this->formatHour($this->getCarbonHour("13:00"));
+                $end_hour_confirmed = $this->formatHour($this->getCarbonHour("18:00"));
+            }
+        }
+        if(in_array($validity, ['day', 'week', 'month'])) {
+            $start_date_confirmed = $this->formatDate($start_date_carbon);
+            $end_date_confirmed = $this->formatDate($end_date_carbon);
+            $start_hour_confirmed = $this->formatHour($opening_hour);
+            $end_hour_confirmed = $this->formatHour($closing_hour);
         }
 
-        // $diff_date = $this->diff_date($start_date_confirmed, $end_date_confirmed);
-        // return $diff_date;
 
         // =============== creation de la reservation proprement dite =============
 
         //on verifie la ressource est disponible ce jour a cette heure
-        
         $reservations_of_ressource =
             Reservation::where('ressource_id', $ressource->id)
-            // ->where('start_date', '>=', $this->formatDate($now))
             ->where(function ($query) use ($start_date_confirmed, $end_date_confirmed) {
                 $query->where(function ($query) use ($start_date_confirmed, $end_date_confirmed) {
                     $query->where('start_date', '>=', $start_date_confirmed)
@@ -417,75 +429,122 @@ class ReservationController extends Controller
                 $query->where('state', 'confirmed')
                     ->orWhere('state', 'totally paid');
             })
-            ->get();
+            ->count();
 
-        return $reservations_of_ressource;
+        if($reservations_of_ressource >= $ressource->quantity){
+            \LogActivity::addToLog("Reservation creation failed. Error: The ressource id $ressource->id is already busy from $start_date_confirmed to $end_date_confirmed between $start_hour_confirmed and $end_hour_confirmed.");
+            return response([
+                'errors' => [
+                    'en' => "This ressource is already busy from $start_date_confirmed to $end_date_confirmed between $start_hour_confirmed and $end_hour_confirmed.",
+                    'fr' => "Cette ressource est déjà occupée du $start_date_confirmed au $end_date_confirmed entre $start_hour_confirmed et $end_hour_confirmed.",
+                ]
+            ], 422);
+        }
 
-        /*-------- validity: day, week, month ---------*/
-        $reservations_of_ressource_date =
-            Reservation::where('ressource_id', $ressource->id)
-            ->where(function ($query) use ($start_date_confirmed, $end_date_confirmed) {
-                $query->where(function ($query) use ($start_date_confirmed, $end_date_confirmed) {
-                    $query->where('start_date', '>=', $start_date_confirmed)
-                        ->where('start_date', '<', $end_date_confirmed);
-                })
-                ->orWhere(function ($query) use ($start_date_confirmed, $end_date_confirmed) {
-                    $query->where('end_date', '>', $start_date_confirmed)
-                        ->where('end_date', '=<', $end_date_confirmed);
-                })
-                ->orWhere(function ($query) use ($start_date_confirmed, $end_date_confirmed) {
-                    $query->where('start_date', '<=', $start_date_confirmed)
-                        ->where('end_date', '>=', $end_date_confirmed);
-                });
-            })
-            ->where(function ($query) {
-                $query->where('state', 'confirmed')
-                    ->orWhere('state', 'totally paid');
-            })
-            ->get();
+        // =============== calcul du prix de la reservation =============
+        $initial_amount = 0;
+        if(in_array($validity, ['hour', 'midday'])) {
+            $diff_date = $this->diff_date($start_hour_confirmed, $end_hour_confirmed, $opening_hour, $closing_hour);
+            $initial_amount = $diff_date['diff_middays']*$ressource->price_midday +
+                        $diff_date['diff_hours']*$ressource->price_hour;
+        }
+        if(in_array($validity, ['day', 'week', 'month'])) {
+            $diff_date = $this->diff_date($start_date_confirmed, $end_date_confirmed, $opening_hour, $closing_hour);
+            $initial_amount = $diff_date['diff_months']*$ressource->price_month +
+                        $diff_date['diff_weeks']*$ressource->price_week +
+                        $diff_date['diff_days']*$ressource->price_day;
+        }
 
-        return $reservations_of_ressource_date;
+        // ====== application du coupon de reduction sur le prix de la reservation ========
+        $amount_due = $initial_amount;
+        $coupon = null;
+        if($request->has("coupon") && isset($request->coupon)) {
+            $apply_coupon = $this->apply($client, $request->coupon);
+            if($apply_coupon['success']) {
+                $coupon = $apply_coupon['coupon'];
+                if($coupon->percent) {
+                    $amount_due = $initial_amount - $initial_amount*$coupon->percent/100;
+                } else {
+                    $amount_due = $initial_amount - $coupon->amount;
+                }
+            }
+        }
 
-        /*-------- validity: hour, midday ---------*/
-        $reservations_of_ressource_date_hour=
-            Reservation::where('ressource_id', $ressource->id)
-            ->where(function ($query) use($start_date_confirmed, $end_date_confirmed) {
-                $query->where('start_date', $start_date_confirmed)
-                    ->where('end_date', $end_date_confirmed);
-            })
-            ->where(function ($query) use ($start_hour_confirmed, $end_hour_confirmed) {
-                $query->where(function ($query) use ($start_hour_confirmed, $end_hour_confirmed) {
-                    $query->where('start_hour', '>=', $start_hour_confirmed)
-                        ->where('start_hour', '<', $end_hour_confirmed);
-                })
-                ->orWhere(function ($query) use ($start_hour_confirmed, $end_hour_confirmed) {
-                    $query->where('end_hour', '>', $start_hour_confirmed)
-                        ->where('end_hour', '=<', $end_hour_confirmed);
-                })
-                ->orWhere(function ($query) use ($start_hour_confirmed, $end_hour_confirmed) {
-                    $query->where('start_hour', '<=', $start_hour_confirmed)
-                        ->where('end_hour', '>=', $end_hour_confirmed);
-                });
-            })
-            ->where(function ($query) {
-                $query->where('state', 'confirmed')
-                    ->orWhere('state', 'totally paid');
-            })
-            ->get();
 
-        return $reservations_of_ressource_date_hour;
+        // =============== enregistrement de la reservation en bd ============
+        $reservation_draft = new Reservation_draft();
+        $reservation_draft->ressource_id = $ressource->id;
+        $reservation_draft->client_id = $client->id;
+        $reservation_draft->start_date = $start_date_confirmed;
+        $reservation_draft->end_date = $end_date_confirmed;
+        $reservation_draft->start_hour = $start_hour_confirmed;
+        $reservation_draft->end_hour = $end_hour_confirmed;
+        $reservation_draft->initial_amount = $initial_amount;
+        $reservation_draft->amount_due = $amount_due;
+        $reservation_draft->coupon_id = $request->has("coupon") && isset($request->coupon) ? $apply_coupon['coupon']->id : null;
+        $reservation_draft->created_by = $authUser->id;
+        $reservation_draft->save();
 
-        return "start_date: $start_date_confirmed  end_date: $end_date_confirmed
-                start_hour: $start_hour_confirmed  end_hour: $end_hour_confirmed";
+        $response = [
+            'reservation_draft' => $reservation_draft,
+            'coupon' => $coupon,
+            'message' => "The reservation draft $reservation_draft->id successfully created",
+        ];
 
-        $reservation = Reservation::create($validator->validated());
-        $reservation->space_id = $space->id;
-        $reservation->created_by = $authUser->id;
-        $reservation->agency_id = $confirm_agency_id;
+        \LogActivity::addToLog("New reservation draft created. reservation draft id: $reservation_draft->id");
+
+        return response($response, 201);
+    }
+
+    public function store(Request $request)
+    {
+        if(
+            !Reservation_draft::where("client_id", $request->client_id)
+                    ->where("ressource_id", $request->ressource_id)
+                    ->exists()
+        ){
+            \LogActivity::addToLog("Reservation creation failed. Reservation not found.");
+            return response([
+                'errors' => [
+                    'en' => "Reservation not found.",
+                    'fr' => "Réservation non trouvé.",
+                ]
+            ], 422);
+        }
+
+        $reservation_draft = Reservation_draft::where("client_id", $request->client_id)
+                                ->where("ressource_id", $request->ressource_id)
+                                ->orderByDesc("created_at")
+                                ->first();
+
+        $reservation = new Reservation();
+        $reservation->ressource_id = $reservation_draft->ressource_id;
+        $reservation->client_id = $reservation_draft->client_id;
+        $reservation->start_date = $reservation_draft->start_date;
+        $reservation->end_date = $reservation_draft->end_date;
+        $reservation->start_hour = $reservation_draft->start_hour;
+        $reservation->end_hour = $reservation_draft->end_hour;
+        $reservation->initial_amount = $reservation_draft->initial_amount;
+        $reservation->amount_due = $reservation_draft->amount_due;
+        $reservation->state = HelpersReservation::getState($reservation_draft->initial_amount, $reservation_draft->amount_due);
+        $reservation->coupon_id = $reservation_draft->coupon_id;
+        $reservation->created_by = $reservation_draft->created_by;
+
         $reservation->save();
+        $reservation_draft->delete();
+
+        // envoyer la notification du paiement au client, au superadmin et aux admins de l'agence
+        $superadmin_admins = HelpersUser::getSuperadminAndAdmins($reservation->ressource->agency_id);
+        $client = $reservation->client;
+
+        foreach($superadmin_admins as $admin) {
+            $admin->notify(new NewReservation($reservation));
+        }
+        $client->notify(new NewReservation($reservation));
 
         $response = [
             'message' => "The reservation $reservation->id successfully created",
+            'reservation_id' => $reservation->id
         ];
 
         \LogActivity::addToLog("New reservation created. reservation id: $reservation->id");
@@ -619,28 +678,9 @@ class ReservationController extends Controller
             }
 
             if($request->undo_cancellation){
-                if($reservation->amount_due == 0 ){
-                    $reservation->state = 'totally paid';
-                }
-                if($reservation->amount_due >= $reservation->initial_amount ){
-                    $reservation->state = 'confirmed';
-                }
-                // if(0 < $reservation->amount_due < ($reservation->initial_amount/2)){
-                $half_amount = $reservation->initial_amount/2;
-                // if(0 < $reservation->amount_due && $reservation->amount_due < $half_amount){
-                if(
-                    $reservation->amount_due < $reservation->initial_amount &&
-                    $reservation->amount_due > $half_amount
-                ){
-                    $reservation->state = 'partially paid';
-                }
-                if($reservation->amount_due == $reservation->initial_amount ){
-                    $reservation->state = 'pending';
-                }
+                $reservation->state = HelpersReservation::getState($reservation->initial_amount, $reservation->amount_due);;
                 $response = [
-                    'message' => "The reservation $reservation->id 's cancellation is stopped 
-                    half_amount $half_amount
-                    due $reservation->amount_due initial $reservation->initial_amount",
+                    'message' => "The reservation $reservation->id 's cancellation is stopped"
                 ];
             } else {
                 $validator = Validator::make($request->all(),[
@@ -689,12 +729,19 @@ class ReservationController extends Controller
         return Carbon::createFromFormat("Y-m-d H:i:s", $date);
     }
 
-    public function diff_date($start_date, $end_date)
+    public function diff_date($start_date, $end_date, $opening_hour, $closing_hour)
     {
         $start_date = Carbon::parse($start_date);
         $end_date = Carbon::parse($end_date);
+        $opening_hour = Carbon::parse($opening_hour);
+        $closing_hour = Carbon::parse($closing_hour);
+        
+        $total_hour = $closing_hour->diffInHours($opening_hour);
+        $midday_value = floor($total_hour/ 2);
+
         $diff_months = $end_date->diffInMonths($start_date);
         $rest_days= $end_date->diffInDays($start_date) % 30;
+        $diff_middays = 0;
         
         if ($rest_days> 0) {
             $diff_weeks = floor($rest_days/ 7);
@@ -702,73 +749,99 @@ class ReservationController extends Controller
         
             if ($rest_days_week > 0) {
                 $diff_days = $rest_days_week;
+                //$diff_hours = $end_date->diffInHours($start_date) % 24;
+
                 $rest_hours = $end_date->diffInHours($start_date) % 24;
+                $diff_middays = floor($rest_hours/ $midday_value);
+                $diff_hours = $rest_hours% $midday_value;
             } else {
                 $diff_days = 0;
-                $rest_hours = 0;
+                $diff_hours = 0;
             }
         } else {
             $diff_weeks = 0;
             $diff_days = 0;
+            //$diff_hours = $end_date->diffInHours($start_date);
+
             $rest_hours = $end_date->diffInHours($start_date);
+            $diff_middays = floor($rest_hours/ $midday_value);
+            $diff_hours = $rest_hours% $midday_value;
         }
-        
-        /*
-        echo "Différence en mois : $diff_months mois \n";
-        echo "Différence en semaines : $diff_weeks semaines \n";
-        echo "Différence en jours : $diff_days jours \n";
-        echo "Différence en heures : $rest_hours heures"; */
 
         return [
             'diff_months' => $diff_months,
             'diff_weeks' => $diff_weeks,
             'diff_days' => $diff_days,
-            'rest_hours' => $rest_hours,
+            'diff_middays' => $diff_middays,
+            'diff_hours' => $diff_hours,
         ];
     }
-}
 
-/*
-        Reservation::where('ressource_id', $ressource->id)
-        ->where(function ($query) use ($start_date_confirmed, $end_date_confirmed) {
-            $query->where(function ($query) use ($start_date_confirmed, $end_date_confirmed) {
-                $query->where('start_date', '>=', $start_date_confirmed)
-                    ->where('start_date', '<', $end_date_confirmed);
-            })
-            ->orWhere(function ($query) use ($start_date_confirmed, $end_date_confirmed) {
-                $query->where('end_date', '>', $start_date_confirmed)
-                    ->where('end_date', '=<', $end_date_confirmed);
-            })
-            ->orWhere(function ($query) use ($start_date_confirmed, $end_date_confirmed) {
-                $query->where('start_date', '<=', $start_date_confirmed)
-                    ->where('end_date', '>=', $end_date_confirmed);
-            });
-        })
-        ->where(
-            function ($query)
-            use($start_date_confirmed, $end_date_confirmed, $start_hour_confirmed, $end_hour_confirmed) {
-                $query->where('start_date', $start_date_confirmed)
-                    ->where('end_date', $end_date_confirmed)
-                    ->where(
-                        function ($query)
-                        use ($start_hour_confirmed, $end_hour_confirmed) {
-                            $query->where(function ($query) use ($start_hour_confirmed, $end_hour_confirmed) {
-                                $query->where('start_hour', '>=', $start_hour_confirmed)
-                                    ->where('start_hour', '<', $end_hour_confirmed);
-                            })
-                            ->orWhere(function ($query) use ($start_hour_confirmed, $end_hour_confirmed) {
-                                $query->where('end_hour', '>', $start_hour_confirmed)
-                                    ->where('end_hour', '=<', $end_hour_confirmed);
-                            })
-                            ->orWhere(function ($query) use ($start_hour_confirmed, $end_hour_confirmed) {
-                                $query->where('start_hour', '<=', $start_hour_confirmed)
-                                    ->where('end_hour', '>=', $end_hour_confirmed);
-                            });
-                    });
-        })
-        ->where(function ($query) {
-            $query->where('state', 'confirmed')
-                ->orWhere('state', 'totally paid');
-        })
-        ->get();
-*/
+    public function apply(User $client, $coupon)
+    {
+        //verifie si le coupon existe
+        if(!Coupon::where("code", $coupon)->exists()) {
+            return [
+                'success' => false,
+            ];
+        }
+        $coupon = Coupon::where('code', $coupon)->first();
+        $client_coupons_ids = [];
+        foreach ($client->coupons as $item) {
+            array_push($client_coupons_ids, $item->id);
+        }
+
+        //verifie le client a recu le coupon
+        if(!in_array($coupon->id, $client_coupons_ids)) {
+            return [
+                'success' => false,
+                'errors' => [
+                    'errors' => [
+                        'en' => "coupon not available for this client",
+                        'fr' => "coupon non disponible pour ce client",
+                    ]
+                ]
+            ];
+        }
+
+        //verifie si le coupon est encore actif
+        if($coupon->status == "expired") {
+            return [
+                'success' => false,
+                'errors' => [
+                    'errors' => [
+                        'en' => "coupon has expired",
+                        'fr' => "le coupon a expiré",
+                    ]
+                ]
+            ];
+        }
+
+        //verifie si le coupon n'a pas depasse le nombre maximum d'utilisation
+        $total_client_usage = Reservation::where('client_id', $client->id)
+                                            ->where('coupon_id', $coupon->id)
+                                            ->where(function ($query) {
+                                                $query->where('state', 'confirmed')
+                                                    ->orWhere('state', 'totally paid');
+                                            })
+                                            ->count();
+
+        if($total_client_usage >= $coupon->total_usage) {
+            return [
+                'success' => false,
+                'errors' => [
+                    'errors' => [
+                        'en' => "coupon total usage($coupon->total_usage) exceded",
+                        'fr' => "le nombre d'utilisaton maximum du coupon ($coupon->total_usage) est atteint",
+                    ]
+                ]
+            ];
+        }
+
+        return [
+            'success' => true,
+            'coupon' => $coupon,
+        ];
+    }
+
+}

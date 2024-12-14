@@ -181,14 +181,14 @@ class PaymentController extends Controller
         $payment->bill_number = $request->has("bill_number") && isset($request->bill_number) ? $request->bill_number : null;
         $payment->reservation_id = $reservation->id;
         $payment->processed_by = $authUser->id;
-        // $payment->save();
+        $payment->save();
 
         //mettre a jour le montant restant et le statut de la reservation
         $new_amount_due = $reservation->amount_due - $request->amount;
         $reservation->amount_due = $new_amount_due;
         $reservation->state = HelpersReservation::getState($reservation->initial_amount, $new_amount_due);
         $reservation->note = $request->note;
-        // $reservation->save();
+        $reservation->save();
 
         // envoyer la notification du paiement au client, au superadmin et aux admins de l'agence
         $superadmin_admins = HelpersUser::getSuperadminAndAdmins($reservation->ressource->agency_id);
@@ -199,7 +199,6 @@ class PaymentController extends Controller
         }
         $client->notify(new NewPayment($reservation, $payment));
 
-        return 'yes';
         $response = [
             'message' => "The payment $payment->id successfully created",
         ];

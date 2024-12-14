@@ -246,3 +246,21 @@ $phonenumber = \Options::getValue('phonenumber');
   "end_hour":"17:00",
   "coupon": "jEX3HvFCB"
 }
+
+// dratf  http://127.0.0.1:8000/api/reservation/store/confirm
+{
+  "client_id": "19",
+  "ressource_id": "3",
+  "validity": "day",
+  "start_date": "2025-03-08",
+  "end_date": "2025-03-08"
+}
+// payment http://127.0.0.1:8000/api/payment/store
+{
+  "reservation_id": 9,
+  "amount": "1500",
+  "payment_method": "Bank",
+  "transaction_id": "fdf",
+  "bill_number": "",
+  "note": ""
+}
