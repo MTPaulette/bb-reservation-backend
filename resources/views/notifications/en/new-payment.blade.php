@@ -22,6 +22,7 @@
     <li><span class="bold">Total amount:</span> {{ $reservation->initial_amount }} FCFA</li>
     <li><span class="bold">Amount paid:</span> {{ $payment->amount }} FCFA</li>
     <li><span class="bold">Amount remaining to be paid:</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Payment made to:</span> {{ $payment->processedBy->lastname }} {{ $payment->processedBy->firstname }}</li>
   </ul>
   To complete the payment, you can use the following link:
   <a href="{{ url($client_url) }}" class="link">view payment</a>
@@ -50,11 +51,15 @@
     <li><span class="bold">Start time:</span> {{ $reservation->start_hour }} (GMT+1)</li>
     <li><span class="bold">End time:</span> {{ $reservation->end_hour }} (GMT+1)</li>
     <li><span class="bold">Requested resource:</span> {{ $reservation->ressource->space->name }}</li>
+    <li><span class="bold">Client :</span> {{ $reservation->client->lastname }} {{ $reservation->client->firstname }}</li>
     <li><span class="bold">Agency:</span> {{ $reservation->ressource->agency->name }}</li>
     <li><span class="bold">Total amount:</span> {{ $reservation->initial_amount }} FCFA</li>
     <li><span class="bold">Amount paid:</span> {{ $payment->amount }} FCFA</li>
     <li><span class="bold">Amount remaining to be paid:</span> {{ $reservation->amount_due }} FCFA</li>
-  </ul>To view the reservation, you can use the following link:
+    <li><span class="bold">Payment made to:</span> {{ $payment->processedBy->lastname }} {{ $payment->processedBy->firstname }}</li>
+  </ul>
+
+  To view the reservation, you can use the following link:
   <a href="{{ url($admin_url) }}" class="link">see reservation</a>
 
   We thank you for your attention and invite you to check the

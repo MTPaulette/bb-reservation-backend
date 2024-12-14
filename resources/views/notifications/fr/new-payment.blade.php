@@ -23,6 +23,7 @@
     <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
     <li><span class="bold">Montant payé :</span> {{ $payment->amount }} FCFA</li>
     <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Paiement fait auprès de :</span> {{ $payment->processedBy->lastname }} {{ $payment->processedBy->firstname }}</li>
   </ul>
   Pour compléter le paiement, vous pouvez utiliser le lien suivant :
   <a href="{{ url($client_url) }}" class="link">voir le paiement</a>
@@ -51,10 +52,12 @@
     <li><span class="bold">Heure de début :</span> {{ $reservation->start_hour }} (GMT+1)</li>
     <li><span class="bold">Heure de fin :</span> {{ $reservation->end_hour }} (GMT+1)</li>
     <li><span class="bold">Ressource sollicitée :</span> {{ $reservation->ressource->space->name }}</li>
+    <li><span class="bold">Client :</span> {{ $reservation->client->lastname }} {{ $reservation->client->firstname }}</li>
     <li><span class="bold">Agence :</span> {{ $reservation->ressource->agency->name }}</li>
     <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
     <li><span class="bold">Montant payé :</span> {{ $payment->amount }} FCFA</li>
     <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Paiement fait auprès de :</span> {{ $payment->processedBy->lastname }} {{ $payment->processedBy->firstname }}</li>
   </ul>
 
   Pour consulter la réservation, vous pouvez utiliser le lien suivant :

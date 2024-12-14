@@ -35,6 +35,7 @@
     @endisset
     <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
     <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Réservation faite par :</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
   </ul> 
 
   Cependant, nous vous informons que malgré la réservation,
@@ -62,6 +63,7 @@
     <li><span class="bold">Heure de début :</span> {{ $reservation->start_hour }} (GMT+1)</li>
     <li><span class="bold">Heure de fin :</span> {{ $reservation->end_hour }} (GMT+1)</li>
     <li><span class="bold">Ressource sollicitée :</span> {{ $reservation->ressource->space->name }}</li>
+    <li><span class="bold">Client :</span> {{ $reservation->client->lastname }} {{ $reservation->client->firstname }}</li>
     <li><span class="bold">Agence :</span> {{ $reservation->ressource->agency->name }}</li>
     <li><span class="bold">Coupon :</span>
     @isset ($reservation->coupon)
@@ -83,11 +85,15 @@
     @endisset
     <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
     <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Réservation faite par :</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
   </ul> 
 
   Nous vous rappelons que le client doit payer au moins <span class="bold">50%</span> du montant total de la réservation
   pour garantir la disponibilité de la ressource. Le reste des <span class="bold">50%</span> devra être payé
   avant l'heure de début de la réservation.
+
+  Pour consulter la réservation, vous pouvez utiliser le lien suivant :
+  <a href="{{ url($admin_url) }}" class="link">voir la réservation</a>
 
   Nous vous invitons à suivre l'état de la réservation et à contacter le client si nécessaire.
 

@@ -33,6 +33,7 @@
     @endisset
     <li><span class="bold">Total amount:</span> {{ $reservation->initial_amount }} FCFA</li>
     <li><span class="bold">Amount remaining to be paid:</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Reservation made by :</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
   </ul>
   
   However, we inform you that despite the reservation,
@@ -47,7 +48,8 @@
 
   Sincerely,
 </div>
-@else<div class="main-content">
+@else
+<div class="main-content">
   We inform you that the reservation for
   <span class="bold">{{ $reservation->ressource->space->name }} </span>has been completed successfully.
 
@@ -59,6 +61,7 @@
     <li><span class="bold">Start time:</span> {{ $reservation->start_hour }} (GMT+1)</li>
     <li><span class="bold">End time:</span> {{ $reservation->end_hour }} (GMT+1)</li>
     <li><span class="bold">Requested resource:</span> {{ $reservation->ressource->space->name }}</li>
+    <li><span class="bold">Client :</span> {{ $reservation->client->lastname }} {{ $reservation->client->firstname }}</li>
     <li><span class="bold">Agency:</span> {{ $reservation->ressource->agency->name }}</li>
     <li><span class="bold">Coupon:</span>
     @isset ($reservation->coupon)
@@ -80,10 +83,15 @@
     @endisset
     <li><span class="bold">Total amount:</span> {{ $reservation->initial_amount }} FCFA</li>
     <li><span class="bold">Amount remaining to be paid:</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Reservation made by :</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
   </ul>
+
   We remind you that the customer must pay at least <span class="bold">50%</span> of the total amount of the reservation
   to guarantee the availability of the resource. The rest of the <span class="bold">50%</span> must be paid
   before the start time of the reservation.
+
+  To view the reservation, you can use the following link:
+  <a href="{{ url($admin_url) }}" class="link">see reservation</a>
 
   We invite you to follow the status of the reservation and contact the customer if necessary.
 

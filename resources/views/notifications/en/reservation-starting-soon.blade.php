@@ -1,30 +1,30 @@
 @component('mail::message')
 
-<h1 class="name">Bonjour {{ $notifiable->lastname }},</h1>
+<h1 class="name">Hello {{ $notifiable->lastname }},</h1>
 @if ($notifiable->role_id == 2)
 <div class="main-content">
-  Nous sommes ravis de vous confirmer que votre réservation pour 
-  <span class="bold">{{ $reservation->ressource->space->name }} </span>a été effectuée avec succès.
+  We remind you that your reservation for
+  <span class="bold">{{ $reservation->ressource->space->name }} </span>starts in 30 minutes! 
 
-  Voici les détails de votre réservation :
+  Here are the details of your reservation:
   <ul>
-    <li><span class="bold">Numéro de réservation :</span> {{ $reservation->id }}</li>
-    <li><span class="bold">Date de début :</span> {{ $reservation->start_date }}</li>
-    <li><span class="bold">Date de fin :</span> {{ $reservation->end_date }}</li>
-    <li><span class="bold">Heure de début :</span> {{ $reservation->start_hour }} (GMT+1)</li>
-    <li><span class="bold">Heure de fin :</span> {{ $reservation->end_hour }} (GMT+1)</li>
-    <li><span class="bold">Ressource sollicitée :</span> {{ $reservation->ressource->space->name }}</li>
-    <li><span class="bold">Agence :</span> {{ $reservation->ressource->agency->name }}</li>
-    <li><span class="bold">Coupon :</span>
+    <li><span class="bold">Reservation number:</span> {{ $reservation->id }}</li>
+    <li><span class="bold">Start date:</span> {{ $reservation->start_date }}</li>
+    <li><span class="bold">End date:</span> {{ $reservation->end_date }}</li>
+    <li><span class="bold">Start time:</span> {{ $reservation->start_hour }} (GMT+1)</li>
+    <li><span class="bold">End time:</span> {{ $reservation->end_hour }} (GMT+1)</li>
+    <li><span class="bold">Resource requested:</span> {{ $reservation->ressource->space->name }}</li>
+    <li><span class="bold">Agency:</span> {{ $reservation->ressource->agency->name }}</li>
+    <li><span class="bold">Coupon:</span>
     @isset ($reservation->coupon)
       {{ $reservation->coupon->name }} | {{ $reservation->coupon->code }}
     @else
-      Aucun coupon
+      No coupons
     @endisset
     </li>
     @isset ($reservation->coupon)
       <li>
-        <span class="bold">Valeur du coupon :</span>
+        <span class="bold">Coupon value:</span>
         @if ($reservation->coupon->percent)
           {{ $reservation->coupon->percent }} %
         @endif
@@ -33,46 +33,45 @@
         @endif
       </li>
     @endisset
-    <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
-    <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
-  </ul> 
+    <li><span class="bold">Total amount:</span> {{ $reservation->initial_amount }} FCFA</li>
+    <li><span class="bold">Amount remaining to be paid:</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Reservation made by:</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
+  </ul>
+  
+  We remind you that if the payment is not effective or total, 
+  you will need to pay before the start of the reservation time. 
+  In addition, if the <span class="bold">50%</span> of the reservation has not been paid, 
+  there is no guarantee that the resource will be available in the agency.
+  
+  We invite you to verify your payment and 
+  contact us if you have any questions or concerns.
 
-  Cependant, nous vous informons que malgré la réservation,
-  rien ne garantit que la ressource vous soit attribuée.
-  Pour y remédier, il est nécessaire de payer au moins <span class="bold">50%</span> du montant total de la réservation.
-  Le reste des <span class="bold">50%</span> devra être payé avant l'heure de début de la réservation.
-
-  Nous vous invitons à effectuer le paiement dès que possible pour garantir la disponibilité de la ressource.
-  Vous pouvez utiliser le lien suivant pour effectuer le paiement : <a href="{{ url($client_url) }}" class="link">voir la reservation</a>
-
-  Nous vous remercions de votre attention et nous nous réjouissons de vous accueillir dans notre établissement.
-
-  Cordialement,
+  Sincerely,
 </div>
 @else
 <div class="main-content">
-  Nous vous informons que la réservation pour
-  <span class="bold">{{ $reservation->ressource->space->name }} </span>a été effectuée avec succès.
+  We remind you that the reservation for
+  <span class="bold">{{ $reservation->ressource->space->name }} </span>starts in 30 minutes! 
 
-  Voici les détails de votre réservation :
+  Here are the details of your reservation:
   <ul>
-    <li><span class="bold">Numéro de réservation :</span> {{ $reservation->id }}</li>
-    <li><span class="bold">Date de début :</span> {{ $reservation->start_date }}</li>
-    <li><span class="bold">Date de fin :</span> {{ $reservation->end_date }}</li>
-    <li><span class="bold">Heure de début :</span> {{ $reservation->start_hour }} (GMT+1)</li>
-    <li><span class="bold">Heure de fin :</span> {{ $reservation->end_hour }} (GMT+1)</li>
-    <li><span class="bold">Ressource sollicitée :</span> {{ $reservation->ressource->space->name }}</li>
-    <li><span class="bold">Agence :</span> {{ $reservation->ressource->agency->name }}</li>
-    <li><span class="bold">Coupon :</span>
+    <li><span class="bold">Reservation number:</span> {{ $reservation->id }}</li>
+    <li><span class="bold">Start date:</span> {{ $reservation->start_date }}</li>
+    <li><span class="bold">End date:</span> {{ $reservation->end_date }}</li>
+    <li><span class="bold">Start time:</span> {{ $reservation->start_hour }} (GMT+1)</li>
+    <li><span class="bold">End time:</span> {{ $reservation->end_hour }} (GMT+1)</li>
+    <li><span class="bold">Resource requested:</span> {{ $reservation->ressource->space->name }}</li>
+    <li><span class="bold">Agency:</span> {{ $reservation->ressource->agency->name }}</li>
+    <li><span class="bold">Coupon:</span>
     @isset ($reservation->coupon)
       {{ $reservation->coupon->name }} | {{ $reservation->coupon->code }}
     @else
-      Aucun coupon
+      No coupons
     @endisset
     </li>
     @isset ($reservation->coupon)
       <li>
-        <span class="bold">Valeur du coupon :</span>
+        <span class="bold">Coupon value:</span>
         @if ($reservation->coupon->percent)
           {{ $reservation->coupon->percent }} %
         @endif
@@ -81,17 +80,23 @@
         @endif
       </li>
     @endisset
-    <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
-    <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
-  </ul> 
+    <li><span class="bold">Total amount:</span> {{ $reservation->initial_amount }} FCFA</li>
+    <li><span class="bold">Amount remaining to be paid:</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Reservation made by:</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
+  </ul>
+  
+  We remind you that if the payment is not effective or total, 
+  the customer must pay before the start of the reservation time. 
+  Additionally, if the <span class="bold">50%</span> 
+  of the reservation have not been paid, there is no guarantee that 
+  the resource is available in agency.
 
-  Nous vous rappelons que le client doit payer au moins <span class="bold">50%</span> du montant total de la réservation
-  pour garantir la disponibilité de la ressource. Le reste des <span class="bold">50%</span> devra être payé
-  avant l'heure de début de la réservation.
+  To view the reservation, you can use the following link:
+  <a href="{{ url($admin_url) }}" class="link">see reservation</a>
 
-  Nous vous invitons à suivre l'état de la réservation et à contacter le client si nécessaire.
+  We invite you to verify the payment and contact the customer if necessary.
 
-  Cordialement,
+  Sincerely,
 </div>
 @endif
 <h2 style="color:black;">

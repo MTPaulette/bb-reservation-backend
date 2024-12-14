@@ -1,12 +1,12 @@
 @component('mail::message')
 
-<h1 class="name">Bonjour {{ $notifiable->lastname }},</h1>
+<h1 class="name">Hello {{ $notifiable->lastname }},</h1>
 @if ($notifiable->role_id == 2)
 <div class="main-content">
-  Nous vous rappelons que votre réservation pour
-  <span class="bold">{{ $reservation->ressource->space->name }} </span>commence dans 30 minutes ! 
+  We remind you that your reservation for 
+  <span class="bold">{{ $reservation->ressource->space->name }} </span>ends in 30 minutes!
 
-  Voici les détails de votre réservation :
+  Here are the details of your reservation:
   <ul>
     <li><span class="bold">Numéro de réservation :</span> {{ $reservation->id }}</li>
     <li><span class="bold">Date de début :</span> {{ $reservation->start_date }}</li>
@@ -36,24 +36,21 @@
     <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
     <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
     <li><span class="bold">Réservation faite par :</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
-  </ul> 
-
-  Nous vous rappelons que si le paiement n'est pas effectif ou total, 
-  vous devrez payer avant le début de l'heure de la réservation. 
-  De plus, si les <span class="bold">50%</span> de la réservation n'ont pas été versés, 
-  rien ne garantit que la ressource soit disponible en agence.
+  </ul>
   
-  Nous vous invitons à vérifier votre paiement et à 
-  nous contacter si vous avez des questions ou des préoccupations.
+  We invite you to prepare your belongings and leave the premises before the 
+  end of reservation. 
+  
+  If you have any questions or concerns, please do not hesitate to contact us.
 
-  Cordialement,
+  Sincerely,
 </div>
 @else
 <div class="main-content">
-  Nous vous rappelons que la réservation pour
-  <span class="bold">{{ $reservation->ressource->space->name }} </span>commence dans 30 minutes ! 
+  We remind you that your reservation for 
+  <span class="bold">{{ $reservation->ressource->space->name }} </span>ends in 30 minutes!
 
-  Voici les détails de votre réservation :
+  Here are the details of your reservation:
   <ul>
     <li><span class="bold">Numéro de réservation :</span> {{ $reservation->id }}</li>
     <li><span class="bold">Date de début :</span> {{ $reservation->start_date }}</li>
@@ -83,20 +80,12 @@
     <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
     <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
     <li><span class="bold">Réservation faite par :</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
-  </ul> 
+  </ul>
 
-  Nous vous rappelons que si le paiement n'est pas effectif ou total, 
-  le client devra payer avant le début de l'heure de la réservation. 
-  De plus, si les <span class="bold">50%</span> 
-  de la réservation n'ont pas été versés, rien ne garantit que 
-  la ressource soit disponible en agence.
+  We invite you to check that the customer has left the premises before the end of the 
+  reservation and to check the premises and equipment.
 
-  Pour consulter la réservation, vous pouvez utiliser le lien suivant :
-  <a href="{{ url($admin_url) }}" class="link">voir la réservation</a>
-
-  Nous vous invitons à vérifier le paiement et à contacter le client si nécessaire.
-
-  Cordialement,
+  Sincerely,
 </div>
 @endif
 <h2 style="color:black;">

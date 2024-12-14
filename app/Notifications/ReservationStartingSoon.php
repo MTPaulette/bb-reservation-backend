@@ -48,7 +48,11 @@ class ReservationStartingSoon extends Notification
         if($language == 'en') {
             return
             (new MailMessage)
-            ->subject($notifiable->role_id == 2 ? 'Confirmation de paiement pour votre réservation' : 'Notification de paiement pour la réservation '.$this->reservation->id)
+            ->subject(
+                $notifiable->role_id == 2 ?
+                'Reminder of your reservation - Starts in 30 minutes!' :
+                'Reservation reminder - Starts in 30 minutes!'
+            )
             ->markdown('notifications.en.reservation-starting-soon', [
                 'notifiable' => $notifiable,
                 'reservation' => $this->reservation,
@@ -59,8 +63,11 @@ class ReservationStartingSoon extends Notification
 
         return
         (new MailMessage)
-        ->subject($notifiable->role_id == 2 ? 'Confirmation de votre réservation' : 'Notification de réservation pour '.$this->reservation->ressource->space->name)
-        ->markdown('notifications.fr.reservation-starting-soon', [
+        ->subject(
+            $notifiable->role_id == 2 ?
+            'Rappel de votre réservation - Début dans 30 minutes !' :
+            'Rappel de réservation - Début dans 30 minutes !'
+        )->markdown('notifications.fr.reservation-starting-soon', [
             'notifiable' => $notifiable,
             'reservation' => $this->reservation,
             'client_url' => $client_url,

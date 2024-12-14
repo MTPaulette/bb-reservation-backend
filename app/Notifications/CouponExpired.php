@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewCouponSent extends Notification
+class CouponExpired extends Notification
 {
     use Queueable;
 
@@ -44,8 +44,8 @@ class NewCouponSent extends Notification
         if($language == 'en') {
             return
             (new MailMessage)
-            ->subject('New discount coupon !')
-            ->markdown('notifications.en.new-coupon-sent', [
+            ->subject('Discount coupon expired')
+            ->markdown('notifications.en.coupon-expired', [
                 'notifiable' => $notifiable,
                 'coupon' => $this->coupon
             ]);
@@ -53,8 +53,8 @@ class NewCouponSent extends Notification
 
         return
         (new MailMessage)
-        ->subject('Nouveau coupon de réduction !')
-        ->markdown('notifications.fr.new-coupon-sent', [
+        ->subject('Coupon de réduction expiré')
+        ->markdown('notifications.fr.coupon-expired', [
             'notifiable' => $notifiable,
             'coupon' => $this->coupon
         ]);

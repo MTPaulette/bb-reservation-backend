@@ -18,6 +18,7 @@ class SendCoupon implements ShouldQueue
 
     public function handle()
     {
+        //$coupon = Coupon::latest()->first();
         $coupons = Coupon::where("sent", false)->get();
         foreach($coupons as $coupon) {
             $users = $coupon->users;
@@ -30,19 +31,3 @@ class SendCoupon implements ShouldQueue
         }
     }
 }
-
-/*
-    public function handle()
-    {
-        $coupon = Coupon::latest()->first();
-        if ($coupon && !$coupon->sent) {
-            $users = $coupon->users;
-
-            foreach ($users as $user) {
-                $user->notify(new NewCouponSent($coupon));
-            }
-            $coupon->sent = true;
-            $coupon->save();
-        }
-    }
-        */

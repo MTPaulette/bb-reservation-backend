@@ -48,7 +48,11 @@ class NewReservation extends Notification
         if($language == 'en') {
             return
             (new MailMessage)
-            ->subject($notifiable->role_id == 2 ? 'Confirmation de paiement pour votre réservation' : 'Notification de paiement pour la réservation '.$this->reservation->id)
+            ->subject(
+                $notifiable->role_id == 2 ?
+                'Payment confirmation for your reservation':
+                'Payment notification for reservation'.$this->reservation->id
+            )
             ->markdown('notifications.en.new-reservation', [
                 'notifiable' => $notifiable,
                 'reservation' => $this->reservation,
@@ -59,8 +63,11 @@ class NewReservation extends Notification
 
         return
         (new MailMessage)
-        ->subject($notifiable->role_id == 2 ? 'Confirmation de votre réservation' : 'Notification de réservation pour '.$this->reservation->ressource->space->name)
-        ->markdown('notifications.fr.new-reservation', [
+        ->subject(
+            $notifiable->role_id == 2 ?
+            'Confirmation de paiement pour votre réservation' :
+            'Notification de paiement pour la réservation '.$this->reservation->id
+        )->markdown('notifications.fr.new-reservation', [
             'notifiable' => $notifiable,
             'reservation' => $this->reservation,
             'client_url' => $client_url,

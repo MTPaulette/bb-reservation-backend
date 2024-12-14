@@ -48,7 +48,7 @@ class ReservationEndingSoon extends Notification
         if($language == 'en') {
             return
             (new MailMessage)
-            ->subject($notifiable->role_id == 2 ? 'Confirmation de paiement pour votre réservation' : 'Notification de paiement pour la réservation '.$this->reservation->id)
+            ->subject('End of reservation reminder - 30 minutes before end!')
             ->markdown('notifications.en.reservation-ending-soon', [
                 'notifiable' => $notifiable,
                 'reservation' => $this->reservation,
@@ -59,7 +59,7 @@ class ReservationEndingSoon extends Notification
 
         return
         (new MailMessage)
-        ->subject($notifiable->role_id == 2 ? 'Confirmation de votre réservation' : 'Notification de réservation pour '.$this->reservation->ressource->space->name)
+        ->subject('Rappel de fin de réservation - 30 minutes avant la fin !')
         ->markdown('notifications.fr.reservation-ending-soon', [
             'notifiable' => $notifiable,
             'reservation' => $this->reservation,

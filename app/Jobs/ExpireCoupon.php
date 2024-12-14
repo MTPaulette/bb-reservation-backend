@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Coupon;
+use App\Notifications\CouponExpired;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,6 +21,11 @@ class ExpireCoupon implements ShouldQueue
     {
         $coupons = Coupon::where("expired_on", "<=", Carbon::now())->get();
         foreach($coupons as $coupon) {
+            $users = $coupon->users;
+
+            foreach ($users as $user) {
+                $user->notify(new CouponExpired($coupon));
+            }
             $coupon->status = "expired";
             $coupon->save();
         }

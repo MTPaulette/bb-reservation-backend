@@ -3,8 +3,8 @@
 <h1 class="name">Bonjour {{ $notifiable->lastname }},</h1>
 @if ($notifiable->role_id == 2)
 <div class="main-content">
-  Nous vous rappelons que votre réservation pour
-  <span class="bold">{{ $reservation->ressource->space->name }} </span>commence dans 30 minutes ! 
+  Nous vous rappelons que votre réservation pour 
+  <span class="bold">{{ $reservation->ressource->space->name }} </span>se termine dans 30 minutes ! 
 
   Voici les détails de votre réservation :
   <ul>
@@ -38,20 +38,17 @@
     <li><span class="bold">Réservation faite par :</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
   </ul> 
 
-  Nous vous rappelons que si le paiement n'est pas effectif ou total, 
-  vous devrez payer avant le début de l'heure de la réservation. 
-  De plus, si les <span class="bold">50%</span> de la réservation n'ont pas été versés, 
-  rien ne garantit que la ressource soit disponible en agence.
+  Nous vous invitons à préparer vos affaires et à quitter les lieux avant la 
+  fin de la réservation. 
   
-  Nous vous invitons à vérifier votre paiement et à 
-  nous contacter si vous avez des questions ou des préoccupations.
+  Si vous avez des questions ou des préoccupations, n'hésitez pas à nous contacter.
 
   Cordialement,
 </div>
 @else
 <div class="main-content">
-  Nous vous rappelons que la réservation pour
-  <span class="bold">{{ $reservation->ressource->space->name }} </span>commence dans 30 minutes ! 
+  Nous vous rappelons que votre réservation pour 
+  <span class="bold">{{ $reservation->ressource->space->name }} </span>se termine dans 30 minutes ! 
 
   Voici les détails de votre réservation :
   <ul>
@@ -85,16 +82,8 @@
     <li><span class="bold">Réservation faite par :</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
   </ul> 
 
-  Nous vous rappelons que si le paiement n'est pas effectif ou total, 
-  le client devra payer avant le début de l'heure de la réservation. 
-  De plus, si les <span class="bold">50%</span> 
-  de la réservation n'ont pas été versés, rien ne garantit que 
-  la ressource soit disponible en agence.
-
-  Pour consulter la réservation, vous pouvez utiliser le lien suivant :
-  <a href="{{ url($admin_url) }}" class="link">voir la réservation</a>
-
-  Nous vous invitons à vérifier le paiement et à contacter le client si nécessaire.
+  Nous vous invitons à vérifier que le client a quitté les lieux avant la fin de la 
+  réservation et à procéder à la vérification des lieux et des équipements.
 
   Cordialement,
 </div>

@@ -1,0 +1,114 @@
+
+
+==================================================================
+new coupon
+
+coupon de réduction 
+
+Voici un exemple de contenu d'un email à envoyer à un utilisateur après qu'il vient de recevoir un nouveau coupon de réduction :
+
+Objet : Nouveau coupon de réduction !
+
+Bonjour [Nom de l'utilisateur],
+
+Nous sommes ravis de vous annoncer que vous venez de recevoir un nouveau coupon de réduction ! Voici les détails de votre coupon :
+
+- Code de coupon : [Code de coupon]
+- Pourcentage de réduction : [Pourcentage de réduction]%
+- Montant maximum de réduction : [Montant maximum de réduction]
+- Date de début de validité : [Date de début de validité]
+- Date de fin de validité : [Date de fin de validité]
+- Conditions d'utilisation : [Conditions d'utilisation]
+
+Vous pouvez utiliser ce coupon pour bénéficier d'une réduction sur votre prochaine réservation. Pour utiliser le coupon, simplement saisissez le code de coupon lors de la réservation.
+
+Nous vous remercions de votre fidélité et nous nous réjouissons de vous accueillir dans notre établissement.
+
+Cordialement,
+
+[Votre nom]
+[Votre établissement]
+
+P.S. N'oubliez pas de vérifier les conditions d'utilisation du coupon avant de l'utiliser.
+
+=========================================================
+coupon expire
+
+coupon expiré 
+
+Voici un exemple d'un email à envoyer à un client pour lui rappeler que le coupon de réduction qu'il a reçu a expiré :
+
+Objet : Coupon de réduction expiré
+
+Bonjour [Nom du client],
+
+Nous vous rappelons que le coupon de réduction que vous avez reçu pour [Nom de la ressource] a expiré le [Date d'expiration]. Voici les détails du coupon :
+
+- Code de coupon : [Code de coupon]
+- Pourcentage de réduction : [Pourcentage de réduction]%
+- Montant maximum de réduction : [Montant maximum de réduction]
+- Date de début de validité : [Date de début de validité]
+- Date d'expiration : [Date d'expiration]
+
+Nous regrettons que vous n'ayez pas pu utiliser ce coupon avant son expiration. Si vous souhaitez continuer à bénéficier de réductions et d'offres spéciales, nous vous invitons à vous inscrire à notre newsletter ou à suivre nos réseaux sociaux.
+
+Nous vous remercions de votre fidélité et nous nous réjouissons de vous accueillir dans notre établissement.
+
+Cordialement,
+
+[Votre nom]
+[Votre établissement]
+
+
+/==============@@@@@@@@@@@@@@@@@@@@@@@@@@@@@========================/
+
+
+Pour récupérer les réservations qui commencent dans 30 minutes exactement et celles qui finissent dans 30 minutes exactement, vous pouvez utiliser les méthodes de requête de Laravel pour filtrer les données.
+
+Voici un exemple de code qui montre comment faire :
+
+use App\Models\Reservation;
+use Carbon\Carbon;
+
+$now = Carbon::now();
+
+// Récupérer les réservations qui commencent dans 30 minutes exactement
+$reservationsStartingSoon = Reservation::where('start_at', $now->addMinutes(30)->toDateTimeString())->get();
+
+// Récupérer les réservations qui finissent dans 30 minutes exactement
+$reservationsEndingSoon = Reservation::where('end_at', $now->addMinutes(30)->toDateTimeString())->get();
+
+Pour créer une tâche cron qui envoie des notifications aux utilisateurs de ces réservations, vous pouvez utiliser le système de tâches planifiées de Laravel.
+
+Voici un exemple de code qui montre comment faire :
+
+use App\Models\Reservation;
+use App\Notifications\ReservationNotification;
+use Carbon\Carbon;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+
+class Kernel extends ConsoleKernel
+{
+    protected function schedule(Schedule $schedule)
+    {
+        $schedule->call(function () {
+            $now = Carbon::now();
+
+            // Récupérer les réservations qui commencent dans 30 minutes exactement
+            $reservationsStartingSoon = Reservation::where('start_at', $now->addMinutes(30)->toDateTimeString())->get();
+
+            // Récupérer les réservations qui finissent dans 30 minutes exactement
+            $reservationsEndingSoon = Reservation::where('end_at', $now->addMinutes(30)->toDateTimeString())->get();
+
+            // Envoyer des notifications aux utilisateurs de ces réservations
+            foreach ($reservationsStartingSoon as $reservation) {
+                $reservation->user->notify(new ReservationNotification($reservation, 'Votre réservation va commencer dans 30 minutes.'));
+            }
+
+            foreach ($reservationsEndingSoon as $reservation) {
+                $reservation->user->notify(new ReservationNotification($reservation, 'Votre réservation va se terminer dans 30 minutes.'));
+            }
+        })->everyMinute();
+    }
+}
