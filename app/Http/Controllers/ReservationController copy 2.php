@@ -12,12 +12,16 @@ use App\Models\Reservation_draft;
 use App\Models\Ressource;
 use App\Models\Space;
 use App\Models\User;
+use App\Notifications\CouponExpired;
+use App\Notifications\NewCouponSent;
 use App\Notifications\NewReservation;
+use App\Notifications\ReservationEndingSoon;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\ReservationStartingSoon;
 
 class ReservationController extends Controller
 {
@@ -133,11 +137,11 @@ class ReservationController extends Controller
         //====================================================================================
         $validator = Validator::make($request->all(),[
             'validity' => 'required|string|in:hour,midday,day,week,month',
-            'midday_period' => 'nullable|string',
+            'midday_period' => 'string|required_if:validity,midday',
             'start_date' => 'required|date|after:'.$this->formatDate(Carbon::yesterday()),
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'start_hour' => 'string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00',
-            'end_hour' => 'string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00|after:start_hour',
+            'end_date' => 'date|after_or_equal:start_date|required_if:validity,day,week,month|nullable',
+            'start_hour' => 'string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00|required_if:validity,hour',
+            'end_hour' => 'string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00|after:start_hour|required_if:validity,hour',
             'coupon' => 'nullable|string',
         ]);
 
@@ -146,20 +150,6 @@ class ReservationController extends Controller
             return response([
                 'errors' => $validator->errors(),
             ], 422);
-        }
-
-        if($request->validity == "hour"){
-            $validator = Validator::make($request->all(),[
-                'start_hour' => 'required|string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00',
-                'end_hour' => 'required|string|in:05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00|after:start_hour',
-            ]);
-    
-            if($validator->fails()){
-                \LogActivity::addToLog("Reservation creation failed. ".$validator->errors());
-                return response([
-                    'errors' => $validator->errors(),
-                ], 422);
-            }
         }
 
         if($request->has("coupon") && isset($request->coupon)) {
@@ -173,26 +163,37 @@ class ReservationController extends Controller
         //on verifie que si la start_date est aujourdhui alors l'start_hour doit etre superieur 
         // a l'heur actuelle
         $now = Carbon::now();
+        $validity = $request->validity;
         $start_date = $request->start_date;
         $end_date = $request->has("end_date") && isset($request->end_date) ?
                         $request->end_date : $request->start_date;
-        /*
+
         $start_hour = $request->start_hour;
-        $end_hour = $request->end_hour; */
+        $end_hour = $request->end_hour;
+        /*
         $start_hour = $request->has("start_hour") && isset($request->start_hour) ?
                         $request->start_hour : $this->formatHour($now->copy()->addHour());
         $end_hour = $request->has("end_hour") && isset($request->end_hour) ?
-                        $request->end_hour : $this->formatHour($now->copy()->addHours(2));
+                        $request->end_hour : $this->formatHour($now->copy()->addHours(2)); */
         $start_date_carbon = Carbon::parse($start_date);
         $end_date_carbon = Carbon::parse($end_date);
         if($this->formatDate($start_date_carbon) == $this->formatDate($now)) {
-            // if($this->formatHour(Carbon::parse($start_hour)) <= $this->formatHour($now) && $request->validity == 'hour') {
-            if($this->formatHour(Carbon::parse($start_hour)) <= $this->formatHour($now)) {
+            if($validity == 'hour' && $this->formatHour(Carbon::parse($start_hour)) <= $this->formatHour($now)) {
                 \LogActivity::addToLog("Reservation creation failed. Error: Invalid start hour $start_hour.");
                 return response([
                     'errors' => [
                         'en' => "Invalid start hour $start_hour",
                         'fr' => "Heure de debut invalide $start_hour",
+                    ]
+                ], 422);
+            }
+            if(in_array($validity, ['day', 'week', 'month'])) {
+                \LogActivity::addToLog("Reservation creation failed. Error: All reservations for a day, week or month
+                 must be submitted no later than the day before, prior to the scheduled start date.");
+                return response([
+                    'errors' => [
+                        'en' => "All reservations for a day, week or month must be submitted no later than the day before, prior to the scheduled start date.",
+                        'fr' => "Toutes les réservations pour une journée, une semaine ou un mois doit être soumises au plutard la veille, avant la date de début prévue",
                     ]
                 ], 422);
             }
@@ -316,45 +317,46 @@ class ReservationController extends Controller
 
         $opening_hour = $this->getCarbonHour($agency_openingday->from);
         $closing_hour = $this->getCarbonHour($agency_openingday->to);
-        $start_hour = $this->getCarbonHour($start_hour);
-        $end_hour = $this->getCarbonHour($end_hour);
 
         //et on verifie que l'heure de debut est compris entre l'heure d'ouverture et de fermeture
-        if(!$start_hour->between($opening_hour, $closing_hour) && $request->validity == 'hour') {
-            $agency_name = $ressource->agency->name;
-            \LogActivity::addToLog("Reservation creation failed. Error: The agency $agency_name open at $opening_hour and closes at $closing_hour at $start_hour");
-            return response([
-                'errors' => [
-                    'en' => "The agency $agency_name is openend at $opening_hour and closes at $closing_hour at $start_hour",
-                    'fr' => "L'agence $agency_name ouvre à $opening_hour et ferme à $closing_hour le $start_hour",
-                ]
-            ], 422);
-        }
-
-
-        /*-------- end hour --------- */
-        //et on verifie que l'heure de fin est avant l'heure de fermeture de l'agence
-        if($end_hour->isAfter($closing_hour) && $request->validity == 'hour') {
-            // return "end_hour: $end_hour | opening_hour: $opening_hour | closing_hour: $closing_hour";
-            $agency_name = $ressource->agency->name;
-            \LogActivity::addToLog("Reservation creation failed. Error: The end hour $end_hour must after the closing hour $end_date_dayOfWeek for the agency $agency_name.");
-            return response([
-                'errors' => [
-                    'en' => "The end hour $end_hour must after the closing hour $closing_hour for the agency $agency_name at $end_date_dayOfWeek.",
-                    'fr' => "L'heure de fin $end_hour doit etre avant l'heure de fermeture $closing_hour pour l'agence $agency_name le $end_date_dayOfWeek.",
-                ]
-            ], 422);
+        if($validity == 'hour') {
+            $start_hour = $this->getCarbonHour($start_hour);
+            $end_hour = $this->getCarbonHour($end_hour);
+            if(!$start_hour->between($opening_hour, $closing_hour)) {
+                $agency_name = $ressource->agency->name;
+                \LogActivity::addToLog("Reservation creation failed. Error: The agency $agency_name open at $opening_hour and closes at $closing_hour at $start_hour");
+                return response([
+                    'errors' => [
+                        'en' => "The agency $agency_name is openend at $opening_hour and closes at $closing_hour at $start_hour",
+                        'fr' => "L'agence $agency_name ouvre à $opening_hour et ferme à $closing_hour le $start_hour",
+                    ]
+                ], 422);
+            }
+            /*-------- end hour --------- */
+            //et on verifie que l'heure de fin est avant l'heure de fermeture de l'agence
+            if($end_hour->isAfter($closing_hour)) {
+                // return "end_hour: $end_hour | opening_hour: $opening_hour | closing_hour: $closing_hour";
+                $agency_name = $ressource->agency->name;
+                \LogActivity::addToLog("Reservation creation failed. Error: The end hour $end_hour must after the closing hour $end_date_dayOfWeek for the agency $agency_name.");
+                return response([
+                    'errors' => [
+                        'en' => "The end hour $end_hour must after the closing hour $closing_hour for the agency $agency_name at $end_date_dayOfWeek.",
+                        'fr' => "L'heure de fin $end_hour doit etre avant l'heure de fermeture $closing_hour pour l'agence $agency_name le $end_date_dayOfWeek.",
+                    ]
+                ], 422);
+            }
         }
 
         // =========================================================================================
         // on determine la date et lheure de debut et de fin en fonction de la validite
-        $validity = $request->validity;
         $start_date_confirmed = '';
         $end_date_confirmed = '';
         $start_hour_confirmed = '';
         $end_hour_confirmed = '';
 
         if($validity == 'hour') {
+            $start_hour = $this->getCarbonHour($start_hour);
+            $end_hour = $this->getCarbonHour($end_hour);
             $start_date_confirmed = $this->formatDate($start_date_carbon);
             $end_date_confirmed = $this->formatDate($start_date_carbon);
             $start_hour_confirmed = $this->formatHour($start_hour);
@@ -363,17 +365,10 @@ class ReservationController extends Controller
         if($validity == 'midday') {
             $start_date_confirmed = $this->formatDate($start_date_carbon);
             $end_date_confirmed = $this->formatDate($start_date_carbon);
-            $midday_period = '';
-            if($request->has("midday_period") && isset($request->midday_period)) {
-                if($request->midday_period == "afternoon") {
-                    $midday_period = "afternoon";
-                } else {
-                    $midday_period = "morning";
-                }
-            } else {
-                $midday_period = "morning";
-            }
-
+            $midday_period = $request->midday_period;
+            // if($this->formatHour(Carbon::parse($opening_hour)) <= $this->formatHour($now)){
+            //     $midday_period = "afternoon";
+            // }
             if($midday_period == "morning") {
                 $start_hour_confirmed = $this->formatHour($this->getCarbonHour("08:00"));
                 $end_hour_confirmed = $this->formatHour($this->getCarbonHour("13:00"));
@@ -390,7 +385,6 @@ class ReservationController extends Controller
             $start_hour_confirmed = $this->formatHour($opening_hour);
             $end_hour_confirmed = $this->formatHour($closing_hour);
         }
-
 
         // =============== creation de la reservation proprement dite =============
 
@@ -843,5 +837,54 @@ class ReservationController extends Controller
             'coupon' => $coupon,
         ];
     }
+
+
+    public function test(Request $request)
+    {
+        //$now = Carbon::now();
+        $reservation_drafts = Reservation_draft::get();
+        return $reservation_drafts;
+        $now = Carbon::parse("07:30");
+        $now_30_min = $now->copy()->addMinutes(30)->format("H:i");
+        $today = $now->copy()->format('Y-m-d');
+
+        // Récupérer les réservations qui commencent dans 30 minutes exactement
+        $reservationsStartingSoon =
+            Reservation::where(function ($query) use ($today) {
+                $query->where('start_date', '<=', $today)
+                    ->where('end_date', '>=', $today);
+            })
+            ->where('start_hour', $now_30_min)
+            ->get();
+
+        // Envoyer des notifications aux utilisateurs de ces réservations
+        foreach ($reservationsStartingSoon as $reservation) {
+            $reservation->client->notify(new ReservationStartingSoon($reservation));
+            $superadmin_admins = HelpersUser::getSuperadminAndAdmins($reservation->ressource->agency_id);
+            foreach($superadmin_admins as $admin) {
+                $admin->notify(new ReservationStartingSoon($reservation));
+            }
+        }
+
+        // Récupérer les réservations qui commencent dans 30 minutes exactement
+        $reservationsEndingSoon =
+            Reservation::where(function ($query) use ($today) {
+                $query->where('start_date', '<=', $today)
+                    ->where('end_date', '>=', $today);
+            })
+            ->where('end_hour', $now_30_min)
+            ->get();
+
+        // Envoyer des notifications aux utilisateurs de ces réservations
+        foreach ($reservationsEndingSoon as $reservation) {
+            $reservation->client->notify(new ReservationEndingSoon($reservation));
+            $superadmin_admins = HelpersUser::getSuperadminAndAdmins($reservation->ressource->agency_id);
+            foreach($superadmin_admins as $admin) {
+                $admin->notify(new ReservationEndingSoon($reservation));
+            }
+        }
+        return "envoye";
+    }
+
 
 }

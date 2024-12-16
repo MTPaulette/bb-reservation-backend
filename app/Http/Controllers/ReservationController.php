@@ -355,8 +355,9 @@ class ReservationController extends Controller
         $end_hour_confirmed = '';
 
         if($validity == 'hour') {
-            $start_hour = $this->getCarbonHour($start_hour);
-            $end_hour = $this->getCarbonHour($end_hour);
+            $start_hour = $this->getCarbonHour($request->start_hour);
+            $end_hour = $this->getCarbonHour($request->end_hour);
+
             $start_date_confirmed = $this->formatDate($start_date_carbon);
             $end_date_confirmed = $this->formatDate($start_date_carbon);
             $start_hour_confirmed = $this->formatHour($start_hour);
@@ -386,15 +387,10 @@ class ReservationController extends Controller
             $end_hour_confirmed = $this->formatHour($closing_hour);
         }
 
-
-        /*
-        return "start_date_confirmed: $start_date_confirmed
-        end_date_confirmed: $end_date_confirmed
-        start_hour_confirmed: $start_hour_confirmed
-        end_hour_confirmed: $end_hour_confirmed"; */
         // =============== creation de la reservation proprement dite =============
 
         //on verifie la ressource est disponible ce jour a cette heure
+        /*
         $reservations_of_ressource =
             Reservation::where('ressource_id', $ressource->id)
             ->where(function ($query) use ($start_date_confirmed, $end_date_confirmed) {
@@ -430,8 +426,15 @@ class ReservationController extends Controller
                     ->orWhere('state', 'totally paid');
             })
             ->count();
+        */
 
-        if($reservations_of_ressource >= $ressource->quantity){
+        $isAvailable = HelpersReservation::isAvailable(
+            $ressource,
+            $start_date_confirmed, $end_date_confirmed,
+            $start_hour_confirmed, $end_hour_confirmed
+        );
+            
+        if(!$isAvailable){
             \LogActivity::addToLog("Reservation creation failed. Error: The ressource id $ressource->id is already busy from $start_date_confirmed to $end_date_confirmed between $start_hour_confirmed and $end_hour_confirmed.");
             return response([
                 'errors' => [
@@ -466,6 +469,9 @@ class ReservationController extends Controller
                     $amount_due = $initial_amount - $initial_amount*$coupon->percent/100;
                 } else {
                     $amount_due = $initial_amount - $coupon->amount;
+                }
+                if($amount_due < 0) {
+                    $amount_due = 0;
                 }
             }
         }
@@ -678,7 +684,7 @@ class ReservationController extends Controller
             }
 
             if($request->undo_cancellation){
-                $reservation->state = HelpersReservation::getState($reservation->initial_amount, $reservation->amount_due);;
+                $reservation->state = HelpersReservation::getState($reservation->initial_amount, $reservation->amount_due);
                 $response = [
                     'message' => "The reservation $reservation->id 's cancellation is stopped"
                 ];

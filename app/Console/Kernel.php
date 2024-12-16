@@ -22,7 +22,7 @@ class Kernel extends ConsoleKernel
         $schedule->job(new SendCoupon())->everyMinute(); //dailyAt('08:00');
         $schedule->job(new ExpireCoupon())->everyMinute(); //dailyAt('00:00');
         $schedule->job(new ReservationStartingOrEndingSoon())->everyMinute(); //everyMinute();
-        $schedule->job(new ClearReservation_draftTable())->everyMinute(); //dailyAt('23:00');
+        $schedule->job(new ClearReservation_draftTable())->dailyAt('23:00');
     }
 
     /**

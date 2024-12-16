@@ -9,15 +9,7 @@ class User
 {
     public static function getSuperadminAndAdmins($agency_id)
     {
-        $users = UserModel::where('role_id', 3)->get();
-    	return $users;
-    }
-
-}
-
-/*
-    public static function getSuperadminAndAdmins($agency_id)
-    {
+        // $users = UserModel::where('role_id', 3)->get();
         $users = UserModel::where('role_id', 3)
                         ->orWhere(function ($query) use ($agency_id) {
                             $query->where('role_id', 1)
@@ -25,4 +17,4 @@ class User
                         })->get();
     	return $users;
     }
-*/
+}

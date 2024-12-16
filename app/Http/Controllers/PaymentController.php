@@ -7,6 +7,7 @@ use App\Helpers\User as HelpersUser;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Notifications\NewPayment;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -115,6 +116,41 @@ class PaymentController extends Controller
             ], 422);
         }
 
+        //on verifie la reservation n'est pas une date de fin depasse
+        $now = Carbon::now();
+        if($reservation->end_date < $now->format('Y-m-d')) {
+        \LogActivity::addToLog("Payment creation failed. Error: You can not make payment for the reservation id $reservation->id which end date $reservation->end_date is already passed.");
+        return response([
+            'errors' => [
+                'en' => "You can not make payment for reservation id $reservation->id which end date is already passed.",
+                'fr' => "Vous ne pouvez pas effectuer de paiement pour la réservation id $reservation->id dont la date de fin $reservation->end_date est déjà passée.",
+            ]
+        ], 422);
+    }
+
+        //on verifie la ressource est disponible ce jour a cette heure
+        $ressource = $reservation->ressource;
+        $start_date_confirmed = $reservation->start_date;
+        $end_date_confirmed = $reservation->end_date;
+        $start_hour_confirmed = $reservation->start_hour;
+        $end_hour_confirmed = $reservation->end_hour;
+
+        $isAvailable = HelpersReservation::isAvailable(
+            $ressource,
+            $start_date_confirmed, $end_date_confirmed,
+            $start_hour_confirmed, $end_hour_confirmed
+        );
+
+        if(!$isAvailable){
+            \LogActivity::addToLog("Payment creation  failed. Error: The ressource id $ressource->id is already busy from $start_date_confirmed to $end_date_confirmed between $start_hour_confirmed and $end_hour_confirmed.");
+            return response([
+                'errors' => [
+                    'en' => "This ressource is already busy from $start_date_confirmed to $end_date_confirmed between $start_hour_confirmed and $end_hour_confirmed.",
+                    'fr' => "Cette ressource est déjà occupée du $start_date_confirmed au $end_date_confirmed entre $start_hour_confirmed et $end_hour_confirmed.",
+                ]
+            ], 422);
+        }
+
         // verifie si la reservation n'est pas annulee
         if($reservation->state == 'cancelled') {
             \LogActivity::addToLog("Payment creation failed. You can not pay for a cancelled reseration.");
@@ -172,6 +208,7 @@ class PaymentController extends Controller
                 ]
             ], 422);
         }
+
         //creer le paiement
         $payment = new Payment();
         $payment->amount = $request->amount;

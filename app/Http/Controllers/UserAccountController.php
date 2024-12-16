@@ -103,7 +103,8 @@ class UserAccountController extends Controller
         $validator = Validator::make($request->all(),[
             'lastname' => 'string|max:250',
             'firstname' => 'string|max:250',
-            'phonenumber' => 'string|min:9|max:250',
+            'phonenumber' => 'string|min:9|max:250|nullable',
+            'language' => 'string|nullable|in:en,fr',
         ]);
         if($validator->fails()){
             \LogActivity::addToLog("Fail to update user's informations. ".$validator->errors());
@@ -127,6 +128,10 @@ class UserAccountController extends Controller
 
         if($request->has('phonenumber') && isset($request->phonenumber)) {
             $user->phonenumber = $request->phonenumber;
+        }
+
+        if($request->has('language') && isset($request->language)) {
+            $user->language = $request->language;
         }
 
         $user->update();
