@@ -531,7 +531,7 @@ class ReservationController extends Controller
         $reservation->created_by = $reservation_draft->created_by;
 
         $reservation->save();
-        //$reservation_draft->delete();
+        $reservation_draft->delete();
 
         // envoyer la notification du paiement au client, au superadmin et aux admins de l'agence
         $superadmin_admins = HelpersUser::getSuperadminAndAdmins($reservation->ressource->agency_id);
@@ -848,6 +848,8 @@ class ReservationController extends Controller
     public function test(Request $request)
     {
         //$now = Carbon::now();
+        $reservation_drafts = Reservation_draft::get();
+        return $reservation_drafts;
         $now = Carbon::parse("07:30");
         $now_30_min = $now->copy()->addMinutes(30)->format("H:i");
         $today = $now->copy()->format('Y-m-d');
