@@ -11,6 +11,7 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AgencyController;
 use App\Http\Controllers\CharacteristicController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OpeningdayController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\PaymentController;
@@ -141,6 +142,9 @@ Route::middleware(['auth:sanctum', 'check.user.suspension'])->group(function () 
     Route::post("/payment/store",[PaymentController::class, "store"]);
     Route::put("/payment/{id}/update",[PaymentController::class, "update"]);
     Route::put('/payment/{id}/cancel', [PaymentController::class, 'cancel']);
+
+    /* dashboard routes */
+    Route::get("/dashboard",[DashboardController::class, "index"]);
 
 });
 

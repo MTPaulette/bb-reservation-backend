@@ -1,228 +1,371 @@
+Voici un exemple de code backend pour mettre en place les statistiques que j'ai proposées précédemment. Je vais utiliser Laravel comme framework backend et MySQL comme base de données.
 
+Modèle de données
 
-======================================================
-new Reservation
-🛑🛑🛑 nouvelle réservation 
+Créez un modèle de données Reservation pour représenter les réservations :
 
-Voici les exemples de mail adaptés :
+// app/Models/Reservation.php
 
-Pour les clients :
+namespace App\Models;
 
-Objet : Confirmation de votre réservation
+use Illuminate\Database\Eloquent\Model;
 
-Bonjour [Nom du client],
+class Reservation extends Model
+{
+    protected $fillable = [
+        'client_id',
+        'agency_id',
+        'start_date',
+        'end_date',
+        'status',
+    ];
 
-Nous sommes ravis de vous confirmer que votre réservation pour [Nom de la ressource] a été effectuée avec succès. Voici les détails de votre réservation :
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
+    }
 
-- Numéro de réservation : [Numéro de réservation]
-- Date d'arrivée : [Date d'arrivée]
-- Date de départ : [Date de départ]
-- Type de ressource : [Type de ressource]
-- Tarif total : [Tarif total]
+    public function agency()
+    {
+        return $this->belongsTo(Agency::class);
+    }
+}
 
-Cependant, nous vous informons que malgré la réservation, rien ne garantit que la ressource vous soit attribuée. Pour y remédier, il est nécessaire de payer au moins 50% du montant total de la réservation. Le reste des 50% devra être payé avant l'heure de début de la réservation.
+Créez un modèle de données Client pour représenter les clients :
 
-Nous vous invitons à effectuer le paiement dès que possible pour garantir la disponibilité de la ressource. Vous pouvez utiliser le lien suivant pour effectuer le paiement : [Lien de paiement]
+// app/Models/Client.php
 
-Nous vous remercions de votre attention et nous nous réjouissons de vous accueillir dans notre établissement.
+namespace App\Models;
 
-Cordialement,
+use Illuminate\Database\Eloquent\Model;
 
-[Votre nom]
-[Votre établissement]
+class Client extends Model
+{
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+    ];
+}
 
-Pour les admins :
+Créez un modèle de données Agency pour représenter les agences :
 
-Objet : Notification de réservation pour [Nom de la ressource]
+// app/Models/Agency.php
 
-Bonjour [Nom de l'admin],
+namespace App\Models;
 
-Nous vous informons que la réservation pour [Nom de la ressource] a été effectuée avec succès. Voici les détails de la réservation :
+use Illuminate\Database\Eloquent\Model;
 
-- Numéro de réservation : [Numéro de réservation]
-- Date d'arrivée : [Date d'arrivée]
-- Date de départ : [Date de départ]
-- Type de ressource : [Type de ressource]
-- Tarif total : [Tarif total]
-- Client : [Nom du client]
-- État de la réservation : En attente de paiement
+class Agency extends Model
+{
+    protected $fillable = [
+        'name',
+        'address',
+        'phone',
+    ];
+}
 
-Nous vous rappelons que le client doit payer au moins 50% du montant total de la réservation pour garantir la disponibilité de la ressource. Le reste des 50% devra être payé avant l'heure de début de la réservation.
+Contrôleur
 
-Nous vous invitons à suivre l'état de la réservation et à contacter le client si nécessaire.
+Créez un contrôleur StatisticController pour gérer les statistiques :
 
-Cordialement,
+// app/Http/Controllers/StatisticController.php
 
-[Votre nom]
-[Votre établissement]
+namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use App\Models\Reservation;
+use App\Models\Client;
+use App\Models\Agency;
 
+class StatisticController extends Controller
+{
+    public function index()
+    {
+        // Nombre total de réservations
+        $totalReservations = Reservation::count();
 
+        // Réservations en cours
+        $currentReservations = Reservation::where('status', 'en cours')->count();
 
-==================================================================
-new coupon
+        // Taux d'occupation des bureaux
+        $occupationRate = Agency::with('reservations')->get()->sum('reservations.count') / Agency::count();
 
-coupon de réduction 
+        // Meilleure agence
+        $bestAgency = Agency::with('reservations')->get()->sortByDesc('reservations.count')->first();
 
-Voici un exemple de contenu d'un email à envoyer à un utilisateur après qu'il vient de recevoir un nouveau coupon de réduction :
+        // Meilleur mois
+        $bestMonth = Reservation::groupBy('month')->get()->sortByDesc('count')->first();
 
-Objet : Nouveau coupon de réduction !
+        // Nombre de bureaux disponibles
+        $availableOffices = Agency::with('offices')->get()->sum('offices.count') - Reservation::count();
 
-Bonjour [Nom de l'utilisateur],
+        // Revenu total
+        $totalRevenue = Reservation::sum('price');
 
-Nous sommes ravis de vous annoncer que vous venez de recevoir un nouveau coupon de réduction ! Voici les détails de votre coupon :
+        // Top 5 des clients les plus actifs
+        $topClients = Client::with('reservations')->get()->sortByDesc('reservations.count')->take(5);
 
-- Code de coupon : [Code de coupon]
-- Pourcentage de réduction : [Pourcentage de réduction]%
-- Montant maximum de réduction : [Montant maximum de réduction]
-- Date de début de validité : [Date de début de validité]
-- Date de fin de validité : [Date de fin de validité]
-- Conditions d'utilisation : [Conditions d'utilisation]
+        return view('statistics', compact(
+            'totalReservations',
+            'currentReservations',
+            'occupationRate',
+            'bestAgency',
+            'bestMonth',
+            'availableOffices',
+            'totalRevenue',
+            'topClients'
+        ));
+    }
+}
 
-Vous pouvez utiliser ce coupon pour bénéficier d'une réduction sur votre prochaine réservation. Pour utiliser le coupon, simplement saisissez le code de coupon lors de la réservation.
+Vue
 
-Nous vous remercions de votre fidélité et nous nous réjouissons de vous accueillir dans notre établissement.
+Créez une vue statistics.blade.php pour afficher les statistiques :
 
-Cordialement,
+// resources/views/statistics.blade.php
 
-[Votre nom]
-[Votre établissement]
+<h1>Statistiques</h1>
 
-P.S. N'oubliez pas de vérifier les conditions d'utilisation du coupon avant de l'utiliser.
+<ul>
+    <li>Nombre total de réservations : {{ $totalReservations }}</li>
+    <li>Réservations en cours : {{ $currentReservations }}</li>
+    <li>Taux d'occupation des bureaux : {{ $occupationRate }}%</li>
+    <li>Meilleure agence : {{ $bestAgency->name }}</li>
+    <li>Meilleur mois : {{ $bestMonth->month }}</li>
+    <li>Nombre de bureaux disponibles : {{ $availableOffices }}</li>
+    <li>Revenu total : {{ $totalRevenue }}$</li>
+    <li>Top 5 des clients les plus actifs :</li>
+    <ul>
+        @foreach($topClients as $client)
+            <li>{{ $client->name }} ({{ $client->reservations->count() }} réservations)</li>
+        @endforeach
+    </ul>
+</ul>
 
-===========================================================
-debute dans 30 min
-début dans 30min 
+Route
 
-Voici les exemples de mail adaptés :
+Ajoutez une route pour accéder à la vue des statistiques :
 
-Pour les clients :
+// routes/web.php
 
-Objet : Rappel de votre réservation - Début dans 30 minutes !
+Route::get('/statistics', 'StatisticController@index');
 
-Bonjour [Nom du client],
+Voilà ! Vous avez maintenant un exemple de code backend pour afficher des statistiques sur les réservations.
 
-Nous vous rappelons que votre réservation pour [Nom de la ressource] commence dans 30 minutes ! Voici les détails de votre réservation :
+===================================
+Pour obtenir le taux d'occupation des bureaux de l'entreprise, toutes agences confondues, vous pouvez utiliser une requête Eloquent qui joint les tables agences, bureaux et reservations.
 
-- Numéro de réservation : [Numéro de réservation]
-- Date et heure de début : [Date et heure de début]
-- Date et heure de fin : [Date et heure de fin]
-- Type de ressource : [Type de ressource]
-- Tarif total : [Tarif total]
-- Montant payé : [Montant payé]
-- Montant restant à payer : [Montant restant à payer]
+Supposons que vous ayez les tables suivantes :
 
-Nous vous rappelons que si le paiement n'est pas effectif ou total, vous devrez payer avant le début de l'heure de la réservation. De plus, si les 50% de la réservation n'ont pas été versés, rien ne garantit que la ressource soit disponible en agence.
+- agences (id, nom, adresse, etc.)
+- bureaux (id, id_agence, nom, capacite, etc.)
+- reservations (id, id_bureau, date_debut, date_fin, etc.)
 
-Nous vous invitons à vérifier votre paiement et à nous contacter si vous avez des questions ou des préoccupations.
+Vous pouvez utiliser la requête suivante pour obtenir le taux d'occupation des bureaux de l'entreprise :
 
-Cordialement,
+$tauxOccupation = DB::table('agences')
+    ->join('bureaux', '(link unavailable)', '=', '(link unavailable)_agence')
+    ->join('reservations', '(link unavailable)', '=', 'reservations.id_bureau')
+    ->select(
+        DB::raw('SUM(CASE WHEN reservations.date_debut <= CURDATE() AND reservations.date_fin >= CURDATE() THEN 1 ELSE 0 END) AS nb_bureaux_occuper'),
+        DB::raw('COUNT((link unavailable)) AS nb_bureaux_total')
+    )
+    ->first();
 
-[Votre nom]
-[Votre établissement]
+$tauxOccupation = ($tauxOccupation->nb_bureaux_occuper / $tauxOccupation->nb_bureaux_total) * 100;
 
-Pour les admins :
+Cette requête joint les tables agences, bureaux et reservations pour obtenir le nombre de bureaux occupés et le nombre total de bureaux. Elle utilise ensuite une fonction de somme pour compter le nombre de bureaux occupés en fonction de la date actuelle.
 
-Objet : Rappel de réservation - Début dans 30 minutes !
+Le résultat est un objet qui contient les deux valeurs : nb_bureaux_occuper et nb_bureaux_total. Vous pouvez ensuite utiliser ces valeurs pour calculer le taux d'occupation des bureaux de l'entreprise.
 
-Bonjour [Nom de l'admin],
+Notez que cette requête suppose que la date actuelle est comprise entre la date de début et la date de fin de la réservation. Si cela n'est pas le cas, vous devrez modifier la requête pour prendre en compte les réservations qui se chevauchent.
 
-Nous vous rappelons que la réservation pour [Nom de la ressource] commence dans 30 minutes ! Voici les détails de la réservation :
+Il est également important de noter que cette requête peut être optimisée en fonction de la structure de vos données et des besoins spécifiques de votre application.
 
-- Numéro de réservation : [Numéro de réservation]
-- Date et heure de début : [Date et heure de début]
-- Date et heure de fin : [Date et heure de fin]
-- Type de ressource : [Type de ressource]
-- Tarif total : [Tarif total]
-- Montant payé : [Montant payé]
-- Montant restant à payer : [Montant restant à payer]
-- Client : [Nom du client]
+====================================================
+Pour obtenir un tableau avec la structure que vous avez décrite, vous pouvez utiliser la méthode map pour transformer les données de votre base de données en un tableau avec la structure souhaitée.
 
-Nous vous rappelons que si le paiement n'est pas effectif ou total, le client devra payer avant le début de l'heure de la réservation. De plus, si les 50% de la réservation n'ont pas été versés, rien ne garantit que la ressource soit disponible en agence.
+Voici un exemple de code qui montre comment obtenir un tableau avec la structure que vous avez décrite :
 
-Nous vous invitons à vérifier le paiement et à contacter le client si nécessaire.
+$agences = Agence::all();
 
-Cordialement,
+$tableau = $agences->map(function ($agence) {
+    $paiements = Paiement::where('agence_id', $agence->id)
+        ->whereYear('date_paiement', date('Y'))
+        ->groupBy('month')
+        ->selectRaw('SUM(montant) as total, MONTH(date_paiement) as month')
+        ->get();
 
-[Votre nom]
-[Votre établissement]
+    $data = [];
+    for ($i = 1; $i <= 12; $i++) {
+        $paiement = $paiements->where('month', $i)->first();
+        $data[] = $paiement ? $paiement->total : 0;
+    }
 
-=======================================================
-fin dans 30min
+    return [
+        'name' => $agence->name,
+        'data' => $data,
+    ];
+})->toArray();
 
-fin dans 30min
+Dans cet exemple, nous utilisons la méthode map pour transformer les données de la table agences en un tableau avec la structure souhaitée. Pour chaque agence, nous récupérons les paiements effectués durant les 12 mois de l'année en cours, en utilisant la méthode whereYear pour filtrer les paiements par année, et la méthode groupBy pour regrouper les paiements par mois. Nous utilisons ensuite la méthode selectRaw pour calculer la somme des montants pour chaque mois.
 
-Voici les exemples de mail adaptés :
+Ensuite, nous créons un tableau vide $data pour stocker les valeurs des 12 mois. Nous utilisons une boucle for pour parcourir les 12 mois, et pour chaque mois, nous récupérons le paiement correspondant en utilisant la méthode where pour filtrer les paiements par mois. Si un paiement est trouvé, nous ajoutons sa valeur à l'array $data, sinon nous ajoutons une valeur de 0.
 
-Pour les clients :
+Enfin, nous retournons un tableau avec la structure souhaitée, en utilisant la méthode toArray pour convertir le résultat en un tableau.
 
-Objet : Rappel de fin de réservation - 30 minutes avant la fin !
+Le résultat devrait être un tableau avec la structure suivante :
 
-Bonjour [Nom du client],
+[
+    {
+        "name": "Agence 1",
+        "data": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200]
+    },
+    {
+        "name": "Agence 2",
+        "data": [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300]
+    },
+    ...
+]
 
-Nous vous rappelons que votre réservation pour [Nom de la ressource] se termine dans 30 minutes ! Voici les détails de votre réservation :
+===================================
+Pour obtenir les paiements dans une agence, vous pouvez utiliser les relations entre les modèles pour récupérer les données.
 
-- Numéro de réservation : [Numéro de réservation]
-- Date et heure de début : [Date et heure de début]
-- Date et heure de fin : [Date et heure de fin]
-- Type de ressource : [Type de ressource]
-- Tarif total : [Tarif total]
-- Montant payé : [Montant payé]
+Voici un exemple de code qui montre comment obtenir les paiements dans une agence :
 
-Nous vous invitons à préparer vos affaires et à quitter les lieux avant la fin de la réservation. Si vous avez des questions ou des préoccupations, n'hésitez pas à nous contacter.
+$agence = Agence::find($idAgence);
 
-Cordialement,
+$paiements = $agence->ressources()->with('reservations.paiements')->get()->pluck('reservations.paiements')->flatten();
 
-[Votre nom]
-[Votre établissement]
+Dans cet exemple, nous utilisons la méthode ressources() pour récupérer les ressources qui appartiennent à l'agence. Nous utilisons ensuite la méthode with() pour charger les réservations et les paiements associés à chaque ressource.
 
-Pour les admins :
+Enfin, nous utilisons la méthode pluck() pour récupérer les paiements et la méthode flatten() pour les aplatir en un tableau unique.
 
-Objet : Rappel de fin de réservation - 30 minutes avant la fin !
+Vous pouvez également utiliser la méthode hasManyThrough() pour récupérer les paiements directement à partir de l'agence :
 
-Bonjour [Nom de l'admin],
+$paiements = $agence->paiements()->get();
 
-Nous vous rappelons que la réservation pour [Nom de la ressource] se termine dans 30 minutes ! Voici les détails de la réservation :
+Dans ce cas, vous devez définir la relation hasManyThrough() dans le modèle Agence :
 
-- Numéro de réservation : [Numéro de réservation]
-- Date et heure de début : [Date et heure de début]
-- Date et heure de fin : [Date et heure de fin]
-- Type de ressource : [Type de ressource]
-- Tarif total : [Tarif total]
-- Montant payé : [Montant payé]
-- Client : [Nom du client]
+namespace App\Models;
 
-Nous vous invitons à vérifier que le client a quitté les lieux avant la fin de la réservation et à procéder à la vérification des lieux et des équipements.
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-Cordialement,
+class Agence extends Model
+{
+    public function paiements(): HasManyThrough
+    {
+        return $this->hasManyThrough(Paiement::class, Ressource::class, 'agence_id', 'reservation_id', 'id', 'id');
+    }
+}
 
-[Votre nom]
-[Votre établissement]
+Notez que dans les deux exemples, nous supposons que les relations entre les modèles sont définies correctement. Il est important de vérifier que les relations sont définies correctement pour éviter les erreurs.
 
-=========================================================
-coupon expire
+===============================
+C'est une erreur courante dans Laravel !
 
-oupon expiré 
+L'erreur "Ressources.agency_id isn't in groupby" signifie que vous essayez de récupérer des données en utilisant une clause GROUP BY sans inclure la colonne agency_id dans la liste des colonnes à grouper.
 
-Voici un exemple d'un email à envoyer à un client pour lui rappeler que le coupon de réduction qu'il a reçu a expiré :
+Pour résoudre ce problème, vous pouvez ajouter la colonne agency_id à la liste des colonnes à grouper en utilisant la méthode groupBy().
 
-Objet : Coupon de réduction expiré
+Voici un exemple de code qui montre comment résoudre ce problème :
 
-Bonjour [Nom du client],
+$paiements = Paiement::whereHas('reservation.ressource.agence', function ($query) use ($idAgence) {
+    $query->where('id', $idAgence);
+})->groupBy('agency_id')->get();
 
-Nous vous rappelons que le coupon de réduction que vous avez reçu pour [Nom de la ressource] a expiré le [Date d'expiration]. Voici les détails du coupon :
+Dans cet exemple, nous utilisons la méthode whereHas() pour filtrer les paiements en fonction de l'agence associée à la ressource. Nous utilisons ensuite la méthode groupBy() pour grouper les résultats par la colonne agency_id.
 
-- Code de coupon : [Code de coupon]
-- Pourcentage de réduction : [Pourcentage de réduction]%
-- Montant maximum de réduction : [Montant maximum de réduction]
-- Date de début de validité : [Date de début de validité]
-- Date d'expiration : [Date d'expiration]
+Notez que vous pouvez également utiliser la méthode selectRaw() pour spécifier les colonnes à récupérer et à grouper.
 
-Nous regrettons que vous n'ayez pas pu utiliser ce coupon avant son expiration. Si vous souhaitez continuer à bénéficier de réductions et d'offres spéciales, nous vous invitons à vous inscrire à notre newsletter ou à suivre nos réseaux sociaux.
+$paiements = Paiement::whereHas('reservation.ressource.agence', function ($query) use ($idAgence) {
+    $query->where('id', $idAgence);
+})->selectRaw('*, agency_id')->groupBy('agency_id')->get();
 
-Nous vous remercions de votre fidélité et nous nous réjouissons de vous accueillir dans notre établissement.
+J'espère que cela vous aidera à résoudre votre problème !
 
-Cordialement,
+====================================
 
-[Votre nom]
-[Votre établissement]
+Je comprends mieux maintenant. Voici un exemple de code qui devrait vous aider à obtenir le tableau souhaité :
+
+$agencies = Agence::all();
+$year = request()->input('year');
+$month = request()->input('month');
+
+$tableau = $agencies->map(function ($agency) use ($year, $month) {
+    $resources = $agency->resources;
+    $data = [];
+
+    foreach ($resources as $resource) {
+        $reservations = Reservation::where('agency_id', $agency->id)
+            ->where('resource_id', $resource->id)
+            ->where('status', 'totallypaid')
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->count();
+
+        $data[] = $reservations;
+    }
+
+    return [
+        'name' => $agency->name,
+        'data' => $data,
+    ];
+})->toArray();
+
+Dans cet exemple, nous récupérons toutes les agences et les ressources associées à chaque agence. Nous créons ensuite un tableau vide $data pour stocker le nombre de réservations pour chaque ressource.
+
+============================
+Voici un exemple de code qui devrait vous aider à obtenir le tableau souhaité :
+
+$payments = Paiement::where('date_paiement', '>=', Carbon::now()->startOfWeek())
+    ->where('date_paiement', '<=', Carbon::now()->endOfWeek())
+    ->get();
+
+$tableau = [];
+
+foreach ($payments as $payment) {
+    $dayOfWeek = $payment->date_paiement->dayOfWeek;
+    $tableau[$dayOfWeek] = ($tableau[$dayOfWeek] ?? 0) + $payment->montant;
+}
+
+// Remplir les jours manquants avec 0
+for ($i = 0; $i < 7; $i++) {
+    if (!isset($tableau[$i])) {
+        $tableau[$i] = 0;
+    }
+}
+
+// Réorganiser le tableau pour commencer par lundi
+$tableau = array_values($tableau);
+
+return $tableau;
+==================================
+
+Voici un exemple de code qui devrait vous aider à obtenir le tableau souhaité :
+
+$reservations = Reservation::where('status', 'canceled')
+    ->where('created_at', '>=', Carbon::now()->startOfWeek())
+    ->where('created_at', '<=', Carbon::now()->endOfWeek())
+    ->get();
+
+$tableau = [];
+
+foreach ($reservations as $reservation) {
+    $dayOfWeek = $reservation->created_at->dayOfWeek;
+    $tableau[$dayOfWeek] = ($tableau[$dayOfWeek] ?? 0) + $reservation->montant;
+}
+
+// Remplir les jours manquants avec 0
+for ($i = 0; $i < 7; $i++) {
+    if (!isset($tableau[$i])) {
+        $tableau[$i] = 0;
+    }
+}
+
+// Réorganiser le tableau pour commencer par lundi
+$tableau = array_values($tableau);
+
+return $tableau;

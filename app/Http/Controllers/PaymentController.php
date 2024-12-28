@@ -31,6 +31,7 @@ class PaymentController extends Controller
             $authUser->hasPermission('show_all_payment')
         ) {
             $payments = $this->paymentWithCreator()->get();
+            // $payments = Payment::get();
             return response()->json($payments, 201);
         }
 

@@ -95,7 +95,8 @@ class User extends Authenticatable
     }
 
     public function reservations(): HasMany {
-        return $this->hasMany(Reservation::class, 'user_id', 'id');
+        // return $this->hasMany(Reservation::class, 'user_id', 'id');
+        return $this->hasMany(Reservation::class, 'client_id', 'id');
     }
 
     public function cancelledReservations(): HasMany {

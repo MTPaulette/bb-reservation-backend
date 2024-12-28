@@ -304,7 +304,8 @@ class DatabaseSeeder extends Seeder
             ['name'=>"delete_payment", 'description'=> ["Delete payment", "Supprimer le paiement"]],
             ['name'=>"create_payment", 'description'=> ["Create a new payment", "Créer un nouveau paiement"]],
             ['name'=>"process_payment", 'description'=> ["Process payment","Traiter le paiement"]],
-            
+
+            ['name'=>"view_dashboard", 'description'=> ["View dashboard", "Afficher le tableau de bord"]],
         ];
 
         $i = 1;

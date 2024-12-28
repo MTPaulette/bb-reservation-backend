@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Agency extends Model
 {
@@ -42,5 +42,14 @@ class Agency extends Model
 
     public function ressources(): HasMany {
         return $this->hasMany(Ressource::class);
+    }
+
+    public function reservations(): HasManyThrough {
+        return $this->HasManyThrough(Reservation::class, Ressource::class);
+    }
+
+    public function payments(): HasManyThrough
+    {
+        return $this->hasManyThrough(Payment::class, Ressource::class, 'agency_id', 'reservation_id', 'id', 'id');
     }
 }
