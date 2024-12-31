@@ -40,9 +40,38 @@ class ClientController extends Controller
             $user = User::withRole()->findOrFail($request->id);
             if($user->role == 'client') {
                 $user = $this->userAllInformations()->findOrFail($request->id);
+                $reservations_results =
+                    Reservation::where('reservations.client_id', '=', $request->id)
+                    ->with([
+                        'client' => function($query) {
+                            $query->select('id', 'lastname', 'firstname');
+                        },
+                        'createdBy' => function($query) {
+                            $query->select('id', 'lastname', 'firstname');
+                        },
+                        'ressource' => [
+                            'space' => function($query) {
+                                $query->select('id', 'name');
+                            },
+                            'agency' => function($query) {
+                                $query->select('id', 'name');
+                            },
+                        ]
+                    ])
+                    ->orderByDesc('reservations.created_at')
+                    ->get();
+    
+                $reservations = [];
+                foreach ($reservations_results as $reservation) {
+                    array_push($reservations, $reservation);
+                };
+
                 $response = [
+                    'totalReservations' => $reservation->count(),
+                    'totalCoupons' => $user->coupons->count(),
                     'user' => $user,
                     'coupons' => $user->coupons,
+                    'reservations' => $reservations,
                 ];
                 return response()->json($response, 201);
             }

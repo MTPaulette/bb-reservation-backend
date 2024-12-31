@@ -69,9 +69,38 @@ class RessourceController extends Controller
                     abort(403);
                 }
             }
+
             $ressource = $this->ressourceAllInformations()->find($request->id);
+
+            $reservations_results =
+                Reservation::where('reservations.ressource_id', '=', $request->id)
+                ->with([
+                    'client' => function($query) {
+                        $query->select('id', 'lastname', 'firstname');
+                    },
+                    'createdBy' => function($query) {
+                        $query->select('id', 'lastname', 'firstname');
+                    },
+                    'ressource' => [
+                        'space' => function($query) {
+                            $query->select('id', 'name');
+                        },
+                        'agency' => function($query) {
+                            $query->select('id', 'name');
+                        },
+                    ]
+                ])
+                ->orderByDesc('reservations.created_at')
+                ->get();
+
+            $reservations = [];
+            foreach ($reservations_results as $reservation) {
+                array_push($reservations, $reservation);
+            };
+
             $response = [
                 'ressource' => $ressource,
+                'reservations' => $reservations,
             ];
             return response()->json($response, 201);
         }

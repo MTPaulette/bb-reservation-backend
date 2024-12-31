@@ -133,7 +133,7 @@ class AgencyController extends Controller
                 ->orderByDesc('reservations.created_at')
                 ->get()
                 ->where('ressource.agency_id', $request->id);
-            
+
             */
             $agency_id = $request->id;
             $reservations_results =
@@ -165,6 +165,9 @@ class AgencyController extends Controller
             };
 
             $response = [
+                'totalReservations' => $reservation->count(),
+                'totalRessources' => $ressources->count(),
+                'totalAdministrators' => $administrators->count(),
                 'reservations' => $reservations,
                 'agency' => $agency,
                 'ressources' => $ressources,
@@ -256,7 +259,7 @@ class AgencyController extends Controller
             if($request->has('horaires') && isset($request->horaires)) {
                 $agency->openingdays()->detach();
                 $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-                
+
                 $horaires = $request->horaires;
                 foreach ($days as $day) {
                     if(isset($horaires[$day])){
@@ -310,7 +313,7 @@ class AgencyController extends Controller
                     'reason_for_suspension_en' => 'required|string|max:250',
                     'reason_for_suspension_fr' => 'required|string|max:250',
                 ]);
-    
+
                 if($validator->fails()){
                     \LogActivity::addToLog("Agency $agency->name suspension failed. ".$validator->errors());
                     return response([
@@ -348,11 +351,11 @@ class AgencyController extends Controller
             \LogActivity::addToLog("Fail to delete $agency->name . error: Wrong password");
             return response($response, 422);
         }
-    
+
         $has_ressource = Ressource::where('agency_id', $request->id)->exists();
         $has_openingday = DB::table('agencyOpeningdays')->where('agency_id', $request->id)->exists();
         $has_user = User::where('work_at', $request->id)->exists();
-    
+
         if($has_ressource || $has_user || $has_openingday) {
             $response = [
                 'error' => "The $agency->name has users or ressource or opening days. You can not delete it",
@@ -364,7 +367,7 @@ class AgencyController extends Controller
             $response = [
                 'message' => "The $agency->name  successfully deleted",
             ];
-    
+
             \LogActivity::addToLog("The agency $agency->name  deleted");
             return response($response, 201);
         }

@@ -144,12 +144,17 @@ class StaffController extends Controller
             };
 
             $response = [
+                'totalCoupons' => $coupons->count(),
+                'totalRessources' => $ressources->count(),
+                'totalReservations' => $reservation->count(),
+                'totalCreatedClients' => sizeof($created_clients),
+                'totalCreatedStaff' => $created_staff->count(),
                 'user' => $user,
                 'coupons' => $coupons,
                 'ressources' => $ressources,
                 'reservations' => $reservations,
-                'created_clients' => $created_clients,
-                'created_staff' => $created_staff,
+                'createdClients' => $created_clients,
+                'createdStaff' => $created_staff,
             ];
             return response()->json($response, 201);
         }
