@@ -369,3 +369,14 @@ for ($i = 0; $i < 7; $i++) {
 $tableau = array_values($tableau);
 
 return $tableau;
+
+=============================
+
+Voici un exemple de code qui montre comment faire cela :
+
+$agenceId = 1; // remplacez par l'id de l'agence que vous souhaitez afficher
+
+$reservations = Reservation::where('status', 'totallypaid')
+    ->whereHas('ressource', function ($query) use ($agenceId) {
+        $query->where('agence_id', $agenceId);
+    })->get();

@@ -206,13 +206,14 @@ class DashboardController extends Controller
             ];
         })->toArray();
 
-        /*========= revenue pour chaque jour de la semaine */
-        $reservations_not_cancelled_of_week = Reservation::whereNot('state', 'cancelled')
+        /*========= revenue pour chaque jour de la semaine 
         ->where('created_at', '>=', Carbon::parse("2024-12-10T17:16:22.277289Z")->startOfWeek())
-        ->where('created_at', '<=', Carbon::parse("2024-12-10T17:16:22.277289Z")->endOfWeek())
-        // ->where('created_at', '>=', Carbon::now()->startOfWeek())
-        // ->where('created_at', '<=', Carbon::now()->endOfWeek())
-        ->get();
+        ->where('created_at', '<=', Carbon::parse("2024-12-10T17:16:22.277289Z")->endOfWeek())*/
+        $reservations_not_cancelled_of_week =
+            Reservation::whereNot('state', 'cancelled')
+                ->where('created_at', '>=', Carbon::now()->startOfWeek())
+                ->where('created_at', '<=', Carbon::now()->endOfWeek())
+                ->get();
 
         $revenu_of_current_week = [];
 
@@ -232,12 +233,12 @@ class DashboardController extends Controller
         $revenu_of_current_week = array_values($revenu_of_current_week);
 
         /*========= vente pour chaque jour de la semaine 
-        $payments_of_week = Payment::where('created_at', '>=', Carbon::now()->startOfWeek())
-                            ->where('created_at', '<=', Carbon::now()->endOfWeek())
-                            ->get();
-        */
         $payments_of_week = Payment::where('created_at', '>=', Carbon::parse("2024-12-10T17:16:22.277289Z")->startOfWeek())
                             ->where('created_at', '<=', Carbon::parse("2024-12-10T17:16:22.277289Z")->endOfWeek())
+                            ->get();
+        */
+        $payments_of_week = Payment::where('created_at', '>=', Carbon::now()->startOfWeek())
+                            ->where('created_at', '<=', Carbon::now()->endOfWeek())
                             ->get();
     
         $payment_of_current_week = [];

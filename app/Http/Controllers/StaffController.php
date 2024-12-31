@@ -116,10 +116,38 @@ class StaffController extends Controller
                                     // ->OrWhere('roles.name', 'admin')
                                     ->where('users.created_by', '=', $request->id)
                                     ->get();
+            
+            $reservations_results =
+                Reservation::where('reservations.created_by', '=', $request->id)
+                ->with([
+                    'client' => function($query) {
+                        $query->select('id', 'lastname', 'firstname');
+                    },
+                    'createdBy' => function($query) {
+                        $query->select('id', 'lastname', 'firstname');
+                    },
+                    'ressource' => [
+                        'space' => function($query) {
+                            $query->select('id', 'name');
+                        },
+                        'agency' => function($query) {
+                            $query->select('id', 'name');
+                        },
+                    ]
+                ])
+                ->orderByDesc('reservations.created_at')
+                ->get();
+
+            $reservations = [];
+            foreach ($reservations_results as $reservation) {
+                array_push($reservations, $reservation);
+            };
+
             $response = [
                 'user' => $user,
                 'coupons' => $coupons,
                 'ressources' => $ressources,
+                'reservations' => $reservations,
                 'created_clients' => $created_clients,
                 'created_staff' => $created_staff,
             ];

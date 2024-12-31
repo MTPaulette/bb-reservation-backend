@@ -106,17 +106,69 @@ class AgencyController extends Controller
             }
             $agency = $this->agencyAllInformations()->findOrFail($request->id);
             $ressources = Ressource::withAgencySpaceUser()->where('ressources.agency_id', $request->id)->get();
-            // $reservationsCount = [
-            //     'pending' => Reservation::where()->count()
-            // ];
+
             $administrators = User::withAgencyAndRole()
                                     ->where('roles.name', 'admin')
                                     ->where('agencies.id', '=', $request->id)
                                     ->get();
+            /*
+            $reservations_query =
+                // Reservation::where('state', 'cancelled')
+                Reservation::with([
+                    'client' => function($query) {
+                        $query->select('id', 'lastname', 'firstname');
+                    },
+                    'createdBy' => function($query) {
+                        $query->select('id', 'lastname', 'firstname');
+                    },
+                    'ressource' => [
+                        'space' => function($query) {
+                            $query->select('id', 'name');
+                        },
+                        'agency' => function($query) {
+                            $query->select('id', 'name');
+                        },
+                    ]
+                ])
+                ->orderByDesc('reservations.created_at')
+                ->get()
+                ->where('ressource.agency_id', $request->id);
+            
+            */
+            $agency_id = $request->id;
+            $reservations_results =
+                Reservation::whereHas('ressource', function ($query) use ($agency_id) {
+                    $query->where('agency_id', $agency_id);
+                })
+                ->with([
+                    'client' => function($query) {
+                        $query->select('id', 'lastname', 'firstname');
+                    },
+                    'createdBy' => function($query) {
+                        $query->select('id', 'lastname', 'firstname');
+                    },
+                    'ressource' => [
+                        'space' => function($query) {
+                            $query->select('id', 'name');
+                        },
+                        'agency' => function($query) {
+                            $query->select('id', 'name');
+                        },
+                    ]
+                ])
+                ->orderByDesc('reservations.created_at')
+                ->get();
+
+            $reservations = [];
+            foreach ($reservations_results as $reservation) {
+                array_push($reservations, $reservation);
+            };
+
             $response = [
+                'reservations' => $reservations,
                 'agency' => $agency,
                 'ressources' => $ressources,
-                'administrators' => $administrators
+                'administrators' => $administrators,
             ];
             return response()->json($response, 201);
         }
