@@ -61,7 +61,7 @@ class SpaceController extends Controller
     {
         if(
             !$request->user()->hasPermission('manage_spaces') &&
-            !$request->user()->hasPermission('show_all_space')
+            !$request->user()->hasPermission('view_space')
         ) {
             abort(403);
         }

@@ -58,7 +58,6 @@ class CouponController extends Controller
         $authUser = $request->user();
         if(
             $authUser->hasPermission('manage_coupons') ||
-            $authUser->hasPermission('edit_coupon') ||
             $authUser->hasPermission('view_coupon')
         ) {
             $coupon = $this->couponAllInformations()->findOrFail($request->id);

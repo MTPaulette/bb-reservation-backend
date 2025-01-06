@@ -76,9 +76,12 @@ class UserAccountController extends Controller
  
         // $user->tokens()->delete();
         $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
+        $logged_user = User::find($user->id);
+        $permissions = $logged_user->role->permissions->pluck('name')->toArray();
         $response = [
             'user' => $user,
-            'token' => $token
+            'token' => $token,
+            'permissions' => $permissions,
         ];
 
         \LogActivity::addToLog("The user $user->lastname $user->firstname logged in");

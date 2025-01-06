@@ -67,7 +67,7 @@ class ClientController extends Controller
                 };
 
                 $response = [
-                    'totalReservations' => $reservation->count(),
+                    'totalReservations' => sizeof($reservations),
                     'totalCoupons' => $user->coupons->count(),
                     'user' => $user,
                     'coupons' => $user->coupons,

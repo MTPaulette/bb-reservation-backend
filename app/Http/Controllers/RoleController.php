@@ -11,7 +11,6 @@ class RoleController extends Controller
 {
     public function index(Request $request)
     {
-        return Option::where('name', 'smtp_email')->first()->value;
         if(!$request->user()->hasPermission('manage_permissions')) {
             abort(403);
         }
@@ -59,23 +58,6 @@ class RoleController extends Controller
         return response()->json($role, 201);
     }
 
-    /*
-    public function permissions(Request $request)
-    {
-        if(!$request->user()->hasPermission('manage_permissions')) {
-            abort(403);
-        }
-        $role = Role::findOrFail($request->id);
-        $query = DB::table('permission_role')
-                ->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')
-                ->join('roles', 'permission_role.role_id', '=', 'roles.id')
-                ->select('permission_role.*', 'roles.name as role', 'permissions.name as permissions', 'permissions.description as description')
-                ->orderBy('description');
-
-        $permissions = $query->where('role_id', $role->id)->get();
-        return response()->json($permissions, 201);
-    } */
-
     public function update(Request $request)
     {
         if(!$request->user()->hasPermission('manage_permissions')) {
@@ -89,6 +71,12 @@ class RoleController extends Controller
         ];
 
         \LogActivity::addToLog("The role $role->name's permissions updated");
+        // $permissions = $request->user()->role->permissions->pluck('name')->toArray();
+        $permissions = $request->user()->role->permissions->pluck('name')->toArray();
+
+        $response = [
+            'permissions' => $permissions,
+        ];
         return response($response, 201);
     }
 }

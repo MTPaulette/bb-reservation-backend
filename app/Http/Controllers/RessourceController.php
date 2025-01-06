@@ -55,15 +55,15 @@ class RessourceController extends Controller
         $authUser = $request->user();
         if(
             $authUser->hasPermission('manage_ressources') ||
-            $authUser->hasPermission('show_all_ressource') ||
-            $authUser->hasPermission('show_all_ressource_of_agency')
+            $authUser->hasPermission('view_ressource') ||
+            $authUser->hasPermission('view_ressource_of_agency')
         ) {
             $ressource = Ressource::findOrFail($request->id);
 
             if(
                 !$authUser->hasPermission('manage_ressources') &&
-                !$authUser->hasPermission('show_all_ressource') &&
-                $authUser->hasPermission('show_all_ressource_of_agency')
+                !$authUser->hasPermission('view_ressource') &&
+                $authUser->hasPermission('view_ressource_of_agency')
             ) {
                 if($authUser->work_at != $ressource->agency_id) {
                     abort(403);
@@ -112,7 +112,7 @@ class RessourceController extends Controller
     {
         $authUser = $request->user();
         if(
-            !$authUser->hasPermission('manage_ressource') &&
+            !$authUser->hasPermission('manage_ressources') &&
             !$authUser->hasPermission('create_ressource') &&
             !$authUser->hasPermission('create_ressource_of_agency')
         ) {
@@ -152,7 +152,7 @@ class RessourceController extends Controller
         if($authUser->hasPermission('create_ressource_of_agency')) {
             if(
                 $agency->id != $authUser->work_at &&
-                !$authUser->hasPermission('manage_ressource') &&
+                !$authUser->hasPermission('manage_ressources') &&
                 !$authUser->hasPermission('create_ressource')
             ) {
                 abort(403);
@@ -161,7 +161,7 @@ class RessourceController extends Controller
         }
 
         if(
-            $authUser->hasPermission('manage_ressource') ||
+            $authUser->hasPermission('manage_ressources') ||
             $authUser->hasPermission('create_ressource')
         ) {
             $confirm_agency_id = $agency->id;
@@ -186,7 +186,7 @@ class RessourceController extends Controller
     {
         $authUser = $request->user();
         if(
-            !$authUser->hasPermission('manage_ressource') &&
+            !$authUser->hasPermission('manage_ressources') &&
             !$authUser->hasPermission('edit_ressource') &&
             !$authUser->hasPermission('edit_ressource_of_agency')
         ) {
@@ -218,7 +218,7 @@ class RessourceController extends Controller
         if($authUser->hasPermission('edit_ressource_of_agency')) {
             if(
                 $agency->id != $authUser->work_at &&
-                !$authUser->hasPermission('manage_ressource') &&
+                !$authUser->hasPermission('manage_ressources') &&
                 !$authUser->hasPermission('edit_ressource')
             ) {
                 abort(403);
@@ -234,7 +234,7 @@ class RessourceController extends Controller
         }
 
         if(
-            $authUser->hasPermission('manage_ressource') ||
+            $authUser->hasPermission('manage_ressources') ||
             $authUser->hasPermission('edit_ressource')
         ) {
             $confirm_agency_id = $agency->id;
@@ -277,7 +277,7 @@ class RessourceController extends Controller
     {
         $authUser = $request->user();
         if(
-            !$authUser->hasPermission('manage_ressource') &&
+            !$authUser->hasPermission('manage_ressources') &&
             !$authUser->hasPermission('delete_ressource') &&
             !$authUser->hasPermission('delete_ressource_of_agency')
         ) {
@@ -296,7 +296,7 @@ class RessourceController extends Controller
         if($authUser->hasPermission('delete_ressource_of_agency')) {
             if(
                 $ressource->agency_id != $authUser->work_at &&
-                !$authUser->hasPermission('manage_ressource') &&
+                !$authUser->hasPermission('manage_ressources') &&
                 !$authUser->hasPermission('delete_ressource')
             ) {
                 abort(403);

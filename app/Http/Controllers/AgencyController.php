@@ -165,7 +165,7 @@ class AgencyController extends Controller
             };
 
             $response = [
-                'totalReservations' => $reservation->count(),
+                'totalReservations' => sizeof($reservations),
                 'totalRessources' => $ressources->count(),
                 'totalAdministrators' => $administrators->count(),
                 'reservations' => $reservations,

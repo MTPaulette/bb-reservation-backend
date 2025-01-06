@@ -6,7 +6,7 @@ $permissions = [
     ['name'=>"manage_all_agencies", 'description'=>["Manage all agencies", "Gérer toutes les agences"],
     
     //Option & permission
-    ['name'=>"manage_option", 'description'=>["Manage options", "Gérer les options"],
+    ['name'=>"manage_options", 'description'=>["Manage options", "Gérer les options"],
     ['name'=>"manage_permissions", 'description'=>["Manage permissions and roles in the system", "Gérer les permissions et les roles dans le systeme"],
     ['name'=>"manage_settings", 'description'=>["Manage application settings","Gérer les paramètres de l'application"],
     

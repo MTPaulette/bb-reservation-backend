@@ -9,7 +9,7 @@ class OptionController extends Controller
 {
     public function index(Request $request)
     {
-        if(!$request->user()->hasPermission('manage_option')) {
+        if(!$request->user()->hasPermission('manage_options')) {
             abort(403);
         }
         // $options = Option::orderBy('name')->get(['id', 'name', 'value']);
@@ -19,7 +19,7 @@ class OptionController extends Controller
 
     public function store(Request $request)
     {
-        if(!$request->user()->hasPermission('manage_option')) {
+        if(!$request->user()->hasPermission('manage_options')) {
             abort(403);
         }
         // return sizeof($request->options);
@@ -43,7 +43,7 @@ class OptionController extends Controller
 
     public function save_holidays(Request $request)
     {
-        if(!$request->user()->hasPermission('manage_option')) {
+        if(!$request->user()->hasPermission('manage_options')) {
             abort(403);
         }
 

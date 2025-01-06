@@ -84,15 +84,15 @@ class ReservationController extends Controller
         $authUser = $request->user();
         if(
             $authUser->hasPermission('manage_reservations') ||
-            $authUser->hasPermission('show_all_reservation') ||
-            $authUser->hasPermission('show_all_reservation_of_agency')
+            $authUser->hasPermission('view_reservation') ||
+            $authUser->hasPermission('view_reservation_of_agency')
         ) {
             $reservation = Reservation::findOrFail($request->id);
 
             if(
                 !$authUser->hasPermission('manage_reservations') &&
-                !$authUser->hasPermission('show_all_reservation') &&
-                $authUser->hasPermission('show_all_reservation_of_agency')
+                !$authUser->hasPermission('view_reservation') &&
+                $authUser->hasPermission('view_reservation_of_agency')
             ) {
                 if($authUser->work_at != $reservation->ressource->agency_id) {
                     abort(403);
@@ -160,7 +160,7 @@ class ReservationController extends Controller
             }
         }
         //=====================================================================================
-        //on verifie que si la start_date est aujourdhui alors l'start_hour doit etre superieur 
+        //on verifie que si la start_date est aujourdhui alors l'start_hour doit etre superieur
         // a l'heur actuelle
         $now = Carbon::now();
         $validity = $request->validity;
@@ -199,7 +199,7 @@ class ReservationController extends Controller
             }
         }
 
-        //recuperer les jours feries de l'entreprise et on verifie 
+        //recuperer les jours feries de l'entreprise et on verifie
         // si la start date ou la end_date n'est pas feriee
         $holidays = explode("," , \Options::getValue('holidays'));
 
@@ -433,7 +433,7 @@ class ReservationController extends Controller
             $start_date_confirmed, $end_date_confirmed,
             $start_hour_confirmed, $end_hour_confirmed
         );
-            
+
         if(!$isAvailable){
             \LogActivity::addToLog("Reservation creation failed. Error: The ressource id $ressource->id is already busy from $start_date_confirmed to $end_date_confirmed between $start_hour_confirmed and $end_hour_confirmed.");
             return response([
@@ -692,7 +692,7 @@ class ReservationController extends Controller
                 $validator = Validator::make($request->all(),[
                     'reason_for_cancellation' => 'required|string|max:250',
                 ]);
-    
+
                 if($validator->fails()){
                     \LogActivity::addToLog("Reservation $reservation->id cancellation failed. ".$validator->errors());
                     return response([
@@ -741,18 +741,18 @@ class ReservationController extends Controller
         $end_date = Carbon::parse($end_date);
         $opening_hour = Carbon::parse($opening_hour);
         $closing_hour = Carbon::parse($closing_hour);
-        
+
         $total_hour = $closing_hour->diffInHours($opening_hour);
         $midday_value = floor($total_hour/ 2);
 
         $diff_months = $end_date->diffInMonths($start_date);
         $rest_days= $end_date->diffInDays($start_date) % 30;
         $diff_middays = 0;
-        
+
         if ($rest_days> 0) {
             $diff_weeks = floor($rest_days/ 7);
             $rest_days_week = $rest_days% 7;
-        
+
             if ($rest_days_week > 0) {
                 $diff_days = $rest_days_week;
                 //$diff_hours = $end_date->diffInHours($start_date) % 24;
@@ -896,6 +896,52 @@ class ReservationController extends Controller
             }
         }
         return "envoye";
+    }
+
+    public function calendar(Request $request)
+    {
+        $authUser = $request->user();
+
+        if(
+            $authUser->hasPermission('manage_reservations') ||
+            $authUser->hasPermission('show_all_reservation')
+        ) {
+            $reservations = 
+                Reservation::where('state', '!=', 'cancelled')
+                ->get()
+                ->map(function ($reservation) {
+                    return [
+                        'title' => $reservation->ressource->space->name,
+                        'agency' => $reservation->ressource->agency->name,
+                        'state' => $reservation->state,
+                        'start' => $reservation->start_date == $reservation->end_date ? $reservation->start_date . ' ' . $reservation->start_hour : $reservation->start_date,
+                        'end' => $reservation->start_date == $reservation->end_date ? $reservation->end_date . ' ' . $reservation->end_hour : $reservation->end_date,
+                    ];
+                })
+                ->toArray();
+            return response()->json($reservations, 201);
+        }
+        if($authUser->hasPermission('show_all_reservation_of_agency')) {
+            $agency_id = $authUser->work_at;
+            $reservations = 
+                Reservation:: whereHas('ressource.agency', function ($query) use ($agency_id) {
+                $query->where('id', $agency_id);
+                })->selectRaw('*')
+                ->where('state', '!=', 'cancelled')
+                ->get()
+                ->map(function ($reservation) {
+                    return [
+                        'title' => $reservation->ressource->space->name,
+                        'agency' => $reservation->ressource->agency->name,
+                        'start' => $reservation->start_date == $reservation->end_date ? $reservation->start_date . ' ' . $reservation->start_hour : $reservation->start_date,
+                        'end' => $reservation->start_date == $reservation->end_date ? $reservation->end_date . ' ' . $reservation->end_hour : $reservation->end_date,
+                    ];
+                })
+                ->toArray();
+            return response()->json($reservations, 201);
+        }
+
+        abort(403);
     }
 
 

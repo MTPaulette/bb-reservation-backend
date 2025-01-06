@@ -380,3 +380,17 @@ $reservations = Reservation::where('status', 'totallypaid')
     ->whereHas('ressource', function ($query) use ($agenceId) {
         $query->where('agence_id', $agenceId);
     })->get();
+
+=========================================
+
+$reservations = Reservation::where('status', '!=', 'cancel')
+    ->select('title', 'date', 'start_time', 'end_time')
+    ->get()
+    ->map(function ($reservation) {
+        return [
+            'Title' => $reservation->title,
+            'Start' => $reservation->date . ' ' . $reservation->start_time,
+            'End' => $reservation->date . ' ' . $reservation->end_time,
+        ];
+    })
+    ->toArray();

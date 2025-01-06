@@ -213,7 +213,7 @@ class DatabaseSeeder extends Seeder
             ['name'=>"manage_all_agencies", 'description'=> ["Manage all agencies", "Gérer toutes les agences"]],
             
             //Option & permission
-            ['name'=>"manage_option", 'description'=> ["Manage options", "Gérer les options"]],
+            ['name'=>"manage_options", 'description'=> ["Manage options", "Gérer les options"]],
             ['name'=>"manage_permissions", 'description'=> ["Manage permissions and roles in the system", "Gérer les permissions et les roles dans le systeme"]],
             ['name'=>"manage_settings", 'description'=> ["Manage application settings","Gérer les paramètres de l'application"]],
             
@@ -249,6 +249,7 @@ class DatabaseSeeder extends Seeder
 
             //Space
             ['name'=>"show_all_space", 'description'=> ["List all spaces", "Lister tous les espaces"]],
+            ['name'=>"view_space", 'description'=> ["View space information", "Afficher les informations d'un espace"]],
             ['name'=>"edit_space", 'description'=> ["Edit space information", "Modifier les informations de l'espace"]],
             ['name'=>"delete_space", 'description'=> ["Delete space", "Supprimer l'espace"]],
             ['name'=>"create_space", 'description'=> ["Create new space", "Créer un nouvel espace"]],
@@ -257,7 +258,10 @@ class DatabaseSeeder extends Seeder
             //Resource
             ['name'=>"show_all_ressource", 'description'=> ["List all resources", "Liste toutes les ressources"]],
             ['name'=>"show_all_ressource_of_agency", 'description'=> ["List all resources of your agency", "Liste toutes les ressources de son agence"]],
-            // ['name'=>"view_ressource", 'description'=> ["View resource information", "Afficher les informations de la ressource"]],
+            
+            ['name'=>"view_ressource", 'description'=> ["View resource information", "Afficher les informations de la ressource"]],
+            ['name'=>"view_ressource_of_agency", 'description'=> ["Show resource information of your agency", "Afficher les informations de la ressource de son agence"]],
+
             ['name'=>"edit_ressource", 'description'=> ["Edit resource information", "Modifier les informations de la ressource"]],
             ['name'=>"edit_ressource_of_agency", 'description'=> ["Edit resource information of his agency", "Modifier les informations de la ressource de son agence"]],
             ['name'=>"delete_ressource", 'description'=> ["Delete the resource", "Supprimer la ressource"]],

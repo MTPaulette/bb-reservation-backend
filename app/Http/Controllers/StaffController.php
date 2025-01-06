@@ -146,7 +146,7 @@ class StaffController extends Controller
             $response = [
                 'totalCoupons' => $coupons->count(),
                 'totalRessources' => $ressources->count(),
-                'totalReservations' => $reservation->count(),
+                'totalReservations' => sizeof($reservations),
                 'totalCreatedClients' => sizeof($created_clients),
                 'totalCreatedStaff' => $created_staff->count(),
                 'user' => $user,
