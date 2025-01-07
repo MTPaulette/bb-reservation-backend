@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Activity_log;
 use App\Models\Agency;
@@ -24,6 +26,9 @@ class StaffController extends Controller
             },
             'suspendedBy' => function($query) {
                 $query->select('id', 'lastname', 'firstname');
+            },
+            'role' => function($query) {
+                $query->select('id', 'name');
             },
             'workAt'=> function($query) {
                 $query->select('id', 'name');

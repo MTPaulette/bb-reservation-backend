@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Agency;
 use App\Models\Payment;
@@ -124,8 +126,8 @@ class DashboardController extends Controller
             $payments = Payment::whereHas('reservation.ressource.agency', function ($query) use ($agency_id) {
                 $query->where('id', $agency_id);
             })->selectRaw('*')
-            // ->whereYear('payments.created_at', date('Y'))
-            ->whereYear('payments.created_at', $year)
+            ->whereYear('payments.created_at', "2024")
+            // ->whereYear('payments.created_at', $year) ici
             ->groupBy(
                 'id', 'month', 'amount',
                 'payment_method', 'payment_status', 'transaction_id',
@@ -154,7 +156,8 @@ class DashboardController extends Controller
 
         // Meilleur mois
         $bestMonth = Reservation::where('state', 'totally paid')
-                            ->whereYear('created_at', $year)
+                            ->whereYear('created_at', "2024")
+                            // ->whereYear('created_at', $year) ici
                             ->groupBy('month')
                             ->selectRaw('MONTH(created_at) as month, COUNT(*) as count')
                             ->get()->sortByDesc('count')->first();
@@ -191,7 +194,8 @@ class DashboardController extends Controller
             foreach ($ressources as $ressource) {
                 $reservations = Reservation::where('ressource_id', $ressource->id)
                     ->where('state', 'totally paid')
-                    ->whereYear('created_at', $year)
+                    ->whereYear('created_at', "2024")
+                    // ->whereYear('created_at', $year) ici
                     // ->whereMonth('created_at', $month)
                     ->count();
 
@@ -206,13 +210,13 @@ class DashboardController extends Controller
             ];
         })->toArray();
 
-        /*========= revenue pour chaque jour de la semaine 
-        ->where('created_at', '>=', Carbon::parse("2024-12-10T17:16:22.277289Z")->startOfWeek())
-        ->where('created_at', '<=', Carbon::parse("2024-12-10T17:16:22.277289Z")->endOfWeek())*/
+        /*========= revenue pour chaque jour de la semaine ici
+                ->where('created_at', '>=', Carbon::now()->startOfWeek())
+                ->where('created_at', '<=', Carbon::now()->endOfWeek())*/
         $reservations_not_cancelled_of_week =
             Reservation::whereNot('state', 'cancelled')
-                ->where('created_at', '>=', Carbon::now()->startOfWeek())
-                ->where('created_at', '<=', Carbon::now()->endOfWeek())
+                ->where('created_at', '>=', Carbon::parse("2024-12-10T17:16:22.277289Z")->startOfWeek())
+                ->where('created_at', '<=', Carbon::parse("2024-12-10T17:16:22.277289Z")->endOfWeek())
                 ->get();
 
         $revenu_of_current_week = [];
@@ -232,13 +236,13 @@ class DashboardController extends Controller
         // Réorganiser le tableau pour commencer par lundi
         $revenu_of_current_week = array_values($revenu_of_current_week);
 
-        /*========= vente pour chaque jour de la semaine 
-        $payments_of_week = Payment::where('created_at', '>=', Carbon::parse("2024-12-10T17:16:22.277289Z")->startOfWeek())
-                            ->where('created_at', '<=', Carbon::parse("2024-12-10T17:16:22.277289Z")->endOfWeek())
-                            ->get();
-        */
+        /*========= vente pour chaque jour de la semaine ici
         $payments_of_week = Payment::where('created_at', '>=', Carbon::now()->startOfWeek())
                             ->where('created_at', '<=', Carbon::now()->endOfWeek())
+                            ->get();
+        */
+        $payments_of_week = Payment::where('created_at', '>=', Carbon::parse("2024-12-10T17:16:22.277289Z")->startOfWeek())
+                            ->where('created_at', '<=', Carbon::parse("2024-12-10T17:16:22.277289Z")->endOfWeek())
                             ->get();
     
         $payment_of_current_week = [];
@@ -268,16 +272,6 @@ class DashboardController extends Controller
             ],
         ];
 
-        /*
-        // Taux d'occupation des bureaux
-        // $occupationRate = Agency::with('reservations')->get()->sum('reservations.count') / Agency::count();
-        
-        // Nombre de bureaux disponibles
-        $availableOffices = Agency::with('offices')
-                                ->get()
-                                ->sum('offices.count') - Reservation::count();
-        */
-
         $response = [
             'payment_revenu_of_current_week' => $payment_revenu_of_current_week,
             'year' => $year,
@@ -301,11 +295,6 @@ class DashboardController extends Controller
             'currentReservations' => $currentReservations,
             'topClients' => $topClients,
             'agencyWithMostRessources' => $agencyWithMostRessources,
-            // 'revenu_of_current_week' => $revenu_of_current_week,
-            // 'payment_of_current_week' => $payment_of_current_week,
-            /*
-            'occupationRate' => $occupationRate,
-            'availableOffices' => $availableOffices, */
         ];
         return response()->json($response, 201);
     }
