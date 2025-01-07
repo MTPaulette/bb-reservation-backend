@@ -14,7 +14,6 @@ class Coupon extends Model
     use HasFactory, Notifiable;
     protected $fillable = [
         'name',
-        // 'code',
         'total_usage',
         'status',
         'expired_on',
@@ -22,6 +21,7 @@ class Coupon extends Model
         'amount',
         'note_en',
         'note_fr',
+        'is_public',
         'sent'
     ];
 

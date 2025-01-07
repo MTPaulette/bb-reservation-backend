@@ -18,8 +18,8 @@ class SendCoupon implements ShouldQueue
 
     public function handle()
     {
-        //$coupon = Coupon::latest()->first();
-        $coupons = Coupon::where("sent", false)->get();
+        // $coupons = Coupon::where("sent", false)->get();
+        $coupons = Coupon::where("is_public", false)->where("sent", false)->get();
         foreach($coupons as $coupon) {
             $users = $coupon->users;
 

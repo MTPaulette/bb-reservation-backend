@@ -24,6 +24,7 @@ return new class extends Migration
             $table->float('amount')->nullable();
             $table->text('note_en')->nullable();
             $table->text('note_fr')->nullable();
+            $table->boolean('is_public')->default(1);
             $table->boolean('sent')->default(0);
             $table->unsignedBigInteger('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('users');

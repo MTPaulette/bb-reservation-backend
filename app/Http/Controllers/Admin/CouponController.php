@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Coupon;
 use App\Models\Reservation;
 use App\Models\User;
-// use App\Notifications\NewCouponSent;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -100,7 +99,8 @@ class CouponController extends Controller
         };
         $coupon = Coupon::create($validator->validated());
         $coupon->created_by = $authUser->id;
-        $coupon->code = $code;
+        $coupon->code = strtoupper($code);
+        $coupon->is_public = 1;
         $coupon->save();
 
         $response = [
@@ -121,6 +121,7 @@ class CouponController extends Controller
                 'total_usage' => 'required|integer|min:1',
                 'percent' => 'nullable|integer|min:1',
                 'amount' => 'nullable|integer|min:1',
+                'is_public' => 'required|boolean',
                 'expired_on' => 'required|date|after:'.Carbon::today()->format('Y-m-d H:m:s'), //after, before
                 'note_en' => 'string|nullable',
                 'note_fr' => 'string|nullable',
@@ -161,12 +162,15 @@ class CouponController extends Controller
             if($request->has('note_fr') && isset($request->note_fr)) {
                 $coupon->note_fr = $request->note_fr;
             }
-            if($request->has('clients') && isset($request->clients)) {
-                $coupon->users()->detach();
-                $clients = $request->clients;
-                foreach ($clients as $client_id) {
-                    $client = User::findOrFail($client_id);
-                    $coupon->users()->attach($client);
+            $coupon->is_public = $request->is_public;
+            if(!$coupon->is_public) {
+                if($request->has('clients') && isset($request->clients)) {
+                    $coupon->users()->detach();
+                    $clients = $request->clients;
+                    foreach ($clients as $client_id) {
+                        $client = User::findOrFail($client_id);
+                        $coupon->users()->attach($client);
+                    }
                 }
             }
 

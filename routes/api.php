@@ -54,7 +54,7 @@ Route::middleware(["auth:sanctum", "check.user.suspension"])->group(function () 
     Route::put("/profile/image/delete",[UserImageController::class, "destroy"]);
 
     /* client routes */
-    Route::get("/admin/admin/clients",[ClientController::class, "index"]);
+    Route::get("/admin/clients",[ClientController::class, "index"]);
     Route::get("/admin/client/{id}",[ClientController::class, "show"]);
     Route::post("/admin/client/store",[ClientController::class, "store"]);
     Route::put("/admin/client/{id}/update",[ClientController::class, "update"]);
