@@ -27,6 +27,45 @@ use App\Notifications\ReservationStartingSoon;
 
 class ReservationController extends Controller
 {
+    public function ressourceAllInformations()
+    {
+        return
+        Ressource::with([
+            'createdBy' => function($query) {
+                $query->select('id', 'lastname', 'firstname');
+            },
+            'agency' => function($query) {
+                $query->select('id', 'name');
+            },
+            // 'reservations',
+            'space' => [
+                'images',
+                'characteristics' => function($query) {
+                    $query->select('name_en', 'name_fr');
+                },
+            ]
+        ]);
+    }
+
+    public function reservationWithInformations()
+    {
+        return
+        Reservation::with([
+            'coupon' => function($query) {
+                $query->select('id', 'name', 'code');
+            },
+            'payments' => function($query) {
+                $query->select('id', 'amount', 'bill_number');
+            },
+            'createdBy' => function($query) {
+                $query->select('id', 'lastname', 'firstname');
+            },
+            'cancelledBy' => function($query) {
+                $query->select('id', 'lastname', 'firstname');
+            },
+        ]);
+    }
+
     public function reservationAllInformations()
     {
         return
@@ -64,7 +103,7 @@ class ReservationController extends Controller
             $authUser->hasPermission('manage_reservations') ||
             $authUser->hasPermission('show_all_reservation')
         ) {
-            $reservations = $this->reservationAllInformations()->get();
+            $reservations = $this->reservationAllInformations()->orderByDesc("created_at")->get();
             return response()->json($reservations, 201);
         }
         if($authUser->hasPermission('show_all_reservation_of_agency')) {
@@ -100,9 +139,14 @@ class ReservationController extends Controller
                     abort(403);
                 }
             }
-            $reservation = $this->reservationAllInformations()->find($request->id);
+            $reservation = $this->reservationWithInformations()->find($request->id);
+            $ressource = $this->ressourceAllInformations()->find($reservation->ressource_id);
+            $client = User::find($reservation->client_id);
+
             $response = [
                 'reservation' => $reservation,
+                'ressource' => $ressource,
+                'client' => $client,
             ];
             return response()->json($response, 201);
         }
@@ -945,6 +989,5 @@ class ReservationController extends Controller
 
         abort(403);
     }
-
 
 }

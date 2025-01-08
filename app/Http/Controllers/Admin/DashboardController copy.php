@@ -23,7 +23,8 @@ class DashboardController extends Controller
         }
 
         $validator = Validator::make($request->all(),[
-            'period' => 'nullable|date',
+            'year' => 'integer|lte:'.date('Y'),
+            'month' => 'integer|lte:'.date('m'),
         ]);
 
         if($validator->fails()){
@@ -32,8 +33,16 @@ class DashboardController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        
-        $period = $request->period;
+
+        $year = date('Y');
+        if($request->has("year") && isset($request->year)) {
+            $year = $request->year;
+        }
+
+        $month = date('m');
+        if($request->has("month") && isset($request->month)) {
+            $month = $request->month;
+        }
 
         // Nombre total de clients
         $totalClients = User::where('role_id', 2)->count();
@@ -100,36 +109,25 @@ class DashboardController extends Controller
         // Top 5 des clients les plus actifs
         $topClients = User::where('role_id', 2)
                         ->with('reservations')
-                        ->when($period, function ($query) use($period) {
-                            $query->whereHas('reservations', function($query) use($period) {
-                                $query->whereYear('reservations.created_at', Carbon::parse($period)->year);
-                            });
-                        })
-                        ->withCount([
-                            'reservations AS reservations_count' => function ($query) use ($period) {
-                                $query->when($period, function ($query) use ($period) {
-                                    $query->whereYear('reservations.created_at', Carbon::parse($period)->year);
-                                });
-                            }
-                        ])
+                        ->withCount('reservations')
                         ->orderByDesc('reservations_count')
-                        ->get()
-                        ->take(5);
-
+                        ->get()->take(5);
+        
+        // Meilleure agency
+        $bestAgency = Agency::with('reservations')
+                            ->withCount('reservations')
+                            ->orderByDesc('reservations_count')
+                            ->first();
 
         // agence et la somme de paiements fait par mois
         $agencies = Agency::all();
-        $agency_with_payments_per_month = $agencies->map(function ($agency) use ($period) {
+        $agency_with_payments_per_month = $agencies->map(function ($agency) use ($year) {
             $agency_id = $agency->id;
             $payments = Payment::whereHas('reservation.ressource.agency', function ($query) use ($agency_id) {
                 $query->where('id', $agency_id);
             })->selectRaw('*')
-            ->when($period, function ($query, $period) {
-                $query->whereYear('payments.created_at', Carbon::parse($period)->year);
-            })
-            ->when(!$period, function ($query) {
-                $query->whereYear('payments.created_at', Date('Y'));
-            })
+            ->whereYear('payments.created_at', "2024")
+            // ->whereYear('payments.created_at', $year) ici
             ->groupBy(
                 'id', 'month', 'amount',
                 'payment_method', 'payment_status', 'transaction_id',
@@ -155,96 +153,50 @@ class DashboardController extends Controller
                 'data' => $data,
             ];
         })->toArray();
-        
-        // Meilleure agency
-        $bestAgency = Agency::with('reservations')
-                            ->when($period, function ($query) use($period) {
-                                $query->whereHas('reservations', function($query) use($period) {
-                                    $query->whereYear('reservations.created_at', Carbon::parse($period)->year);
-                                });
-                            })
-                            ->withCount([
-                                'reservations AS reservations_count' => function ($query) use ($period) {
-                                    $query->when($period, function ($query) use ($period) {
-                                        $query->whereYear('reservations.created_at', Carbon::parse($period)->year);
-                                    });
-                                }
-                            ])
-                            ->orderByDesc('reservations_count')
-                            ->first();
-
-        //Meilleur staff
-        $bestStaff = User::whereNot('role_id', 2)
-                            // ->whereHas('createdReservations')
-                            ->when($period, function ($query) use($period) {
-                                $query->whereHas('createdReservations', function($query) use($period) {
-                                    $query->whereYear('reservations.created_at', Carbon::parse($period)->year);
-                                });
-                            })
-                            ->with('createdReservations')
-                            ->withCount('createdReservations')
-                            ->withCount([
-                                'createdReservations AS created_reservations_count' => function ($query) use ($period) {
-                                    $query->when($period, function ($query) use ($period) {
-                                        $query->whereYear('reservations.created_at', Carbon::parse($period)->year);
-                                    });
-                                }
-                            ])
-                            ->orderByDesc('created_reservations_count')
-                            ->first();
 
         // Meilleur mois
         $bestMonth = Reservation::where('state', 'totally paid')
-                            ->when($period, function ($query) use($period) {
-                                $query->whereYear('created_at', Carbon::parse($period)->year);
-                            })
-                            ->when(!$period, function ($query) {
-                                $query->whereYear('created_at', Date('Y'));
-                            })
+                            ->whereYear('created_at', "2024")
+                            // ->whereYear('created_at', $year) ici
                             ->groupBy('month')
                             ->selectRaw('MONTH(created_at) as month, COUNT(*) as count')
                             ->get()->sortByDesc('count')->first();
 
+        //Meilleur staff
+        $bestStaff = User::whereNot('role_id', 2)
+                            ->whereHas('createdReservations')
+                            ->with('createdReservations')
+                            ->withCount('createdReservations')
+                            ->orderByDesc('created_reservations_count')
+                            ->first();
+
         //Meilleur client
-        $bestClient = (sizeof($topClients)) > 0 ? $topClients[0] : null;
+        $bestClient = $topClients[0];
 
         //Meilleure ressource
         $bestRessource = Ressource::whereHas('reservations')
+                            // ->with('reservations')
                             ->with([
                                 'reservations',
                                 'space' => function($query) {
                                     $query->select('id', 'name');
                                 },
                             ])
-                            ->when($period, function ($query) use($period) {
-                                $query->whereHas('reservations', function($query) use($period) {
-                                    $query->whereYear('reservations.created_at', Carbon::parse($period)->year);
-                                });
-                            })
-                            ->withCount([
-                                'reservations AS reservations_count' => function ($query) use ($period) {
-                                    $query->when($period, function ($query) use ($period) {
-                                        $query->whereYear('reservations.created_at', Carbon::parse($period)->year);
-                                    });
-                                }
-                            ])
+                            ->withCount('reservations')
                             ->orderByDesc('reservations_count')
                             ->first();
 
         // ressource et le total de reservations faites pour cette ressource suivant les agences
-        $ressource_with_reservations = $agencies->map(function ($agency) use ($period) {
+        $ressource_with_reservations = $agencies->map(function ($agency) use ($year, $month) {
             $ressources = $agency->ressources;
             $data = [];
 
             foreach ($ressources as $ressource) {
                 $reservations = Reservation::where('ressource_id', $ressource->id)
                     ->where('state', 'totally paid')
-                    ->when($period, function ($query) use($period) {
-                        $query->whereYear('created_at', Carbon::parse($period)->year);
-                    })
-                    ->when(!$period, function ($query) {
-                        $query->whereYear('created_at', Date('Y'));
-                    })
+                    ->whereYear('created_at', "2024")
+                    // ->whereYear('created_at', $year) ici
+                    // ->whereMonth('created_at', $month)
                     ->count();
 
                 $label[] = $ressource->space->name;
@@ -258,18 +210,13 @@ class DashboardController extends Controller
             ];
         })->toArray();
 
-
-        /*========= revenue pour chaque jour de la semaine */
+        /*========= revenue pour chaque jour de la semaine ici
+                ->where('created_at', '>=', Carbon::now()->startOfWeek())
+                ->where('created_at', '<=', Carbon::now()->endOfWeek())*/
         $reservations_not_cancelled_of_week =
             Reservation::whereNot('state', 'cancelled')
-                ->when($period, function ($query, $period) {
-                    $query->where('created_at', '>=', Carbon::parse($period)->startOfWeek())
-                            ->where('created_at', '<=', Carbon::parse($period)->endOfWeek());
-                })
-                ->when(!$period, function ($query) {
-                    $query->where('created_at', '>=', Carbon::now()->startOfWeek())
-                            ->where('created_at', '<=', Carbon::now()->endOfWeek());
-                })
+                ->where('created_at', '>=', Carbon::parse("2024-12-10T17:16:22.277289Z")->startOfWeek())
+                ->where('created_at', '<=', Carbon::parse("2024-12-10T17:16:22.277289Z")->endOfWeek())
                 ->get();
 
         $revenu_of_current_week = [];
@@ -289,17 +236,14 @@ class DashboardController extends Controller
         // Réorganiser le tableau pour commencer par lundi
         $revenu_of_current_week = array_values($revenu_of_current_week);
 
-        /*========= vente pour chaque jour de la semaine */
-        $payments_of_week =
-            Payment::when($period, function ($query, $period) {
-                    $query->where('created_at', '>=', Carbon::parse($period)->startOfWeek())
-                        ->where('created_at', '<=', Carbon::parse($period)->endOfWeek());
-                })
-                ->when(!$period, function ($query) {
-                    $query->where('created_at', '>=', Carbon::now()->startOfWeek())
-                        ->where('created_at', '<=', Carbon::now()->endOfWeek());
-                })
-                ->get();
+        /*========= vente pour chaque jour de la semaine ici
+        $payments_of_week = Payment::where('created_at', '>=', Carbon::now()->startOfWeek())
+                            ->where('created_at', '<=', Carbon::now()->endOfWeek())
+                            ->get();
+        */
+        $payments_of_week = Payment::where('created_at', '>=', Carbon::parse("2024-12-10T17:16:22.277289Z")->startOfWeek())
+                            ->where('created_at', '<=', Carbon::parse("2024-12-10T17:16:22.277289Z")->endOfWeek())
+                            ->get();
     
         $payment_of_current_week = [];
         
@@ -330,8 +274,8 @@ class DashboardController extends Controller
 
         $response = [
             'payment_revenu_of_current_week' => $payment_revenu_of_current_week,
-            'year' => $period,
-            'month' => $period,
+            'year' => $year,
+            'month' => $month,
             'bestAgency' => $bestAgency,
             'bestMonth' => $bestMonth,
             'bestStaff' => $bestStaff,

@@ -69,7 +69,8 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // 'timezone' => 'UTC',
+    'timezone' => 'Africa/Douala',
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

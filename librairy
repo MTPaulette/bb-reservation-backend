@@ -1,396 +1,54 @@
-Voici un exemple de code backend pour mettre en place les statistiques que j'ai proposées précédemment. Je vais utiliser Laravel comme framework backend et MySQL comme base de données.
 
-Modèle de données
-
-Créez un modèle de données Reservation pour représenter les réservations :
-
-// app/Models/Reservation.php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-
-class Reservation extends Model
-{
-    protected $fillable = [
-        'client_id',
-        'agency_id',
-        'start_date',
-        'end_date',
-        'status',
-    ];
-
-    public function client()
-    {
-        return $this->belongsTo(Client::class);
-    }
-
-    public function agency()
-    {
-        return $this->belongsTo(Agency::class);
-    }
-}
-
-Créez un modèle de données Client pour représenter les clients :
-
-// app/Models/Client.php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-
-class Client extends Model
-{
-    protected $fillable = [
-        'name',
-        'email',
-        'phone',
-    ];
-}
-
-Créez un modèle de données Agency pour représenter les agences :
-
-// app/Models/Agency.php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-
-class Agency extends Model
-{
-    protected $fillable = [
-        'name',
-        'address',
-        'phone',
-    ];
-}
-
-Contrôleur
-
-Créez un contrôleur StatisticController pour gérer les statistiques :
-
-// app/Http/Controllers/StatisticController.php
-
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-use App\Models\Reservation;
-use App\Models\Client;
-use App\Models\Agency;
-
-class StatisticController extends Controller
-{
-    public function index()
-    {
-        // Nombre total de réservations
-        $totalReservations = Reservation::count();
-
-        // Réservations en cours
-        $currentReservations = Reservation::where('status', 'en cours')->count();
-
-        // Taux d'occupation des bureaux
-        $occupationRate = Agency::with('reservations')->get()->sum('reservations.count') / Agency::count();
-
-        // Meilleure agence
-        $bestAgency = Agency::with('reservations')->get()->sortByDesc('reservations.count')->first();
-
-        // Meilleur mois
-        $bestMonth = Reservation::groupBy('month')->get()->sortByDesc('count')->first();
-
-        // Nombre de bureaux disponibles
-        $availableOffices = Agency::with('offices')->get()->sum('offices.count') - Reservation::count();
-
-        // Revenu total
-        $totalRevenue = Reservation::sum('price');
-
-        // Top 5 des clients les plus actifs
-        $topClients = Client::with('reservations')->get()->sortByDesc('reservations.count')->take(5);
-
-        return view('statistics', compact(
-            'totalReservations',
-            'currentReservations',
-            'occupationRate',
-            'bestAgency',
-            'bestMonth',
-            'availableOffices',
-            'totalRevenue',
-            'topClients'
-        ));
-    }
-}
-
-Vue
-
-Créez une vue statistics.blade.php pour afficher les statistiques :
-
-// resources/views/statistics.blade.php
-
-<h1>Statistiques</h1>
-
-<ul>
-    <li>Nombre total de réservations : {{ $totalReservations }}</li>
-    <li>Réservations en cours : {{ $currentReservations }}</li>
-    <li>Taux d'occupation des bureaux : {{ $occupationRate }}%</li>
-    <li>Meilleure agence : {{ $bestAgency->name }}</li>
-    <li>Meilleur mois : {{ $bestMonth->month }}</li>
-    <li>Nombre de bureaux disponibles : {{ $availableOffices }}</li>
-    <li>Revenu total : {{ $totalRevenue }}$</li>
-    <li>Top 5 des clients les plus actifs :</li>
-    <ul>
-        @foreach($topClients as $client)
-            <li>{{ $client->name }} ({{ $client->reservations->count() }} réservations)</li>
-        @endforeach
-    </ul>
-</ul>
-
-Route
-
-Ajoutez une route pour accéder à la vue des statistiques :
-
-// routes/web.php
-
-Route::get('/statistics', 'StatisticController@index');
-
-Voilà ! Vous avez maintenant un exemple de code backend pour afficher des statistiques sur les réservations.
-
-===================================
-Pour obtenir le taux d'occupation des bureaux de l'entreprise, toutes agences confondues, vous pouvez utiliser une requête Eloquent qui joint les tables agences, bureaux et reservations.
-
-Supposons que vous ayez les tables suivantes :
-
-- agences (id, nom, adresse, etc.)
-- bureaux (id, id_agence, nom, capacite, etc.)
-- reservations (id, id_bureau, date_debut, date_fin, etc.)
-
-Vous pouvez utiliser la requête suivante pour obtenir le taux d'occupation des bureaux de l'entreprise :
-
-$tauxOccupation = DB::table('agences')
-    ->join('bureaux', '(link unavailable)', '=', '(link unavailable)_agence')
-    ->join('reservations', '(link unavailable)', '=', 'reservations.id_bureau')
-    ->select(
-        DB::raw('SUM(CASE WHEN reservations.date_debut <= CURDATE() AND reservations.date_fin >= CURDATE() THEN 1 ELSE 0 END) AS nb_bureaux_occuper'),
-        DB::raw('COUNT((link unavailable)) AS nb_bureaux_total')
-    )
-    ->first();
-
-$tauxOccupation = ($tauxOccupation->nb_bureaux_occuper / $tauxOccupation->nb_bureaux_total) * 100;
-
-Cette requête joint les tables agences, bureaux et reservations pour obtenir le nombre de bureaux occupés et le nombre total de bureaux. Elle utilise ensuite une fonction de somme pour compter le nombre de bureaux occupés en fonction de la date actuelle.
-
-Le résultat est un objet qui contient les deux valeurs : nb_bureaux_occuper et nb_bureaux_total. Vous pouvez ensuite utiliser ces valeurs pour calculer le taux d'occupation des bureaux de l'entreprise.
-
-Notez que cette requête suppose que la date actuelle est comprise entre la date de début et la date de fin de la réservation. Si cela n'est pas le cas, vous devrez modifier la requête pour prendre en compte les réservations qui se chevauchent.
-
-Il est également important de noter que cette requête peut être optimisée en fonction de la structure de vos données et des besoins spécifiques de votre application.
-
-====================================================
-Pour obtenir un tableau avec la structure que vous avez décrite, vous pouvez utiliser la méthode map pour transformer les données de votre base de données en un tableau avec la structure souhaitée.
-
-Voici un exemple de code qui montre comment obtenir un tableau avec la structure que vous avez décrite :
-
-$agences = Agence::all();
-
-$tableau = $agences->map(function ($agence) {
-    $paiements = Paiement::where('agence_id', $agence->id)
-        ->whereYear('date_paiement', date('Y'))
-        ->groupBy('month')
-        ->selectRaw('SUM(montant) as total, MONTH(date_paiement) as month')
-        ->get();
-
-    $data = [];
-    for ($i = 1; $i <= 12; $i++) {
-        $paiement = $paiements->where('month', $i)->first();
-        $data[] = $paiement ? $paiement->total : 0;
-    }
-
-    return [
-        'name' => $agence->name,
-        'data' => $data,
-    ];
-})->toArray();
-
-Dans cet exemple, nous utilisons la méthode map pour transformer les données de la table agences en un tableau avec la structure souhaitée. Pour chaque agence, nous récupérons les paiements effectués durant les 12 mois de l'année en cours, en utilisant la méthode whereYear pour filtrer les paiements par année, et la méthode groupBy pour regrouper les paiements par mois. Nous utilisons ensuite la méthode selectRaw pour calculer la somme des montants pour chaque mois.
-
-Ensuite, nous créons un tableau vide $data pour stocker les valeurs des 12 mois. Nous utilisons une boucle for pour parcourir les 12 mois, et pour chaque mois, nous récupérons le paiement correspondant en utilisant la méthode where pour filtrer les paiements par mois. Si un paiement est trouvé, nous ajoutons sa valeur à l'array $data, sinon nous ajoutons une valeur de 0.
-
-Enfin, nous retournons un tableau avec la structure souhaitée, en utilisant la méthode toArray pour convertir le résultat en un tableau.
-
-Le résultat devrait être un tableau avec la structure suivante :
-
-[
-    {
-        "name": "Agence 1",
-        "data": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200]
-    },
-    {
-        "name": "Agence 2",
-        "data": [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300]
-    },
-    ...
-]
-
-===================================
-Pour obtenir les paiements dans une agence, vous pouvez utiliser les relations entre les modèles pour récupérer les données.
-
-Voici un exemple de code qui montre comment obtenir les paiements dans une agence :
-
-$agence = Agence::find($idAgence);
-
-$paiements = $agence->ressources()->with('reservations.paiements')->get()->pluck('reservations.paiements')->flatten();
-
-Dans cet exemple, nous utilisons la méthode ressources() pour récupérer les ressources qui appartiennent à l'agence. Nous utilisons ensuite la méthode with() pour charger les réservations et les paiements associés à chaque ressource.
-
-Enfin, nous utilisons la méthode pluck() pour récupérer les paiements et la méthode flatten() pour les aplatir en un tableau unique.
-
-Vous pouvez également utiliser la méthode hasManyThrough() pour récupérer les paiements directement à partir de l'agence :
-
-$paiements = $agence->paiements()->get();
-
-Dans ce cas, vous devez définir la relation hasManyThrough() dans le modèle Agence :
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-
-class Agence extends Model
-{
-    public function paiements(): HasManyThrough
-    {
-        return $this->hasManyThrough(Paiement::class, Ressource::class, 'agence_id', 'reservation_id', 'id', 'id');
-    }
-}
-
-Notez que dans les deux exemples, nous supposons que les relations entre les modèles sont définies correctement. Il est important de vérifier que les relations sont définies correctement pour éviter les erreurs.
-
-===============================
-C'est une erreur courante dans Laravel !
-
-L'erreur "Ressources.agency_id isn't in groupby" signifie que vous essayez de récupérer des données en utilisant une clause GROUP BY sans inclure la colonne agency_id dans la liste des colonnes à grouper.
-
-Pour résoudre ce problème, vous pouvez ajouter la colonne agency_id à la liste des colonnes à grouper en utilisant la méthode groupBy().
-
-Voici un exemple de code qui montre comment résoudre ce problème :
-
-$paiements = Paiement::whereHas('reservation.ressource.agence', function ($query) use ($idAgence) {
-    $query->where('id', $idAgence);
-})->groupBy('agency_id')->get();
-
-Dans cet exemple, nous utilisons la méthode whereHas() pour filtrer les paiements en fonction de l'agence associée à la ressource. Nous utilisons ensuite la méthode groupBy() pour grouper les résultats par la colonne agency_id.
-
-Notez que vous pouvez également utiliser la méthode selectRaw() pour spécifier les colonnes à récupérer et à grouper.
-
-$paiements = Paiement::whereHas('reservation.ressource.agence', function ($query) use ($idAgence) {
-    $query->where('id', $idAgence);
-})->selectRaw('*, agency_id')->groupBy('agency_id')->get();
-
-J'espère que cela vous aidera à résoudre votre problème !
-
-====================================
-
-Je comprends mieux maintenant. Voici un exemple de code qui devrait vous aider à obtenir le tableau souhaité :
-
-$agencies = Agence::all();
-$year = request()->input('year');
-$month = request()->input('month');
-
-$tableau = $agencies->map(function ($agency) use ($year, $month) {
-    $resources = $agency->resources;
-    $data = [];
-
-    foreach ($resources as $resource) {
-        $reservations = Reservation::where('agency_id', $agency->id)
-            ->where('resource_id', $resource->id)
-            ->where('status', 'totallypaid')
-            ->whereYear('created_at', $year)
-            ->whereMonth('created_at', $month)
-            ->count();
-
-        $data[] = $reservations;
-    }
-
-    return [
-        'name' => $agency->name,
-        'data' => $data,
-    ];
-})->toArray();
-
-Dans cet exemple, nous récupérons toutes les agences et les ressources associées à chaque agence. Nous créons ensuite un tableau vide $data pour stocker le nombre de réservations pour chaque ressource.
-
-============================
-Voici un exemple de code qui devrait vous aider à obtenir le tableau souhaité :
-
-$payments = Paiement::where('date_paiement', '>=', Carbon::now()->startOfWeek())
-    ->where('date_paiement', '<=', Carbon::now()->endOfWeek())
-    ->get();
-
-$tableau = [];
-
-foreach ($payments as $payment) {
-    $dayOfWeek = $payment->date_paiement->dayOfWeek;
-    $tableau[$dayOfWeek] = ($tableau[$dayOfWeek] ?? 0) + $payment->montant;
-}
-
-// Remplir les jours manquants avec 0
-for ($i = 0; $i < 7; $i++) {
-    if (!isset($tableau[$i])) {
-        $tableau[$i] = 0;
-    }
-}
-
-// Réorganiser le tableau pour commencer par lundi
-$tableau = array_values($tableau);
-
-return $tableau;
-==================================
-
-Voici un exemple de code qui devrait vous aider à obtenir le tableau souhaité :
-
-$reservations = Reservation::where('status', 'canceled')
-    ->where('created_at', '>=', Carbon::now()->startOfWeek())
-    ->where('created_at', '<=', Carbon::now()->endOfWeek())
-    ->get();
-
-$tableau = [];
-
-foreach ($reservations as $reservation) {
-    $dayOfWeek = $reservation->created_at->dayOfWeek;
-    $tableau[$dayOfWeek] = ($tableau[$dayOfWeek] ?? 0) + $reservation->montant;
-}
-
-// Remplir les jours manquants avec 0
-for ($i = 0; $i < 7; $i++) {
-    if (!isset($tableau[$i])) {
-        $tableau[$i] = 0;
-    }
-}
-
-// Réorganiser le tableau pour commencer par lundi
-$tableau = array_values($tableau);
-
-return $tableau;
-
-=============================
-
-Voici un exemple de code qui montre comment faire cela :
-
-$agenceId = 1; // remplacez par l'id de l'agence que vous souhaitez afficher
-
-$reservations = Reservation::where('status', 'totallypaid')
-    ->whereHas('ressource', function ($query) use ($agenceId) {
-        $query->where('agence_id', $agenceId);
-    })->get();
-
-=========================================
-
-$reservations = Reservation::where('status', '!=', 'cancel')
-    ->select('title', 'date', 'start_time', 'end_time')
-    ->get()
-    ->map(function ($reservation) {
-        return [
-            'Title' => $reservation->title,
-            'Start' => $reservation->date . ' ' . $reservation->start_time,
-            'End' => $reservation->date . ' ' . $reservation->end_time,
-        ];
+$payements = Payement::query()
+    ->when($period, function ($query, $period) {
+        $query->whereMonth('created_at', $period);
     })
-    ->toArray();
+    ->when(!$period, function ($query) {
+        $query->whereYear('created_at', period('Y'));
+    })
+    ->get();
+
+    ==============================================
+
+
+Voici un exemple de requête que vous pouvez utiliser :
+
+SELECT 
+  (link unavailable),
+  MIN(h.opening_time) AS opening_time_min,
+  MAX(h.closing_time) AS closing_time_max
+FROM 
+  agences a
+  LEFT JOIN heures_ouverture h ON (link unavailable) = h.agence_id
+GROUP BY 
+  (link unavailable)
+
+Dans cette requête, nous utilisons une jointure gauche pour relier les agences avec leurs heures d'ouverture. Nous utilisons ensuite les fonctions MIN et MAX pour récupérer l'heure d'ouverture minimum et l'heure de fermeture maximum pour chaque agence.
+
+Ensuite, vous pouvez utiliser cette requête dans votre contrôleur Laravel pour récupérer les données et les afficher dans votre vue.
+
+Voici un exemple de code que vous pouvez utiliser dans votre contrôleur :
+
+public function getAgenceHours()
+{
+  $agences = Agence::with('heuresOuverture')
+    ->select('id', 'name')
+    ->selectRaw('MIN(heures_ouverture.opening_time) AS opening_time_min')
+    ->selectRaw('MAX(heures_ouverture.closing_time) AS closing_time_max')
+    ->groupBy('id')
+    ->get();
+
+  return view('agence_hours', compact('agences'));
+}
+
+=================================
+
+
+->when(
+                    $filters['category'] ?? false,
+                    fn($query, $value) => $query->where('category_id', '=', $value)
+                )
+                ->when(
+                    $filters['q'] ?? false,
+                    fn($query, $value) => $query->where('name', 'LIKE', "%$value%")->orWhere('description', 'LIKE', "%$value%")
+                );
