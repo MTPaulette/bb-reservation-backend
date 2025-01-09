@@ -8,13 +8,13 @@
 
   Here are the details of your reservation:
   <ul>
-    <li><span class="bold">Numéro de réservation :</span> {{ $reservation->id }}</li>
-    <li><span class="bold">Date de début :</span> {{ $reservation->start_date }}</li>
-    <li><span class="bold">Date de fin :</span> {{ $reservation->end_date }}</li>
-    <li><span class="bold">Heure de début :</span> {{ $reservation->start_hour }} (GMT+1)</li>
-    <li><span class="bold">Heure de fin :</span> {{ $reservation->end_hour }} (GMT+1)</li>
-    <li><span class="bold">Ressource sollicitée :</span> {{ $reservation->ressource->space->name }}</li>
-    <li><span class="bold">Agence :</span> {{ $reservation->ressource->agency->name }}</li>
+    <li><span class="bold">Reservation number :</span> {{ $reservation->id }}</li>
+    <li><span class="bold">Start date :</span> {{ $reservation->start_date }}</li>
+    <li><span class="bold">End date :</span> {{ $reservation->end_date }}</li>
+    <li><span class="bold">Start time :</span> {{ $reservation->start_hour }} (GMT+1)</li>
+    <li><span class="bold">End time :</span> {{ $reservation->end_hour }} (GMT+1)</li>
+    <li><span class="bold">Resource requested :</span> {{ $reservation->ressource->space->name }}</li>
+    <li><span class="bold">Agency :</span> {{ $reservation->ressource->agency->name }}</li>
     <li><span class="bold">Coupon :</span>
     @isset ($reservation->coupon)
       {{ $reservation->coupon->name }} | {{ $reservation->coupon->code }}
@@ -33,9 +33,9 @@
         @endif
       </li>
     @endisset
-    <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
-    <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
-    <li><span class="bold">Réservation faite par :</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
+    <li><span class="bold">Total amount:</span> {{ $reservation->initial_amount }} FCFA</li>
+    <li><span class="bold">Amount remaining to be paid:</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Reservation made by:</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
   </ul>
   
   We invite you to prepare your belongings and leave the premises before the 
@@ -52,13 +52,13 @@
 
   Here are the details of your reservation:
   <ul>
-    <li><span class="bold">Numéro de réservation :</span> {{ $reservation->id }}</li>
-    <li><span class="bold">Date de début :</span> {{ $reservation->start_date }}</li>
-    <li><span class="bold">Date de fin :</span> {{ $reservation->end_date }}</li>
-    <li><span class="bold">Heure de début :</span> {{ $reservation->start_hour }} (GMT+1)</li>
-    <li><span class="bold">Heure de fin :</span> {{ $reservation->end_hour }} (GMT+1)</li>
-    <li><span class="bold">Ressource sollicitée :</span> {{ $reservation->ressource->space->name }}</li>
-    <li><span class="bold">Agence :</span> {{ $reservation->ressource->agency->name }}</li>
+    <li><span class="bold">Reservation number :</span> {{ $reservation->id }}</li>
+    <li><span class="bold">Start date :</span> {{ $reservation->start_date }}</li>
+    <li><span class="bold">End date :</span> {{ $reservation->end_date }}</li>
+    <li><span class="bold">Start time :</span> {{ $reservation->start_hour }} (GMT+1)</li>
+    <li><span class="bold">End time :</span> {{ $reservation->end_hour }} (GMT+1)</li>
+    <li><span class="bold">Resource requested :</span> {{ $reservation->ressource->space->name }}</li>
+    <li><span class="bold">Agency :</span> {{ $reservation->ressource->agency->name }}</li>
     <li><span class="bold">Coupon :</span>
     @isset ($reservation->coupon)
       {{ $reservation->coupon->name }} | {{ $reservation->coupon->code }}
@@ -68,7 +68,7 @@
     </li>
     @isset ($reservation->coupon)
       <li>
-        <span class="bold">Valeur du coupon :</span>
+        <span class="bold">Discount coupon value :</span>
         @if ($reservation->coupon->percent)
           {{ $reservation->coupon->percent }} %
         @endif
@@ -77,9 +77,9 @@
         @endif
       </li>
     @endisset
-    <li><span class="bold">Montant total :</span> {{ $reservation->initial_amount }} FCFA</li>
-    <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
-    <li><span class="bold">Réservation faite par :</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
+    <li><span class="bold">Total amount:</span> {{ $reservation->initial_amount }} FCFA</li>
+    <li><span class="bold">Amount remaining to be paid:</span> {{ $reservation->amount_due }} FCFA</li>
+    <li><span class="bold">Reservation made by:</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
   </ul>
 
   We invite you to check that the customer has left the premises before the end of the 

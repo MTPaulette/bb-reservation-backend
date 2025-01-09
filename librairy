@@ -52,3 +52,52 @@ public function getAgenceHours()
                     $filters['q'] ?? false,
                     fn($query, $value) => $query->where('name', 'LIKE', "%$value%")->orWhere('description', 'LIKE', "%$value%")
                 );
+
+
+=============================
+
+// app/Providers/MailConfigServiceProvider.php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Mail;
+use App\Models\Option;
+
+class MailConfigServiceProvider extends ServiceProvider
+{
+    public function boot()
+    {
+        $this->configureMail();
+        $this->listenForOptionChanges();
+    }
+
+    protected function configureMail()
+    {
+        $options = Option::where('key', 'mail_config')->first();
+
+        if ($options) {
+            $mailConfig = json_decode($options->value, true);
+
+            config([
+                'mail.mailers.smtp.host' => $mailConfig['host'],
+                'mail.mailers.smtp.port' => $mailConfig['port'],
+                'mail.mailers.smtp.username' => $mailConfig['username'],
+                'mail.mailers.smtp.password' => $mailConfig['password'],
+                'mail.from.address' => $mailConfig['from_address'],
+                'mail.from.name' => $mailConfig['from_name'],
+            ]);
+
+            Mail::reconnect();
+        }
+    }
+
+    protected function listenForOptionChanges()
+    {
+        Option::updated(function ($option) {
+            if ($option->key === 'mail_config') {
+                $this->configureMail();
+            }
+        });
+    }
+}

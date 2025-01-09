@@ -9,6 +9,8 @@ use App\Helpers\User as HelpersUser;
 use App\Models\Agency;
 use App\Models\Coupon;
 use App\Models\Openingday;
+use App\Models\Option;
+use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\Reservation_draft;
 use App\Models\Ressource;
@@ -27,25 +29,6 @@ use App\Notifications\ReservationStartingSoon;
 
 class ReservationController extends Controller
 {
-    public function ressourceAllInformations()
-    {
-        return
-        Ressource::with([
-            'createdBy' => function($query) {
-                $query->select('id', 'lastname', 'firstname');
-            },
-            'agency' => function($query) {
-                $query->select('id', 'name');
-            },
-            // 'reservations',
-            'space' => [
-                'images',
-                'characteristics' => function($query) {
-                    $query->select('name_en', 'name_fr');
-                },
-            ]
-        ]);
-    }
 
     public function reservationWithInformations()
     {
@@ -71,7 +54,7 @@ class ReservationController extends Controller
         return
         Reservation::with([
             'client' => function($query) {
-                $query->select('id', 'lastname', 'firstname');
+                $query->select('id', 'lastname', 'firstname', 'image', 'email');
             },
             'coupon' => function($query) {
                 $query->select('id', 'name', 'code');
@@ -85,6 +68,8 @@ class ReservationController extends Controller
             'cancelledBy' => function($query) {
                 $query->select('id', 'lastname', 'firstname');
             },
+            'ressource.space.images',
+            'ressource.space.characteristics',
             'ressource' => [
                 'space' => function($query) {
                     $query->select('id', 'name');
@@ -122,6 +107,7 @@ class ReservationController extends Controller
 
     public function show(Request $request)
     {
+        // abort('404');
         $authUser = $request->user();
         if(
             $authUser->hasPermission('manage_reservations') ||
@@ -139,14 +125,21 @@ class ReservationController extends Controller
                     abort(403);
                 }
             }
-            $reservation = $this->reservationWithInformations()->find($request->id);
-            $ressource = $this->ressourceAllInformations()->find($reservation->ressource_id);
-            $client = User::find($reservation->client_id);
+            // $reservation = $this->reservationWithInformations()->find($request->id);
+            $reservation = $this->reservationAllInformations()->find($request->id);
+            $payments = 
+                Payment::with([
+                    'processedBy' => function($query) {
+                        $query->select('id', 'lastname', 'firstname');
+                }])
+                ->where("reservation_id", $reservation->id)
+                ->get();
+            $coupon = $reservation->coupon_id ? Coupon::find($reservation->coupon_id) : null;
 
             $response = [
                 'reservation' => $reservation,
-                'ressource' => $ressource,
-                'client' => $client,
+                'payments' => $payments,
+                'coupon' => $coupon,
             ];
             return response()->json($response, 201);
         }
@@ -899,9 +892,12 @@ class ReservationController extends Controller
 
     public function test(Request $request)
     {
-        //$now = Carbon::now();
-        $reservation_drafts = Reservation_draft::get();
-        return $reservation_drafts;
+        // return Option::all();
+        $admin = User::find(1);
+        $reservation = Reservation::find(10);
+        $admin->notify(new ReservationEndingSoon($reservation));
+        return "envoye";
+
         $now = Carbon::parse("07:30");
         $now_30_min = $now->copy()->addMinutes(30)->format("H:i");
         $today = $now->copy()->format('Y-m-d');
@@ -957,6 +953,7 @@ class ReservationController extends Controller
                 ->get()
                 ->map(function ($reservation) {
                     return [
+                        'reservation_id' => $reservation->id,
                         'title' => $reservation->ressource->space->name,
                         'agency' => $reservation->ressource->agency->name,
                         'state' => $reservation->state,

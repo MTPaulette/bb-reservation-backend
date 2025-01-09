@@ -68,10 +68,8 @@ class SpaceController extends Controller
             abort(403);
         }
         // $space = $this->spaceWithCharacteristic()->where('id', $request->id)->toArray();
+        $space = Space::findOrFail($request->id);
         $space = $this->spaceWithCharacteristic()->where('id', $request->id)->first();
-        if(sizeof($space) == 0){
-            abort(404);
-        }
         return response()->json($space, 201);
     }
 

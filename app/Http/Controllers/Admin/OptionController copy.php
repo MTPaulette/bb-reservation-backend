@@ -14,7 +14,7 @@ class OptionController extends Controller
         if(!$request->user()->hasPermission('manage_options')) {
             abort(403);
         }
-        // $options = Option::orderBy('name')->get(['name', 'name', 'value']);
+        // $options = Option::orderBy('name')->get(['id', 'name', 'value']);
         $options = Option::orderBy('name')->get();
         return response()->json($options, 201);
     }
@@ -24,17 +24,17 @@ class OptionController extends Controller
         if(!$request->user()->hasPermission('manage_options')) {
             abort(403);
         }
+
         // return sizeof($request->options);
         if(sizeof($request->options) != 0) {
             foreach($request->options as $opt) {
-                if(Option::where('id', $opt['id'])->exists()) {
-                    $option = Option::find($opt['id']);
+                if(Option::where('name', $opt['name'])->exists()) {
+                    $option = Option::where('name', $opt['name'])->get();
                     $option->value = $opt['value'];
                     $option->save();
                 }
             }
         }
-
         $response = [
             'message' => "Options updated"
         ];
