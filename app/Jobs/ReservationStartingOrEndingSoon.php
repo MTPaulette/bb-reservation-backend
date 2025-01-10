@@ -62,13 +62,3 @@ class ReservationStartingOrEndingSoon implements ShouldQueue
         }
     }
 }
-
-/*
-        // Récupérer les réservations qui finissent dans 30 minutes exactement
-        $reservationsEndingSoon = Reservation::where('end_at', $now->addMinutes(30)->toDateTimeString())->get();
-
-
-        foreach ($reservationsEndingSoon as $reservation) {
-            $reservation->user->notify(new ReservationEndingSoon($reservation, 'Votre réservation va se terminer dans 30 minutes.'));
-        }
-            */

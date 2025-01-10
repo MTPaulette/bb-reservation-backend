@@ -34,7 +34,6 @@ class DashboardController extends Controller
         }
         
         $period = $request->period;
-
         // Nombre total de clients
         $totalClients = User::where('role_id', 2)->count();
 
@@ -264,11 +263,11 @@ class DashboardController extends Controller
             Reservation::whereNot('state', 'cancelled')
                 ->when($period, function ($query, $period) {
                     $query->where('created_at', '>=', Carbon::parse($period)->startOfWeek())
-                            ->where('created_at', '<=', Carbon::parse($period)->endOfWeek());
+                            ->where('created_at', '<', Carbon::parse($period)->endOfWeek());
                 })
                 ->when(!$period, function ($query) {
                     $query->where('created_at', '>=', Carbon::now()->startOfWeek())
-                            ->where('created_at', '<=', Carbon::now()->endOfWeek());
+                            ->where('created_at', '<', Carbon::now()->endOfWeek());
                 })
                 ->get();
 
@@ -293,11 +292,11 @@ class DashboardController extends Controller
         $payments_of_week =
             Payment::when($period, function ($query, $period) {
                     $query->where('created_at', '>=', Carbon::parse($period)->startOfWeek())
-                        ->where('created_at', '<=', Carbon::parse($period)->endOfWeek());
+                        ->where('created_at', '<', Carbon::parse($period)->endOfWeek());
                 })
                 ->when(!$period, function ($query) {
                     $query->where('created_at', '>=', Carbon::now()->startOfWeek())
-                        ->where('created_at', '<=', Carbon::now()->endOfWeek());
+                        ->where('created_at', '<', Carbon::now()->endOfWeek());
                 })
                 ->get();
     

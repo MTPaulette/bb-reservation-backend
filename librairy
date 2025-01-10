@@ -1,61 +1,3 @@
-
-$payements = Payement::query()
-    ->when($period, function ($query, $period) {
-        $query->whereMonth('created_at', $period);
-    })
-    ->when(!$period, function ($query) {
-        $query->whereYear('created_at', period('Y'));
-    })
-    ->get();
-
-    ==============================================
-
-
-Voici un exemple de requête que vous pouvez utiliser :
-
-SELECT 
-  (link unavailable),
-  MIN(h.opening_time) AS opening_time_min,
-  MAX(h.closing_time) AS closing_time_max
-FROM 
-  agences a
-  LEFT JOIN heures_ouverture h ON (link unavailable) = h.agence_id
-GROUP BY 
-  (link unavailable)
-
-Dans cette requête, nous utilisons une jointure gauche pour relier les agences avec leurs heures d'ouverture. Nous utilisons ensuite les fonctions MIN et MAX pour récupérer l'heure d'ouverture minimum et l'heure de fermeture maximum pour chaque agence.
-
-Ensuite, vous pouvez utiliser cette requête dans votre contrôleur Laravel pour récupérer les données et les afficher dans votre vue.
-
-Voici un exemple de code que vous pouvez utiliser dans votre contrôleur :
-
-public function getAgenceHours()
-{
-  $agences = Agence::with('heuresOuverture')
-    ->select('id', 'name')
-    ->selectRaw('MIN(heures_ouverture.opening_time) AS opening_time_min')
-    ->selectRaw('MAX(heures_ouverture.closing_time) AS closing_time_max')
-    ->groupBy('id')
-    ->get();
-
-  return view('agence_hours', compact('agences'));
-}
-
-=================================
-
-
-->when(
-                    $filters['category'] ?? false,
-                    fn($query, $value) => $query->where('category_id', '=', $value)
-                )
-                ->when(
-                    $filters['q'] ?? false,
-                    fn($query, $value) => $query->where('name', 'LIKE', "%$value%")->orWhere('description', 'LIKE', "%$value%")
-                );
-
-
-=============================
-
 // app/Providers/MailConfigServiceProvider.php
 
 namespace App\Providers;
@@ -101,3 +43,92 @@ class MailConfigServiceProvider extends ServiceProvider
         });
     }
 }
+=====================================================
+
+$user = $request->user();
+        $user->tokens()->delete();
+        return response([
+            'message' => 'Logout user',
+        ], 201);
+
+======================================
+
+Étape 1 : Créer un job pour vérifier l'inactivité
+
+Créez un nouveau job dans le dossier app/Jobs de votre projet Laravel :
+
+namespace App\Jobs;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Auth;
+
+class CheckTokenInactivity implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function handle()
+    {
+        // Récupérer la date de la dernière requête API
+        $lastRequest = Auth::user()->last_request_at;
+
+        // Vérifie si la dernière requête API a été faite il y a plus de 15 minutes
+        if ($lastRequest && (now()->diffInMinutes($lastRequest) > 15)) {
+            // Expire le token
+            Auth::logout();
+        }
+    }
+}
+
+Étape 2 : Mettre à jour la date de la dernière requête API
+
+Dans votre contrôleur API, mettez à jour la date de la dernière requête API pour chaque requête :
+
+namespace App\Http\Controllers\Api;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+class MyController extends Controller
+{
+    public function __construct()
+    {
+        // Mettre à jour la date de la dernière requête API
+        Auth::user()->last_request_at = now();
+        Auth::user()->save();
+    }
+
+    public function myMethod(Request $request)
+    {
+        // Code de votre méthode
+    }
+}
+
+Étape 3 : Planifier le job
+
+Planifiez le job pour être exécuté toutes les minutes en utilisant la commande schedule:run de Laravel :
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use App\Jobs\CheckTokenInactivity;
+
+class ScheduleCheckTokenInactivity extends Command
+{
+    protected $signature = 'schedule:check-token-inactivity';
+
+    protected $description = 'Schedule the check token inactivity job';
+
+    public function handle()
+    {
+        // Planifie le job pour être exécuté toutes les minutes
+        CheckTokenInactivity::dispatch()->everyMinute();
+    }
+}
+
+Étape 4 : Ajouter la commande à la crontab
+
+Ajoutez la commande schedule:run à la crontab de votre serveur pour exécuter la commande toutes les minutes :
