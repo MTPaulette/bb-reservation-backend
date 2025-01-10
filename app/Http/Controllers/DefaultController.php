@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agency;
 use App\Models\Ressource;
 use App\Models\Reservation;
 
@@ -55,4 +56,8 @@ class DefaultController extends Controller
     }
     
     public function getReservations() {}
+
+    public function getAgencies() {
+        return Agency::orderBy("name")->get();
+    }
 }

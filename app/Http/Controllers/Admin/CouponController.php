@@ -202,16 +202,22 @@ class CouponController extends Controller
         $coupon = Coupon::findOrFail($request->id);
         if (! Hash::check($request->password, $authUser->password)) {
             $response = [
-                'password' => 'Wrong password.'
+                'errors' => [
+                    'en' => "Wrong password.",
+                    'fr' => "Mauvais mot de passe",
+                ]
             ];
             \LogActivity::addToLog("Fail to delete the coupon $coupon->id . error: Wrong password");
             return response($response, 422);
         }
 
-        $has_users = DB::table('coupon_users')->where('coupon_id', $request->id)->exists();
+        $has_users = DB::table('couponUsers')->where('coupon_id', $request->id)->exists();
         if($has_users) {
             $response = [
-                'error' => "The coupon $coupon->id has been sending to clients. You can not delete it",
+                'errors' => [
+                    'en' => "The coupon $coupon->id has been sending to clients. You can not delete it",
+                    'fr' => "Le coupon $coupon->id a ete envoye aux clients. Vous ne pouvez pas le supprimer",
+                ]
             ];
             \LogActivity::addToLog("Fail to delete coupon $coupon->id . error: He has clients");
             return response($response, 422);

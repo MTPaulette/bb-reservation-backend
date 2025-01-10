@@ -289,7 +289,10 @@ class RessourceController extends Controller
         $ressource = Ressource::findOrFail($request->id);
         if (! Hash::check($request->password, $authUser->password)) {
             $response = [
-                'password' => 'Wrong password.'
+                'errors' => [
+                    'en' => "Wrong password.",
+                    'fr' => "Mauvais mot de passe",
+                ]
             ];
             \LogActivity::addToLog("Fail to delete the ressource $ressource->id . error: Wrong password");
             return response($response, 422);
@@ -308,7 +311,10 @@ class RessourceController extends Controller
         $has_reservation = Reservation::where('ressource_id', $request->id)->exists();
         if($has_reservation) {
             $response = [
-                'error' => "The ressource $ressource->id has reservation. You can not delete it",
+                'errors' => [
+                    'en' => "The ressource $ressource->id has reservation. You can not delete it.",
+                    'fr' => "La ressource $ressource->id a au moins une reservation. Vous ne pouvez pas la supprimer",
+                ]
             ];
             \LogActivity::addToLog("Fail to delete ressource $ressource->id . error: He has users or ressource or opening days");
             return response($response, 422);

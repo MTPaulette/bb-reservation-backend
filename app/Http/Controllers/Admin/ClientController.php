@@ -177,23 +177,27 @@ class ClientController extends Controller
             if($user->role == 'client') {
                 if (! Hash::check($request->password, $authUser->password)) {
                     $response = [
-                        'password' => 'Wrong password.'
+                        'errors' => [
+                            'en' => "Wrong password.",
+                            'fr' => "Mauvais mot de passe",
+                        ]
                     ];
                     \LogActivity::addToLog("Fail to delete client $user->lastname $user->firstname. error: Wrong password");
                     return response($response, 422);
                 }
 
                 // check if the user has already been make reservation
-                $reservations = Reservation::where('created_by', $request->id)
-                                    ->orWhere('receiver_user_id', $request->id)
-                                    ->orWhere('giver_user_id', $request->id)
+                $reservations = Reservation::where('client_id', $request->id)
                                     ->exists();
 
                 $logs = Activity_log::where('user_id', $request->id)->exists();
 
                 if($reservations || $logs) {
                     $response = [
-                        'error' => "The client $user->lastname $user->firstname has already been maked reservation. You can not delete it",
+                        'errors' => [
+                            'en' => "The client $user->lastname $user->firstname has already been maked reservation. You can not delete it",
+                            'fr' => "Le client $user->lastname $user->firstname a deja effectue une reservation. Vous ne pouvez pas le supprimer",
+                        ]
                     ];
                     \LogActivity::addToLog("Fail to delete client $user->lastname $user->firstname. error: He has maked reservation.");
                     return response($response, 422);

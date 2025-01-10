@@ -892,7 +892,6 @@ class ReservationController extends Controller
 
     public function test(Request $request)
     {
-        // return Option::all();
         $admin = User::find(1);
         $reservation = Reservation::find(10);
         $admin->notify(new ReservationEndingSoon($reservation));

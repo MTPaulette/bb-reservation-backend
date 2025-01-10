@@ -348,7 +348,10 @@ class AgencyController extends Controller
         $agency = Agency::findOrFail($request->id);
         if (! Hash::check($request->password, $authUser->password)) {
             $response = [
-                'password' => 'Wrong password.'
+                'errors' => [
+                    'en' => "Wrong password.",
+                    'fr' => "Mauvais mot de passe",
+                ]
             ];
             \LogActivity::addToLog("Fail to delete $agency->name . error: Wrong password");
             return response($response, 422);
@@ -360,7 +363,10 @@ class AgencyController extends Controller
 
         if($has_ressource || $has_user || $has_openingday) {
             $response = [
-                'error' => "The $agency->name has users or ressource or opening days. You can not delete it",
+                'errors' => [
+                    'en' => "The agency $agency->name has users or ressource or opening days. You can not delete it",
+                    'fr' => "L'agence $agency->name a des utilisateurs, des ressources, des jours d'ouverture. Vous ne pouvez pas la supprimer",
+                ]
             ];
             \LogActivity::addToLog("Fail to delete agency $agency->name . error: He has maked users or ressource or opening days.");
             return response($response, 422);

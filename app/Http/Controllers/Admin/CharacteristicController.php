@@ -101,10 +101,13 @@ class CharacteristicController extends Controller
         ) {
             abort(403);
         }
-        $characteristic = characteristic::findOrFail($request->id);
+        $characteristic = Characteristic::findOrFail($request->id);
         if (! Hash::check($request->password, $authUser->password)) {
             $response = [
-                'password' => 'Wrong password.'
+                'errors' => [
+                    'en' => "Wrong password.",
+                    'fr' => "Mauvais mot de passe",
+                ]
             ];
             \LogActivity::addToLog("Fail to delete $characteristic->name_en . error: Wrong password");
             return response($response, 422);
@@ -113,6 +116,10 @@ class CharacteristicController extends Controller
         if($has_space) {
             $response = [
                 'error' => "The $characteristic->name_en has spaces. You can not delete it",
+                'errors' => [
+                    'en' => "The characteristic $characteristic->name_en has spaces. You can not delete it",
+                    'fr' => "La caracteristique $characteristic->name_en est associe a au moins un espace. Vous ne pouvez pas la supprimer.",
+                ]
             ];
             \LogActivity::addToLog("Fail to delete characteristic $characteristic->name_en . error: He has space.");
             return response($response, 422);

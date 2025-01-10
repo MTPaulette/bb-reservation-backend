@@ -89,7 +89,7 @@
 </div>
 @endif
 <h2 style="color:black;">
-  La Direction.
+  The Management.
 </h2>
 @include('notifications.footer')
 @endcomponent

@@ -179,7 +179,10 @@ class SpaceController extends Controller
         $space = Space::findOrFail($request->id);
         if (! Hash::check($request->password, $authUser->password)) {
             $response = [
-                'password' => 'Wrong password.'
+                'errors' => [
+                    'en' => "Wrong password.",
+                    'fr' => "Mauvais mot de passe",
+                ]
             ];
             \LogActivity::addToLog("Fail to delete $space->name . error: Wrong password");
             return response($response, 422);
@@ -190,7 +193,10 @@ class SpaceController extends Controller
     
         if($has_ressource || $has_characteristic) {
             $response = [
-                'error' => "The $space->name has characteristic or ressource. You can not delete it",
+                'errors' => [
+                    'en' => "The $space->name has characteristic or ressource. You can not delete it",
+                    'fr' => "L' $space->name a une caracteristique ou une ressource. Vous ne pouvez pas le supprimer.",
+                ]
             ];
             \LogActivity::addToLog("Fail to delete space $space->name . error: He has users or ressource or opening days");
             return response($response, 422);

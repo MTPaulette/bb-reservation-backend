@@ -64,5 +64,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'check.user.suspension' => \App\Http\Middleware\CheckUserSuspension::class,
+        // 'update.last_request_at' => \App\Http\Middleware\UpdateLastRequestAt::class,
     ];
 }

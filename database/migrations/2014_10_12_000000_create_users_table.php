@@ -35,6 +35,7 @@ return new class extends Migration
             $table->unsignedBigInteger('suspended_by')->nullable();
             $table->foreign('suspended_by')->references('id')->on('users');
             $table->timestamp('suspended_at')->nullable();
+            $table->timestamp('last_request_at')->nullable();
 
             $table->timestamps();
         });

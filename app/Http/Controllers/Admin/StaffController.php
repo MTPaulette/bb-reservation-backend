@@ -179,7 +179,7 @@ class StaffController extends Controller
             'firstname' => 'required|string|max:250',
             'email' => 'required|email|unique:users|max:250',
             'password' => 'required|string|min:8|max:50',
-            'phonenumber' => 'string|min:9|max:250',
+            'phonenumber' => 'nullable|string|min:9|max:250',
         ]);
 
         if($validator->fails()){
@@ -302,7 +302,10 @@ class StaffController extends Controller
             if($user->role == 'admin') {
                 if (! Hash::check($request->password, $authUser->password)) {
                     $response = [
-                        'password' => 'Wrong password.'
+                        'errors' => [
+                            'en' => "Wrong password.",
+                            'fr' => "Mauvais mot de passe",
+                        ]
                     ];
                     \LogActivity::addToLog("Fail to delete $user->role $user->lastname $user->firstname. error: Wrong password");
                     return response($response, 422);
@@ -310,15 +313,16 @@ class StaffController extends Controller
 
                 // check if the user has already been make reservation
                 $reservations = Reservation::where('created_by', $request->id)
-                                    ->orWhere('receiver_user_id', $request->id)
-                                    ->orWhere('giver_user_id', $request->id)
+                                    ->orWhere('cancelled_by', $request->id)
+                                    ->orWhere('client_id', $request->id)
                                     ->exists();
 
                 $logs = Activity_log::where('user_id', $request->id)->exists();
 
                 if($reservations || $logs) {
                     $response = [
-                        'error' => "The $user->role $user->lastname $user->firstname has already been maked reservation. You can not delete it",
+                        'en' => "The $user->role $user->lastname $user->firstname has already been maked reservation. You can not delete it",
+                        'fr' => "Le  $user->role $user->lastname $user->firstname a deja effectue une reservation. Vous ne pouvez pas le supprimer",
                     ];
                     \LogActivity::addToLog("Fail to delete $user->role $user->lastname $user->firstname. error: He has maked reservation.");
                     return response($response, 422);

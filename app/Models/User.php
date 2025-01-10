@@ -29,6 +29,7 @@ class User extends Authenticatable
         'language',
         'reason_for_suspension_en',
         'reason_for_suspension_fr',
+        'last_request_at',
     ];
 
     protected $hidden = [

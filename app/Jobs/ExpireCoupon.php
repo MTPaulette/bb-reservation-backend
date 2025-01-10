@@ -19,7 +19,8 @@ class ExpireCoupon implements ShouldQueue
 
     public function handle()
     {
-        $coupons = Coupon::where("expired_on", "<=", Carbon::now())->where("status", "!=", "expired")->get();
+        $now = Carbon::now()->format("Y-m-d H:i");
+        $coupons = Coupon::where("expired_on", "<=", $now)->where("status", "!=", "expired")->get();
         foreach($coupons as $coupon) {
             $users = $coupon->users;
 
