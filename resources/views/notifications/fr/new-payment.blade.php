@@ -25,8 +25,6 @@
     <li><span class="bold">Montant restant à payer :</span> {{ $reservation->amount_due }} FCFA</li>
     <li><span class="bold">Paiement fait auprès de :</span> {{ $payment->processedBy->lastname }} {{ $payment->processedBy->firstname }}</li>
   </ul>
-  Pour compléter le paiement, vous pouvez utiliser le lien suivant :
-  <a href="{{ url($client_url) }}" class="link">voir le paiement</a>
 
   Nous vous remercions de votre attention et nous nous réjouissons de vous accueillir
   dans notre établissement.

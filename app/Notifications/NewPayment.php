@@ -43,8 +43,7 @@ class NewPayment extends Notification
     public function toMail($notifiable)
     {
         $language = $notifiable->language;
-        $client_url = env('APP_FRONTEND_URL')."/$language/client/payments/".$this->payment->id;
-        $admin_url = env('APP_FRONTEND_URL')."/$language/admin/reservations/".$this->payment->id;
+        $admin_url = env('APP_FRONTEND_URL')."/$language/admin/reservations/".$this->reservation->id;
 
 
         if($language == 'en') {
@@ -53,13 +52,12 @@ class NewPayment extends Notification
             ->subject(
                 $notifiable->role_id == 2 ? 
                 'Payment confirmation for your reservation':
-                'Payment notification for reservation'.$this->reservation->id
+                'Payment notification for reservation'.$this->reservation->ressource->space->name
             )
             ->markdown('notifications.en.new-payment', [
                 'notifiable' => $notifiable,
                 'reservation' => $this->reservation,
                 'payment' => $this->payment,
-                'client_url' => $client_url,
                 'admin_url' => $admin_url
             ]);
         }
@@ -70,12 +68,11 @@ class NewPayment extends Notification
         ->subject(
             $notifiable->role_id == 2 ? 
             'Confirmation de paiement pour votre réservation' :
-            'Notification de paiement pour la réservation '.$this->reservation->id
+            'Notification de paiement pour la réservation '.$this->reservation->ressource->space->name
         )->markdown('notifications.fr.new-payment', [
             'notifiable' => $notifiable,
             'reservation' => $this->reservation,
             'payment' => $this->payment,
-            'client_url' => $client_url,
             'admin_url' => $admin_url
         ]);
     }

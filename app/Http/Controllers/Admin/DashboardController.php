@@ -234,6 +234,7 @@ class DashboardController extends Controller
         $ressource_with_reservations = $agencies->map(function ($agency) use ($period) {
             $ressources = $agency->ressources;
             $data = [];
+            $label = [];
 
             foreach ($ressources as $ressource) {
                 $reservations = Reservation::where('ressource_id', $ressource->id)

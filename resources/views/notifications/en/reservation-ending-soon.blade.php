@@ -82,6 +82,9 @@
     <li><span class="bold">Reservation made by:</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
   </ul>
 
+  To view the reservation, you can use the following link:
+  <a href="{{ url($admin_url) }}" class="link">see reservation</a>
+
   We invite you to check that the customer has left the premises before the end of the 
   reservation and to check the premises and equipment.
 

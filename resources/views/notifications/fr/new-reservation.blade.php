@@ -44,7 +44,6 @@
   Le reste des <span class="bold">50%</span> devra être payé avant l'heure de début de la réservation.
 
   Nous vous invitons à effectuer le paiement dès que possible pour garantir la disponibilité de la ressource.
-  Vous pouvez utiliser le lien suivant pour effectuer le paiement : <a href="{{ url($client_url) }}" class="link">voir la reservation</a>
 
   Nous vous remercions de votre attention et nous nous réjouissons de vous accueillir dans notre établissement.
 

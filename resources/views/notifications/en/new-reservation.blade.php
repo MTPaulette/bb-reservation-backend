@@ -42,8 +42,7 @@
   The remaining <span class="bold">50%</span> must be paid before the reservation start time.
 
   We invite you to make payment as soon as possible to ensure availability of the resource.
-  You can use the following link to make payment: <a href="{{ url($client_url) }}" class="link">see reservation</a>
-
+  
   We thank you for your attention and we look forward to welcoming you to our establishment.
 
   Sincerely,

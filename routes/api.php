@@ -146,10 +146,7 @@ Route::middleware(["auth:sanctum", "check.user.suspension"])->group(function () 
 
         /* payment routes */
         Route::get("/payments",[PaymentController::class, "index"]);
-        Route::get("/payment/{id}",[PaymentController::class, "show"]);
         Route::post("/payment/store",[PaymentController::class, "store"]);
-        Route::put("/payment/{id}/update",[PaymentController::class, "update"]);
-        Route::put("/payment/{id}/cancel", [PaymentController::class, "cancel"]);
 
         /* dashboard routes */
         Route::get("/dashboard",[DashboardController::class, "index"]);

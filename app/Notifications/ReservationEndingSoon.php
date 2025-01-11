@@ -41,7 +41,6 @@ class ReservationEndingSoon extends Notification
     public function toMail($notifiable)
     {
         $language = $notifiable->language;
-        $client_url = env('APP_FRONTEND_URL')."/$language/client/reservations/".$this->reservation->id;
         $admin_url = env('APP_FRONTEND_URL')."/$language/admin/reservations/".$this->reservation->id;
 
 
@@ -52,7 +51,6 @@ class ReservationEndingSoon extends Notification
             ->markdown('notifications.en.reservation-ending-soon', [
                 'notifiable' => $notifiable,
                 'reservation' => $this->reservation,
-                'client_url' => $client_url,
                 'admin_url' => $admin_url
             ]);
         }
@@ -63,7 +61,6 @@ class ReservationEndingSoon extends Notification
         ->markdown('notifications.fr.reservation-ending-soon', [
             'notifiable' => $notifiable,
             'reservation' => $this->reservation,
-            'client_url' => $client_url,
             'admin_url' => $admin_url
         ]);
     }

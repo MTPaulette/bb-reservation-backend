@@ -18,6 +18,7 @@ use App\Models\Space;
 use App\Models\User;
 use App\Notifications\CouponExpired;
 use App\Notifications\NewCouponSent;
+use App\Notifications\NewPayment;
 use App\Notifications\NewReservation;
 use App\Notifications\ReservationEndingSoon;
 use Carbon\Carbon;
@@ -831,35 +832,37 @@ class ReservationController extends Controller
             ];
         }
         $coupon = Coupon::where('code', $coupon)->first();
-        $client_coupons_ids = [];
-        foreach ($client->coupons as $item) {
-            array_push($client_coupons_ids, $item->id);
-        }
+        if(!$coupon->is_public) {
+            $client_coupons_ids = [];
+            foreach ($client->coupons as $item) {
+                array_push($client_coupons_ids, $item->id);
+            }
 
-        //verifie le client a recu le coupon
-        if(!in_array($coupon->id, $client_coupons_ids)) {
-            return [
-                'success' => false,
-                'errors' => [
+            //verifie le client a recu le coupon
+            if(!in_array($coupon->id, $client_coupons_ids)) {
+                return [
+                    'success' => false,
                     'errors' => [
-                        'en' => "coupon not available for this client",
-                        'fr' => "coupon non disponible pour ce client",
+                        'errors' => [
+                            'en' => "coupon not available for this client",
+                            'fr' => "coupon non disponible pour ce client",
+                        ]
                     ]
-                ]
-            ];
-        }
+                ];
+            }
 
-        //verifie si le coupon est encore actif
-        if($coupon->status == "expired") {
-            return [
-                'success' => false,
-                'errors' => [
+            //verifie si le coupon est encore actif
+            if($coupon->status == "expired") {
+                return [
+                    'success' => false,
                     'errors' => [
-                        'en' => "coupon has expired",
-                        'fr' => "le coupon a expiré",
+                        'errors' => [
+                            'en' => "coupon has expired",
+                            'fr' => "le coupon a expiré",
+                        ]
                     ]
-                ]
-            ];
+                ];
+            }
         }
 
         //verifie si le coupon n'a pas depasse le nombre maximum d'utilisation
@@ -890,11 +893,31 @@ class ReservationController extends Controller
     }
 
 
-    public function test(Request $request)
+    public function test()
     {
         $admin = User::find(1);
-        $reservation = Reservation::find(10);
+        $client = User::find(35);
+        $reservation = Reservation::find(97);
+        $payment = Payment::find(21);
+        $coupon = Coupon::find(1);
+
+        $admin->notify(new NewCouponSent($coupon));
+        $client->notify(new NewCouponSent($coupon));
+
+        $admin->notify(new CouponExpired($coupon));
+        $client->notify(new CouponExpired($coupon));
+
+        $admin->notify(new NewReservation($reservation));
+        $client->notify(new NewReservation($reservation));
+
+        $admin->notify(new ReservationStartingSoon($reservation));
+        $client->notify(new ReservationStartingSoon($reservation));
+
         $admin->notify(new ReservationEndingSoon($reservation));
+        $client->notify(new ReservationEndingSoon($reservation));
+
+        $admin->notify(new NewPayment($reservation, $payment));
+        $client->notify(new NewPayment($reservation, $payment));
         return "envoye";
 
         $now = Carbon::parse("07:30");

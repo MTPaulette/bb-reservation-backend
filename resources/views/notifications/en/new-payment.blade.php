@@ -24,8 +24,6 @@
     <li><span class="bold">Amount remaining to be paid:</span> {{ $reservation->amount_due }} FCFA</li>
     <li><span class="bold">Payment made to:</span> {{ $payment->processedBy->lastname }} {{ $payment->processedBy->firstname }}</li>
   </ul>
-  To complete the payment, you can use the following link:
-  <a href="{{ url($client_url) }}" class="link">view payment</a>
 
   We thank you for your attention and we look forward to welcoming you
   in our establishment.

@@ -82,6 +82,9 @@
     <li><span class="bold">Réservation faite par :</span> {{ $reservation->createdBy->lastname }} {{ $reservation->createdBy->firstname }}</li>
   </ul> 
 
+  Pour consulter la réservation, vous pouvez utiliser le lien suivant :
+  <a href="{{ url($admin_url) }}" class="link">voir la réservation</a>
+
   Nous vous invitons à vérifier que le client a quitté les lieux avant la fin de la 
   réservation et à procéder à la vérification des lieux et des équipements.
 

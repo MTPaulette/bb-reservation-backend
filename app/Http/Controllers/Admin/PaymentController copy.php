@@ -82,7 +82,7 @@ class PaymentController extends Controller
             'payment_method' => 'required|string|in:Bank,Cash,MTN Money,Orange Money',
             'payment_status' => 'nullable|string',
             'transaction_id' => 'nullable|string|unique:payments',
-            'bill_number' => 'required|string|unique:payments',
+            'bill_number' => 'nullable|string|unique:payments',
             'note' => 'nullable|string|',
         ]);
 
@@ -151,7 +151,18 @@ class PaymentController extends Controller
         }
         //etudie la methode payment: 
         //pour le payment en cash, le numero de facture est obligatoire, pour le reste l'id de le transaction
-        if($request->payment_method != 'Cash') {
+        if($request->payment_method == 'Cash') {
+            $validator = Validator::make($request->all(),[
+                'bill_number' => 'required|string',
+            ]);
+    
+            if($validator->fails()){
+                \LogActivity::addToLog("Payment creation failed. ".$validator->errors());
+                return response([
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+        } else {
             $validator = Validator::make($request->all(),[
                 'transaction_id' => 'required|string',
             ]);
@@ -178,10 +189,10 @@ class PaymentController extends Controller
         //creer le paiement
         $payment = new Payment();
         $payment->amount = $request->amount;
-        $payment->payment_method = $request->payment_method;
+        $payment->payment_method = $request->has("payment_method") && isset($request->payment_method) ? $request->payment_method : null;
         $payment->payment_status = $request->has("payment_status") && isset($request->payment_status) ? $request->payment_status : null;
         $payment->transaction_id = $request->has("transaction_id") && isset($request->transaction_id) ? $request->transaction_id : null;
-        $payment->bill_number = $request->bill_number;
+        $payment->bill_number = $request->has("bill_number") && isset($request->bill_number) ? $request->bill_number : null;
         $payment->reservation_id = $reservation->id;
         $payment->processed_by = $authUser->id;
         $payment->save();
