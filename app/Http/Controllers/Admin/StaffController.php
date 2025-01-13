@@ -179,7 +179,9 @@ class StaffController extends Controller
             'firstname' => 'required|string|max:250',
             'email' => 'required|email|unique:users|max:250',
             'password' => 'required|string|min:8|max:50',
-            'phonenumber' => 'nullable|string|min:9|max:250',
+            // 'phonenumber' => 'required|string|size:12',
+            'phonenumber' => ['required', 'integer', 'regex:/^(2[0-9]{2}[6](2|5|6|7|8|9)[0-9]{7})$/'],
+            'language' => 'required|string|in:en,fr',
         ]);
 
         if($validator->fails()){
@@ -239,6 +241,21 @@ class StaffController extends Controller
             $authUser->hasPermission('edit_admin') ||
             $authUser->hasPermission('edit_superadmin')
         ) {
+            $validator = Validator::make($request->all(),[
+                'lastname' => 'string|max:50',
+                'firstname' => 'string|max:50',
+                'phonenumber' => ['integer', 'regex:/^(2[0-9]{2}[6](2|5|6|7|8|9)[0-9]{7})$/'],
+                // 'phonenumber' => 'string|size:12',
+                'language' => 'string|nullable|in:en,fr',
+            ]);
+
+            if($validator->fails()){
+                \LogActivity::addToLog("Fail to update client's informations. ".$validator->errors());
+                return response([
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
             $user = User::withRole()->findOrFail($request->id);
             if( $authUser->hasPermission('edit_admin')){
                 if($user->role == 'admin') {
@@ -253,6 +270,9 @@ class StaffController extends Controller
                         }
                         if($request->has('phonenumber') && isset($request->phonenumber)) {
                             $user->phonenumber = $request->phonenumber;
+                        }
+                        if($request->has('language') && isset($request->language)) {
+                            $user->language = $request->language;
                         }
                     }
                     /*
@@ -280,6 +300,9 @@ class StaffController extends Controller
                     }
                     if($request->has('phonenumber') && isset($request->phonenumber)) {
                         $user->phonenumber = $request->phonenumber;
+                    }
+                    if($request->has('language') && isset($request->language)) {
+                        $user->language = $request->language;
                     }
                 }
             }

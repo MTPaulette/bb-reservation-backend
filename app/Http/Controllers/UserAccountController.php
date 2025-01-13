@@ -106,7 +106,7 @@ class UserAccountController extends Controller
         $validator = Validator::make($request->all(),[
             'lastname' => 'string|max:250',
             'firstname' => 'string|max:250',
-            'phonenumber' => 'string|min:9|max:250|nullable',
+            'phonenumber' => ['integer', 'regex:/^(2[0-9]{2}[6](2|5|6|7|8|9)[0-9]{7})$/'],
             'language' => 'string|nullable|in:en,fr',
         ]);
         if($validator->fails()){

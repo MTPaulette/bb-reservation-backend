@@ -97,7 +97,9 @@ class ClientController extends Controller
             'firstname' => 'required|string|max:50',
             'email' => 'required|email|unique:users|max:250',
             'password' => 'required|string|min:8|max:50',
-            'phonenumber' => 'string|min:9|max:250',
+            // 'phonenumber' => 'required|string|size:12',
+            'phonenumber' => ['required', 'integer', 'regex:/^(2[0-9]{2}[6](2|5|6|7|8|9)[0-9]{7})$/'],
+            'language' => 'required|string|in:en,fr',
         ]);
 
         if($validator->fails()){
@@ -134,7 +136,9 @@ class ClientController extends Controller
             $validator = Validator::make($request->all(),[
                 'lastname' => 'string|max:50',
                 'firstname' => 'string|max:50',
-                // 'phonenumber' => 'string',
+                'phonenumber' => ['integer', 'regex:/^(2[0-9]{2}[6](2|5|6|7|8|9)[0-9]{7})$/'],
+                // 'phonenumber' => 'string|size:12',
+                'language' => 'string|nullable|in:en,fr',
             ]);
 
             if($validator->fails()){
@@ -153,6 +157,9 @@ class ClientController extends Controller
                 }
                 if($request->has('phonenumber') && isset($request->phonenumber)) {
                     $user->phonenumber = $request->phonenumber;
+                }
+                if($request->has('language') && isset($request->language)) {
+                    $user->language = $request->language;
                 }
 
                 $user->update();
