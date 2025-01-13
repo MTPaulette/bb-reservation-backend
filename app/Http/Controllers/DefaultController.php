@@ -58,6 +58,6 @@ class DefaultController extends Controller
     public function getReservations() {}
 
     public function getAgencies() {
-        return Agency::orderBy("name")->get();
+        return Agency::orderBy("name")->get(['id', 'name']);
     }
 }

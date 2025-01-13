@@ -1,4 +1,5 @@
 @component('mail::message')
+@include('notifications.header')
 
 <h1 class="name">Hello {{ $notifiable->lastname }},</h1>
 @if ($notifiable->role_id == 2)

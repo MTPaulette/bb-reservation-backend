@@ -16,16 +16,6 @@ $twitter = \Options::getValue('twitter');
 
 
 <footer>
-<!-- <a href="{{ asset($whatsapp) }}"
-    style="
-        text-decoration: none !important;
-        padding: 10px 30px; background: #0b9444; border-radius: 20px;
-    ">
-  <span style="color: white; font-weight: 700px; margin-left: 5px;">RESERVEZ MAINTENANT</span>
-</a>
-<h2 style="color:black;">
-  La Direction.
-</h2> -->
 <hr size="2px" width="100%" color="black" style="margin-top: 40px; margin-bottom: 10px; opacity:20%;" />
 <p>
   <address style="color:#111; font-size:14px; opacity:90%;">

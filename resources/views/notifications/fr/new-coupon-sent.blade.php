@@ -1,4 +1,5 @@
 @component('mail::message')
+@include('notifications.header')
 
 <h1 class="name">Bonjour {{ $notifiable->lastname }},</h1>
 <div class="main-content">

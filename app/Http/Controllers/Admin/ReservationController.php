@@ -904,6 +904,7 @@ class ReservationController extends Controller
         $admin->notify(new NewCouponSent($coupon));
         $client->notify(new NewCouponSent($coupon));
 
+        /*
         $admin->notify(new CouponExpired($coupon));
         $client->notify(new CouponExpired($coupon));
 
@@ -918,6 +919,8 @@ class ReservationController extends Controller
 
         $admin->notify(new NewPayment($reservation, $payment));
         $client->notify(new NewPayment($reservation, $payment));
+
+        */
         return "envoye";
 
         $now = Carbon::parse("07:30");
