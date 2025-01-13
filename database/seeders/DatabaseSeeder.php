@@ -325,6 +325,34 @@ class DatabaseSeeder extends Seeder
             $role_admin->permissions()->attach($i);
             $i++;
         }
+
+
+        /* options */
+        $options = [
+            ['companyname', 'BRAIN-BOOSTER SARL'],
+            ['address', 'Elig-Essono | Etoa-Meki'],
+            ['city', 'Yaoundé - Cameroun'],
+            ['phonenumber', '(+237) 694235019 | (+237) 222 21 12 34'],
+            ['URL','https://www.brain-booster.net/'],
+            ['whatsapp','https://wa.me/237692769492'],
+            ['facebook', 'https://www.facebook.com/BrainBoosterCmr'],
+            ['instagram', 'https://www.instagram.com/brainboostercmr?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=='],
+            ['twitter', 'https://x.com/BrainBoosterCmr?t=fYCo3__9h9e-mxdgW_nFQQ&s=08'],
+            ['linkedln', 'https://www.linkedin.com/company/brain-booster/'],
+            ['twitter', 'https://x.com/BrainBoosterCmr?t=fYCo3__9h9e-mxdgW_nFQQ&s=08'],
+            ['smtp_email', 'crm@brpoye.nett'],
+            ['smtp_password', 'pas5wo'],
+            ['smtp_port', '1025'],
+            ['smtp_host', 'localhost'],
+            ['email_protocol', 'smtp'],
+            ['holidays', '2024-12-25,2024-12-31,2025-01-01,2025-05-20']
+        ];
+        foreach ($options as $option) {
+            \App\Models\Option::factory()->create([
+                'name' => $option[0],
+                'value' => $option[1]
+            ]);
+        }
     }
     /*
     $permissions_superadmin = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,

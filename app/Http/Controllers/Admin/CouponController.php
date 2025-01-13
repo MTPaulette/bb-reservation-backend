@@ -147,10 +147,12 @@ class CouponController extends Controller
             if($request->has('total_usage') && isset($request->total_usage)) {
                 $coupon->total_usage = $request->total_usage;
             }
-            if($request->has('percent') && isset($request->percent)) {
+            if($request->has('percent')) {
+            // if($request->has('percent') && isset($request->percent)) {
                 $coupon->percent = $request->percent;
             }
-            if($request->has('amount') && isset($request->amount)) {
+            if($request->has('amount')) {
+            // if($request->has('amount') && isset($request->amount)) {
                 $coupon->amount = $request->amount;
             }
             if($request->has('expired_on') && isset($request->expired_on)) {
@@ -163,7 +165,9 @@ class CouponController extends Controller
                 $coupon->note_fr = $request->note_fr;
             }
             $coupon->is_public = $request->is_public;
-            if(!$coupon->is_public) {
+            if($coupon->is_public){
+                $coupon->users()->detach();
+            } else {
                 if($request->has('clients') && isset($request->clients)) {
                     $coupon->users()->detach();
                     $clients = $request->clients;

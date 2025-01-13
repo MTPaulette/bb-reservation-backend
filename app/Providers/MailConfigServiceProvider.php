@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Mail;
 use App\Models\Option;
 
 class MailConfigServiceProvider extends ServiceProvider

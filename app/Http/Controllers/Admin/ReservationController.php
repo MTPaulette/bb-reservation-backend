@@ -896,20 +896,21 @@ class ReservationController extends Controller
     public function test()
     {
         $admin = User::find(1);
-        $client = User::find(35);
-        $reservation = Reservation::find(97);
+        $client = User::find(58); // 35
+        $reservation = Reservation::find(1); //97
         $payment = Payment::find(21);
         $coupon = Coupon::find(1);
+
+        $admin->notify(new NewReservation($reservation));
+        $client->notify(new NewReservation($reservation));
+
+        /*
 
         $admin->notify(new NewCouponSent($coupon));
         $client->notify(new NewCouponSent($coupon));
 
-        /*
         $admin->notify(new CouponExpired($coupon));
         $client->notify(new CouponExpired($coupon));
-
-        $admin->notify(new NewReservation($reservation));
-        $client->notify(new NewReservation($reservation));
 
         $admin->notify(new ReservationStartingSoon($reservation));
         $client->notify(new ReservationStartingSoon($reservation));
