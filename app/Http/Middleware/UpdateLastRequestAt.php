@@ -11,7 +11,7 @@ class UpdateLastRequestAt
     public function handle($request, Closure $next)
     {
         $user = Auth::user();
-        if ($user) {
+        if ($user && $user->role_id != 2) {
             $user->last_request_at = Carbon::now();
             $user->save();
         }

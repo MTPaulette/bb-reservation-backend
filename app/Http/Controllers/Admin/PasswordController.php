@@ -47,8 +47,6 @@ class PasswordController extends Controller
     }
 
     public function sendResetLinkEmail(Request $request) {
-        //$request->validate(['email' => 'required|email']);
-    
         $validator = Validator::make($request->all(),[
             'email' => 'required|email|max:250'
         ]);
@@ -97,7 +95,6 @@ class PasswordController extends Controller
             function ($user, $password) {
                 $user->password = $password;
                 $user->save();
-                //event(new PasswordReset($user));
             }
         );
      

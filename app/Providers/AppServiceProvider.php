@@ -25,7 +25,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         ResetPassword::createUrlUsing(function ($user, string $token) {
-           return env('APP_FRONTEND_URL')."/reset-password?token={$token}";
+            $language = $user ? $user->language : "en";
+            return env('APP_FRONTEND_URL')."/{$language}/auth/reset-password?token={$token}";
         });
     }
 }

@@ -11,7 +11,7 @@ class CheckTokenInactivity
     public function handle($request, Closure $next)
     {
         $user = Auth::user();
-        if ($user) {
+        if ($user && $user->role_id != 2) {
             $now = Carbon::now(); // ->format("Y-m-d H:i");
             $lastRequest = Carbon::parse($user->last_request_at);
 
