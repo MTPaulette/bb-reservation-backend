@@ -15,7 +15,7 @@ class CheckTokenInactivity
             $now = Carbon::now(); // ->format("Y-m-d H:i");
             $lastRequest = Carbon::parse($user->last_request_at);
 
-            if ($lastRequest && $lastRequest->diffInMinutes($now) > 15) {
+            if ($lastRequest && $lastRequest->diffInMinutes($now) > 30) {
                 $user->tokens()->delete();
             }
         }
