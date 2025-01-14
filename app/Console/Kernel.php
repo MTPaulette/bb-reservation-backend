@@ -2,7 +2,6 @@
 
 namespace App\Console;
 
-use App\Jobs\CheckTokenInactivity;
 use App\Jobs\ClearReservation_draftTable;
 use App\Jobs\ExpireCoupon;
 use App\Jobs\ReservationStartingOrEndingSoon;
@@ -20,7 +19,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->job(new CheckTokenInactivity())->everyMinute();
         $schedule->job(new SendCoupon())->everyMinute(); //dailyAt('08:00');
         $schedule->job(new ExpireCoupon())->everyMinute(); //dailyAt('01:00');
         $schedule->job(new ReservationStartingOrEndingSoon())->everyMinute(); //everyMinute();

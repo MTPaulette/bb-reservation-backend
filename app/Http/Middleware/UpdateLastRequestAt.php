@@ -3,20 +3,18 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateLastRequestAt
 {
-    public function handle(Request $request, Closure $next)
+    public function handle($request, Closure $next)
     {
-        // Mettre à jour la date de la dernière requête API
-        $user = $request->user();
+        $user = Auth::user();
         if ($user) {
-            echo "dans le middleware";
-            $user->last_request_at = now();
+            $user->last_request_at = Carbon::now();
             $user->save();
         }
-
         return $next($request);
     }
 }

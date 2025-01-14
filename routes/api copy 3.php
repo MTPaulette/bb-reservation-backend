@@ -35,7 +35,6 @@ use App\Http\Controllers\UserImageController;
 */
 
 /* unauthenticated route */
-Route::middleware(["check.token.inactivity", "update.last_request_at"])->group(function () {
 Route::post("/login",[UserAccountController::class, "login"]);
 Route::post("/register",[UserAccountController::class, "register"]);
 
@@ -44,8 +43,6 @@ Route::get("/ressources",[DefaultController::class, "getRessources"]);
 Route::get("/calendar",[DefaultController::class, "getCalendar"]);
 Route::get("/reservations",[DefaultController::class, "getReservations"]);
 Route::get("/agencies",[DefaultController::class, "getAgencies"]);
-
-});
 
 
 /* authenticated route: both user and admin */

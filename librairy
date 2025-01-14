@@ -44,91 +44,56 @@ class MailConfigServiceProvider extends ServiceProvider
     }
 }
 =====================================================
+Pour invalider le token de l'utilisateur authentifié si sa dernière requête date d'il y a 15 minutes, vous pouvez utiliser une combinaison de Laravel Sanctum et de Laravel API.
 
-$user = $request->user();
-        $user->tokens()->delete();
-        return response([
-            'message' => 'Logout user',
-        ], 201);
+Voici les étapes à suivre :
 
-======================================
+1. Créez un middleware qui vérifie la dernière requête de l'utilisateur :
 
-Étape 1 : Créer un job pour vérifier l'inactivité
+namespace App\Http\Middleware;
 
-Créez un nouveau job dans le dossier app/Jobs de votre projet Laravel :
-
-namespace App\Jobs;
-
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
+use Closure;
 use Illuminate\Support\Facades\Auth;
 
-class CheckTokenInactivity implements ShouldQueue
+class CheckLastRequest
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    public function handle()
+    public function handle($request, Closure $next)
     {
-        // Récupérer la date de la dernière requête API
-        $lastRequest = Auth::user()->last_request_at;
-
-        // Vérifie si la dernière requête API a été faite il y a plus de 15 minutes
-        if ($lastRequest && (now()->diffInMinutes($lastRequest) > 15)) {
-            // Expire le token
-            Auth::logout();
+        $user = Auth::user();
+        if ($user) {
+            $lastRequest = $user->last_request_at;
+            if ($lastRequest && $lastRequest->diffInMinutes(now()) > 15) {
+                // Invalider le token
+                $user->tokens()->delete();
+            }
         }
+        return $next($request);
     }
 }
 
-Étape 2 : Mettre à jour la date de la dernière requête API
+1. Ajoutez le middleware à votre route API :
 
-Dans votre contrôleur API, mettez à jour la date de la dernière requête API pour chaque requête :
+Route::middleware([CheckLastRequest::class])->group(function () {
+    // Vos routes API ici
+});
 
-namespace App\Http\Controllers\Api;
+1. Mettez à jour la dernière requête de l'utilisateur à chaque requête :
+
+namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
-class MyController extends Controller
+class ApiController extends Controller
 {
-    public function __construct()
+    public function __construct(Request $request)
     {
-        // Mettre à jour la date de la dernière requête API
-        Auth::user()->last_request_at = now();
-        Auth::user()->save();
+        $user = Auth::user();
+        if ($user) {
+            $user->last_request_at = now();
+            $user->save();
+        }
     }
 
-    public function myMethod(Request $request)
-    {
-        // Code de votre méthode
-    }
+    // Vos méthodes API ici
 }
-
-Étape 3 : Planifier le job
-
-Planifiez le job pour être exécuté toutes les minutes en utilisant la commande schedule:run de Laravel :
-
-namespace App\Console\Commands;
-
-use Illuminate\Console\Command;
-use App\Jobs\CheckTokenInactivity;
-
-class ScheduleCheckTokenInactivity extends Command
-{
-    protected $signature = 'schedule:check-token-inactivity';
-
-    protected $description = 'Schedule the check token inactivity job';
-
-    public function handle()
-    {
-        // Planifie le job pour être exécuté toutes les minutes
-        CheckTokenInactivity::dispatch()->everyMinute();
-    }
-}
-
-Étape 4 : Ajouter la commande à la crontab
-
-Ajoutez la commande schedule:run à la crontab de votre serveur pour exécuter la commande toutes les minutes :

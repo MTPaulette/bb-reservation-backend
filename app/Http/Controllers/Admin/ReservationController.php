@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use App\Helpers\Reservation as HelpersReservation;
 use App\Helpers\User as HelpersUser;
+use App\Jobs\CheckTokenInactivity;
 use App\Models\Agency;
 use App\Models\Coupon;
 use App\Models\Openingday;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use App\Notifications\ReservationStartingSoon;
+use Illuminate\Support\Facades\Auth;
 
 class ReservationController extends Controller
 {
@@ -85,6 +87,7 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         $authUser = $request->user();
+
         if(
             $authUser->hasPermission('manage_reservations') ||
             $authUser->hasPermission('show_all_reservation')
@@ -893,8 +896,35 @@ class ReservationController extends Controller
     }
 
 
-    public function test()
+    public function test(Request $request)
     {
+        // Récupérer la date de la dernière requête API
+        $user = $request->user();
+
+        $now = Carbon::now(); // ->format("Y-m-d H:i");
+
+            // if ($lastRequest && ($now->diffInSeconds($lastRequest) > 1)) {
+        // Vérifie si la dernière requête API a été faite il y a plus de 15 minutes
+        // if ($lastRequest && (now()->diffInMinutes($lastRequest) > 15)) {
+        if ($user) {
+          if ($user->role_id != 2) {
+            $lastRequest = $user->last_request_at;
+            if ($lastRequest && (Carbon::now()->diffInSeconds($lastRequest) > 10)) {
+              $user->tokens()->delete();
+            }
+            $user->last_request_at = Carbon::now();
+            $user->save();
+          }
+        }
+
+        return [
+            "last_request_at" =>$user->last_request_at,
+            "mow" => $now,
+            "diff" => $now->diffInSeconds($user->last_request_at)
+        ];
+
+
+
         $admin = User::find(1);
         $client = User::find(58); // 35
         $reservation = Reservation::find(1); //97
