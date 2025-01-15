@@ -2,18 +2,22 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
 
 class UpdateLastRequestAt
 {
     public function handle($request, Closure $next)
     {
-        $user = Auth::user();
-        if ($user && $user->role_id != 2) {
-            $user->last_request_at = Carbon::now();
-            $user->save();
+        if (auth()->guard('sanctum')->check()) {
+            $user = auth()->guard('sanctum')->user();
+
+            if ($user && $user->role_id != 2) {
+                $user = User::find($user->id);
+                $user->last_request_at = Carbon::now();
+                $user->save();
+            }
         }
         return $next($request);
     }

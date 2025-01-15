@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'check.user.suspension' => \App\Http\Middleware\CheckUserSuspension::class,
         'check.token.inactivity' => \App\Http\Middleware\CheckTokenInactivity::class,
         'update.last_request_at' => \App\Http\Middleware\UpdateLastRequestAt::class,
+        'update.last_request_at.auth' => \App\Http\Middleware\UpdateLastRequestAtAuth::class,
     ];
 }

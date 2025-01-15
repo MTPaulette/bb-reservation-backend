@@ -34,28 +34,25 @@ use App\Http\Controllers\UserImageController;
 |
 */
 
+/* unauthenticated route */
+Route::post("/login",[UserAccountController::class, "login"]);
+Route::post("/register",[UserAccountController::class, "register"]);
+
 /* reset password routes */
 Route::post('/forgot-password', [PasswordController::class, 'sendResetLinkEmail']);
 Route::post('/reset-password', [PasswordController::class, 'reset']);
 
-/* unauthenticated route */
-Route::middleware(["check.token.inactivity", "update.last_request_at"])->group(function () {
-
-Route::post("/login",[UserAccountController::class, "login"]);
-Route::post("/register",[UserAccountController::class, "register"]);
-
-/* default routes */
-Route::get("/ressources",[DefaultController::class, "getRessources"]);
-Route::get("/calendar",[DefaultController::class, "getCalendar"]);
-Route::get("/reservations",[DefaultController::class, "getReservations"]);
-Route::get("/agencies",[DefaultController::class, "getAgencies"]);
-
-
+Route::middleware(["update.last_request_at"])->group(function () {
+    /* default routes */
+    Route::get("/ressources",[DefaultController::class, "getRessources"]);
+    Route::get("/calendar",[DefaultController::class, "getCalendar"]);
+    Route::get("/reservations",[DefaultController::class, "getReservations"]);
+    Route::get("/agencies",[DefaultController::class, "getAgencies"]);
 });
 
 
 /* authenticated route: both user and admin */
-Route::middleware(["auth:sanctum", "check.user.suspension", "check.token.inactivity", "update.last_request_at"])->group(function () {
+Route::middleware(["auth:sanctum", "check.user.suspension", "check.token.inactivity", "update.last_request_at.auth"])->group(function () {
 // Route::middleware(["auth:sanctum", "check.user.suspension"])->group(function () {
     Route::delete("/logout",[UserAccountController::class, "logout"]);
     Route::put("/profile", [UserAccountController::class, "update"]);

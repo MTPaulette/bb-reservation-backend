@@ -14,7 +14,9 @@ class User
                         ->orWhere(function ($query) use ($agency_id) {
                             $query->where('role_id', 1)
                                 ->where('work_at', $agency_id);
-                        })->get();
+                        })
+                        ->where('status', 'active')
+                        ->get();
     	return $users;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -15,8 +16,11 @@ class CheckTokenInactivity
             $now = Carbon::now(); // ->format("Y-m-d H:i");
             $lastRequest = Carbon::parse($user->last_request_at);
 
-            if ($lastRequest && $lastRequest->diffInMinutes($now) > 30) {
+            if ($lastRequest && $lastRequest->diffInSeconds($now) > 30) {
+                // if ($lastRequest && $lastRequest->diffInMinutes($now) > 1) {
+                $user = User::find($user->id);
                 $user->tokens()->delete();
+                abort(401);
             }
         }
         return $next($request);

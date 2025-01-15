@@ -11,8 +11,6 @@ class CheckUserSuspension
     public function handle($request, Closure $next)
     {
         if (Auth::check() && Auth::user()->status == "suspended") {
-            // L'utilisateur est suspendu, on retourne une réponse JSON
-            // abort(423);
             return response()->json([
                 'error' => 'Votre compte est suspendu.',
                 'status' => 423,

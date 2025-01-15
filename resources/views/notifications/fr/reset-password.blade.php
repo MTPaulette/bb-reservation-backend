@@ -3,13 +3,13 @@
 
 <h1 class="name">Réinitialisation de mot de passe</h1>
 <div class="main-content">
-  <p>Hello {{ $notifiable->lastname }},</p>
-  Vous avez demandé la réinitialisation de votre mot de passe. Pour réinitialiser votre mot de passe, 
-  cliquez sur le lien suivant : 
-  <a href="{{ url($link) }}" class="link">Réinitialiser mon mot de passe.</a>
+    <p>Hello {{ $notifiable->lastname }},</p>
+    Vous avez demandé la réinitialisation de votre mot de passe. Pour réinitialiser votre mot de passe, 
+    cliquez sur le lien suivant : 
+    <a href="{{ url($link) }}" class="link">Réinitialiser mon mot de passe.</a>
 
 
-  Cordialement,
+    Cordialement,
 </div>
 <h2 style="color:black;">
   La direction.

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -78,6 +79,12 @@ class UserAccountController extends Controller
         $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;
         $logged_user = User::find($user->id);
         $permissions = $logged_user->role->permissions->pluck('name')->toArray();
+
+        if($user->role_id != 2) {
+            $user->last_request_at = Carbon::now();
+            $user->save();
+        }
+
         $response = [
             'user' => $user,
             'token' => $token,
@@ -156,6 +163,12 @@ class UserAccountController extends Controller
     public function logout(Request $request)
     {
         $user = $request->user();
+
+        if($user->role_id != 2) {
+            $user->last_request_at = Carbon::now();
+            $user->save();
+        }
+    
         $user->tokens()->delete();
         \LogActivity::addToLog("The user $user->lastname $user->firstname logged out.");
         return response([
