@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Notifications\CustomResetPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -47,12 +49,11 @@ class User extends Authenticatable
             set: fn ($value) => Hash::make($value),
         );
     }
-/*
-    protected function image(): Attribute {
-        return Attribute::make(
-            get: fn ($value) => asset('/storage/'.$value),
-        );
-    }*/
+    
+    public function sendPasswordResetNotification($token) {
+        $this->notify(new CustomResetPassword($token));
+    }
+
     public function users(): HasMany {
         return $this->hasMany(User::class, 'created_by', 'id');
     }

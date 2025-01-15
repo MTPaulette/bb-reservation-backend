@@ -1,114 +1,54 @@
+Voici les étapes pour créer une base pour les emails :
+
+1. Créez un nouveau fichier dans le répertoire resources/views/emails/layouts et nommez-le base.blade.php. Ce fichier sera la base pour tous vos emails.
+2. Dans le fichier base.blade.php, définissez la structure commune pour vos emails, y compris le header et le footer.
+3. Utilisez la directive @yield pour définir une zone où le contenu principal de l'email sera affiché.
+4. Créez des vues spécifiques pour chaque type d'email que vous souhaitez envoyer. Ces vues étendront la base base.blade.php et remplaceront la zone @yield par le contenu principal de l'email.
+
+Voici un exemple de code pour le fichier base.blade.php :
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@yield('title')</title>
+</head>
+<body>
+    <header>
+        <!-- Header commun à tous les emails -->
+        <img src="{{ asset('img/logo.png') }}" alt="Logo">
+        <h1>@yield('title')</h1>
+    </header>
+    <main>
+        @yield('content')
+    </main>
+    <footer>
+        <!-- Footer commun à tous les emails -->
+        <p>&copy; {{ date('Y') }} {{ config('app.name') }}</p>
+    </footer>
+</body>
+</html>
+=============================================
 
 
-==================================================================
-new coupon
+Pour utiliser le layout base.blade.php que nous avons créé, vous devez créer une nouvelle vue qui étend ce layout. Voici comment procéder :
 
-coupon de réduction 
+1. Créez un nouveau fichier dans le répertoire resources/views/emails et nommez-le, par exemple, reset-password.blade.php.
+2. Dans ce fichier, commencez par la directive @extends pour étendre le layout base.blade.php.
+3. Utilisez la directive @section pour définir le contenu de la section content qui sera remplacée dans le layout base.blade.php.
+4. Dans la section content, vous pouvez mettre le contenu spécifique à l'email de réinitialisation de mot de passe.
 
-Voici un exemple de contenu d'un email à envoyer à un utilisateur après qu'il vient de recevoir un nouveau coupon de réduction :
+Voici un exemple de code pour le fichier reset-password.blade.php :
 
-Objet : Nouveau coupon de réduction !
+@extends('emails.layouts.base')
 
-Bonjour [Nom de l'utilisateur],
+@section('title', 'Réinitialisation de mot de passe')
 
-Nous sommes ravis de vous annoncer que vous venez de recevoir un nouveau coupon de réduction ! Voici les détails de votre coupon :
+@section('content')
+    <p>Bonjour {{ $user->name }},</p>
+    <p>Vous avez demandé la réinitialisation de votre mot de passe. Pour réinitialiser votre mot de passe, cliquez sur le lien suivant :</p>
+    <p><a href="{{ url('password/reset', $token) }}">Réinitialiser mon mot de passe</a></p>
+@endsection
 
-- Code de coupon : [Code de coupon]
-- Pourcentage de réduction : [Pourcentage de réduction]%
-- Montant maximum de réduction : [Montant maximum de réduction]
-- Date de début de validité : [Date de début de validité]
-- Date de fin de validité : [Date de fin de validité]
-- Conditions d'utilisation : [Conditions d'utilisation]
+Dans cet exemple, nous étendons le layout base.blade.php et définissons le contenu de la section content qui sera remplacée dans le layout.
 
-Vous pouvez utiliser ce coupon pour bénéficier d'une réduction sur votre prochaine réservation. Pour utiliser le coupon, simplement saisissez le code de coupon lors de la réservation.
-
-Nous vous remercions de votre fidélité et nous nous réjouissons de vous accueillir dans notre établissement.
-
-Cordialement,
-
-[Votre nom]
-[Votre établissement]
-
-P.S. N'oubliez pas de vérifier les conditions d'utilisation du coupon avant de l'utiliser.
-
-=========================================================
-coupon expire
-
-coupon expiré 
-
-Voici un exemple d'un email à envoyer à un client pour lui rappeler que le coupon de réduction qu'il a reçu a expiré :
-
-Objet : Coupon de réduction expiré
-
-Bonjour [Nom du client],
-
-Nous vous rappelons que le coupon de réduction que vous avez reçu pour [Nom de la ressource] a expiré le [Date d'expiration]. Voici les détails du coupon :
-
-- Code de coupon : [Code de coupon]
-- Pourcentage de réduction : [Pourcentage de réduction]%
-- Montant maximum de réduction : [Montant maximum de réduction]
-- Date de début de validité : [Date de début de validité]
-- Date d'expiration : [Date d'expiration]
-
-Nous regrettons que vous n'ayez pas pu utiliser ce coupon avant son expiration. Si vous souhaitez continuer à bénéficier de réductions et d'offres spéciales, nous vous invitons à vous inscrire à notre newsletter ou à suivre nos réseaux sociaux.
-
-Nous vous remercions de votre fidélité et nous nous réjouissons de vous accueillir dans notre établissement.
-
-Cordialement,
-
-[Votre nom]
-[Votre établissement]
-
-
-/==============@@@@@@@@@@@@@@@@@@@@@@@@@@@@@========================/
-
-
-Pour récupérer les réservations qui commencent dans 30 minutes exactement et celles qui finissent dans 30 minutes exactement, vous pouvez utiliser les méthodes de requête de Laravel pour filtrer les données.
-
-Voici un exemple de code qui montre comment faire :
-
-use App\Models\Reservation;
-use Carbon\Carbon;
-
-$now = Carbon::now();
-
-// Récupérer les réservations qui commencent dans 30 minutes exactement
-$reservationsStartingSoon = Reservation::where('start_at', $now->addMinutes(30)->toDateTimeString())->get();
-
-// Récupérer les réservations qui finissent dans 30 minutes exactement
-$reservationsEndingSoon = Reservation::where('end_at', $now->addMinutes(30)->toDateTimeString())->get();
-
-Pour créer une tâche cron qui envoie des notifications aux utilisateurs de ces réservations, vous pouvez utiliser le système de tâches planifiées de Laravel.
-
-Voici un exemple de code qui montre comment faire :
-
-use App\Models\Reservation;
-use App\Notifications\ReservationNotification;
-use Carbon\Carbon;
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-
-class Kernel extends ConsoleKernel
-{
-    protected function schedule(Schedule $schedule)
-    {
-        $schedule->call(function () {
-            $now = Carbon::now();
-
-            // Récupérer les réservations qui commencent dans 30 minutes exactement
-            $reservationsStartingSoon = Reservation::where('start_at', $now->addMinutes(30)->toDateTimeString())->get();
-
-            // Récupérer les réservations qui finissent dans 30 minutes exactement
-            $reservationsEndingSoon = Reservation::where('end_at', $now->addMinutes(30)->toDateTimeString())->get();
-
-            // Envoyer des notifications aux utilisateurs de ces réservations
-            foreach ($reservationsStartingSoon as $reservation) {
-                $reservation->user->notify(new ReservationNotification($reservation, 'Votre réservation va commencer dans 30 minutes.'));
-            }
-
-            foreach ($reservationsEndingSoon as $reservation) {
-                $reservation->user->notify(new ReservationNotification($reservation, 'Votre réservation va se terminer dans 30 minutes.'));
-            }
-        })->everyMinute();
-    }
-}
+Maintenant, lorsque vous envoyez l'email de réinitialisation de mot de passe, vous pouvez utiliser la vue reset-password.blade.php pour générer le contenu de l'email. Le layout base.blade.php sera utilisé pour générer la structure commune de l'email, et la section content sera remplacée par le contenu spécifique à l'email de réinitialisation de mot de passe.

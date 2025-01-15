@@ -3,14 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
-
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class PasswordController extends Controller
 {
@@ -113,36 +110,6 @@ class PasswordController extends Controller
             ];
             return response($response, 500);
         }
-    }
-
-    
-    public function sendResetLinkEmaill(Request $request)
-    {
-        $validator = Validator::make($request->all(),[
-            'email' => 'required|email|max:250'
-        ]);
-
-        if($validator->fails()){
-            return response([
-                'errors' => $validator->errors(),
-            ], 500);
-        }
-
-        $user = User::where('email', $request->email)->first();
-        if ($user) {
-            $token = Str::random(60);
-            $user->password_reset_token = $token;
-            $user->save();
-            Mail::send('auth.emails.password.reset-' . $user->language, ['token' => $token, 'user' => $user], function ($message) use ($user) {
-                $message->to($user->email)->subject('Réinitialisation de mot de passe');
-            });
-        }
-        
-        $response = [
-            'message' => "Reset password link sent Successfully"
-        ];
-        \LogActivity::addToLog("Reset password link sent to $user->email.");
-        return response($response, 201);
     }
 
 }
