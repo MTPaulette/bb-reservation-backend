@@ -5,8 +5,7 @@
 <div class="main-content">
   <p>Hello {{ $notifiable->lastname }},</p>
   You have requested a password reset. To reset your password, click on the 
-  following link: <a href="{{ url($link) }}" class="link">Reset my password.</a>
-
+  following link: <a href="{{ url($link) }}" class="link">Reset my password.</a><br /><br />
 
   Sincerely,
 </div>

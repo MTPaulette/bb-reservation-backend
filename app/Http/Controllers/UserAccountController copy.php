@@ -32,30 +32,6 @@ class UserAccountController extends Controller
             }
         ]);
     }
-    
-    public function reservationsQuery($id)
-    {
-        return
-        Reservation::where('reservations.client_id', '=', $id)
-        ->with([
-            'client' => function($query) {
-                $query->select('id', 'lastname', 'firstname');
-            },
-            'createdBy' => function($query) {
-                $query->select('id', 'lastname', 'firstname');
-            },
-            'ressource' => [
-                'space' => function($query) {
-                    $query->select('id', 'name');
-                },
-                'agency' => function($query) {
-                    $query->select('id', 'name');
-                },
-            ]
-        ])
-        ->orderByDesc('reservations.created_at');
-        // ->get();
-    }
 
     public function register(Request $request)
     {
@@ -208,26 +184,38 @@ class UserAccountController extends Controller
         if($user) {
             $user = $this->userAllInformations()->findOrFail($user->id);
 
+            $reservations_results =
+                Reservation::where('reservations.client_id', '=', $user->id)
+                ->with([
+                    'client' => function($query) {
+                        $query->select('id', 'lastname', 'firstname');
+                    },
+                    'createdBy' => function($query) {
+                        $query->select('id', 'lastname', 'firstname');
+                    },
+                    'ressource' => [
+                        'space' => function($query) {
+                            $query->select('id', 'name');
+                        },
+                        'agency' => function($query) {
+                            $query->select('id', 'name');
+                        },
+                    ]
+                ])
+                ->orderByDesc('reservations.created_at')
+                ->get();
+            
             $reservations = [];
-            $reservations_results = $this->reservationsQuery($user->id)->whereNot('reservations.state', 'cancelled')->get();
             foreach ($reservations_results as $reservation) {
                 array_push($reservations, $reservation);
             };
 
-            $cancelledReservations = [];
-            $reservations_cancelled_results = $this->reservationsQuery($user->id)->where('reservations.state', 'cancelled')->get();
-            foreach ($reservations_cancelled_results as $reservation) {
-                array_push($cancelledReservations, $reservation);
-            };
-
             $response = [
                 'totalReservations' => sizeof($reservations),
-                'totalCancelledReservations' => sizeof($cancelledReservations),
                 'totalCoupons' => $user->coupons->count(),
                 'user' => $user,
                 'coupons' => $user->coupons,
                 'reservations' => $reservations,
-                'cancelledReservations' => $cancelledReservations,
             ];
             return response($response, 201);
         }

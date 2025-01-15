@@ -13,11 +13,11 @@ class CheckTokenInactivity
     {
         $user = Auth::user();
         if ($user && $user->role_id != 2) {
-            $now = Carbon::now(); // ->format("Y-m-d H:i");
+            $now = Carbon::now();
             $lastRequest = Carbon::parse($user->last_request_at);
 
-            if ($lastRequest && $lastRequest->diffInSeconds($now) > 30) {
-                // if ($lastRequest && $lastRequest->diffInMinutes($now) > 1) {
+            //if ($lastRequest && $lastRequest->diffInSeconds($now) > 30) {
+            if ($lastRequest && $lastRequest->diffInMinutes($now) > 30) {
                 $user = User::find($user->id);
                 $user->tokens()->delete();
                 abort(401);

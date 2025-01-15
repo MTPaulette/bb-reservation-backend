@@ -42,6 +42,7 @@ Route::post("/register",[UserAccountController::class, "register"]);
 Route::post('/forgot-password', [PasswordController::class, 'sendResetLinkEmail']);
 Route::post('/reset-password', [PasswordController::class, 'reset']);
 
+
 Route::middleware(["update.last_request_at"])->group(function () {
     /* default routes */
     Route::get("/ressources",[DefaultController::class, "getRessources"]);
@@ -51,10 +52,17 @@ Route::middleware(["update.last_request_at"])->group(function () {
 });
 
 
+
+Route::middleware(["auth:sanctum", "check.token.inactivity", "update.last_request_at.auth"])->group(function () {
+    Route::delete("/logout",[UserAccountController::class, "logout"]);
+});
+
+
+
 /* authenticated route: both user and admin */
 Route::middleware(["auth:sanctum", "check.user.suspension", "check.token.inactivity", "update.last_request_at.auth"])->group(function () {
-// Route::middleware(["auth:sanctum", "check.user.suspension"])->group(function () {
-    Route::delete("/logout",[UserAccountController::class, "logout"]);
+    // Route::delete("/logout",[UserAccountController::class, "logout"]);
+    Route::get("/profile", [UserAccountController::class, "show"]);
     Route::put("/profile", [UserAccountController::class, "update"]);
     Route::put("/password", [PasswordController::class, "update"]);
 
@@ -63,6 +71,7 @@ Route::middleware(["auth:sanctum", "check.user.suspension", "check.token.inactiv
     Route::put("/profile/image/delete",[UserImageController::class, "destroy"]);
 
     Route::prefix('admin')->group(function () {
+
         /* client routes */
         Route::get("/clients",[ClientController::class, "index"]);
         Route::get("/client/{id}",[ClientController::class, "show"]);
@@ -78,7 +87,7 @@ Route::middleware(["auth:sanctum", "check.user.suspension", "check.token.inactiv
         Route::put("/staff/{id}/delete", [StaffController::class, "destroy"]);
         Route::put("/staff/{id}/suspend", [StaffController::class, "suspend"]);
 
-        Route::get("/authenticated-user", [UserAccountController::class, "show"]);
+        // Route::get("/authenticated-user", [UserAccountController::class, "show"]);
 
         /* log activity routes */
         Route::get("/logs", [ActivityLogController::class, "index"]);
@@ -161,10 +170,14 @@ Route::middleware(["auth:sanctum", "check.user.suspension", "check.token.inactiv
 
 });
 
+
+
 Route::middleware("auth:sanctum")->get("/user", function (Request $request) {
     $user = $request->user();
     return $user;
 });
+
+
 
 Route::middleware("auth:sanctum")->get("/auth-permissions", function (Request $request) {
     $permissions = $request->user()->role->permissions->pluck("name")->toArray();
