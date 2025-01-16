@@ -72,7 +72,7 @@ class Reservation
                     ->orWhere('state', 'totally paid');
             })
             ->count();
-
+        
         if($reservations_of_ressource >= $ressource->quantity){
             return false;
         }

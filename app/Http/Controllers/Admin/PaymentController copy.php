@@ -77,6 +77,7 @@ class PaymentController extends Controller
                 abort(403);
             }
         }
+
         //on verifie si l'agence est suspendu
         $agency = $reservation->ressource->agency;
         if($agency->status == 'suspended') {
@@ -116,17 +117,6 @@ class PaymentController extends Controller
         ], 422);
         }
 
-        // verifie si la reservation n'est pas annulee
-        if($reservation->state == 'cancelled') {
-            \LogActivity::addToLog("Payment creation failed. You can not pay for a cancelled reseration.");
-            return response([
-                'errors' => [
-                    'en' => "You can not pay for a cancelled reseration.",
-                    'fr' => "Vous ne pouvez pas payer pour une réservation annulée.",
-                ]
-            ], 422);
-        }
-
         //on verifie la ressource est disponible ce jour a cette heure
         $ressource = $reservation->ressource;
         $start_date_confirmed = $reservation->start_date;
@@ -134,7 +124,7 @@ class PaymentController extends Controller
         $start_hour_confirmed = $reservation->start_hour;
         $end_hour_confirmed = $reservation->end_hour;
 
-        if(in_array($reservation->state, ['pending','partially paid'])) {
+        // if(in_array($reservation->state, ['pending','partially paid'])) {
             $isAvailable = HelpersReservation::isAvailable(
                 $ressource,
                 $start_date_confirmed, $end_date_confirmed,
@@ -150,6 +140,17 @@ class PaymentController extends Controller
                     ]
                 ], 422);
             }
+        // }
+
+        // verifie si la reservation n'est pas annulee
+        if($reservation->state == 'cancelled') {
+            \LogActivity::addToLog("Payment creation failed. You can not pay for a cancelled reseration.");
+            return response([
+                'errors' => [
+                    'en' => "You can not pay for a cancelled reseration.",
+                    'fr' => "Vous ne pouvez pas payer pour une réservation annulée.",
+                ]
+            ], 422);
         }
 
         // verifie si la reservation n'est pas deja totalement payee
