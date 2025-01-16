@@ -112,6 +112,15 @@ class UserAccountController extends Controller
                 'email' => ['These credentials do not match our records.'],
             ]);
         }
+
+        if($user->status == 'suspended') {
+            return response([
+                'errors' => [
+                    'en' => "Suspended account.",
+                    'fr' => "Compte suspendu.",
+                ]
+            ], 423);
+        }
  
         // $user->tokens()->delete();
         $token = $user->createToken('bb-reservation-syst-token')->plainTextToken;

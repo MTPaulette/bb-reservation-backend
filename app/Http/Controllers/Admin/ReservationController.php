@@ -177,6 +177,16 @@ class ReservationController extends Controller
             }
         }
 
+        //on verifie si l'agence est suspendu
+        $agency = $ressource->agency;
+        if($agency->status == 'suspended') {
+            return response([
+                'errors' => [
+                    'en' => "Suspended Agency $agency->name.",
+                    'fr' => "Agence $agency->name suspendue.",
+                ]
+            ], 424);
+        }
         //====================================================================================
         $validator = Validator::make($request->all(),[
             'validity' => 'required|string|in:hour,midday,day,week,month',
@@ -597,97 +607,6 @@ class ReservationController extends Controller
         ];
 
         \LogActivity::addToLog("New reservation created. reservation id: $reservation->id");
-
-        return response($response, 201);
-    }
-
-    public function update(Request $request)
-    {
-        $authUser = $request->user();
-        if(
-            !$authUser->hasPermission('manage_reservation') &&
-            !$authUser->hasPermission('edit_reservation') &&
-            !$authUser->hasPermission('edit_reservation_of_agency')
-        ) {
-            abort(403);
-        }
-        $validator = Validator::make($request->all(),[
-            'quantity' => 'required|integer|min:1',
-            'price_hour' => 'required|integer|min:1',
-            'price_midday' => 'required|integer|min:1',
-            'price_day' => 'required|integer|min:1',
-            'price_week' => 'required|integer|min:1',
-            'price_month' => 'required|integer|min:1',
-        ]);
-
-        if($validator->fails()){
-            \LogActivity::addToLog("Reservation updation failed. ".$validator->errors());
-            return response([
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $agency = Agency::findOrFail($request->agency_id);
-        $space = Space::findOrFail($request->space_id);
-        $reservation = Reservation::findOrFail($request->id);
-
-        $existing_reservation = Reservation::where('agency_id', $agency->id)
-        ->where('space_id', $space->id)->first();
-
-        if($authUser->hasPermission('edit_reservation_of_agency')) {
-            if(
-                $agency->id != $authUser->work_at &&
-                !$authUser->hasPermission('manage_reservation') &&
-                !$authUser->hasPermission('edit_reservation')
-            ) {
-                abort(403);
-            }
-            $confirm_agency_id = $authUser->work_at;
-        }
-
-        if($existing_reservation && $existing_reservation->id != $request->id){
-            \LogActivity::addToLog("Reservation updation failed. Error: The selected space has been already created in this agency");
-            return response([
-                'errors' => "The selected space has been already created in this agency.",
-            ], 422);
-        }
-
-        if(
-            $authUser->hasPermission('manage_reservation') ||
-            $authUser->hasPermission('edit_reservation')
-        ) {
-            $confirm_agency_id = $agency->id;
-        }
-
-        $reservation = Reservation::findOrFail($request->id);
-        if($request->has('quantity') && isset($request->quantity)) {
-            $reservation->quantity = $request->quantity;
-        }
-        if($request->has('price_hour') && isset($request->price_hour)) {
-            $reservation->price_hour = $request->price_hour;
-        }
-        if($request->has('price_midday') && isset($request->price_midday)) {
-            $reservation->price_midday = $request->price_midday;
-        }
-        if($request->has('price_day') && isset($request->price_day)) {
-            $reservation->price_day = $request->price_day;
-        }
-        if($request->has('price_week') && isset($request->price_week)) {
-            $reservation->price_week = $request->price_week;
-        }
-        if($request->has('price_month') && isset($request->price_month)) {
-            $reservation->price_month = $request->price_month;
-        }
-        $reservation->space_id = $space->id;
-        $reservation->created_by = $authUser->id;
-        $reservation->agency_id = $confirm_agency_id;
-        $reservation->update();
-
-        $response = [
-            'message' => "The reservation $reservation->id successfully updated.",
-        ];
-
-        \LogActivity::addToLog("The reservation $reservation->id has been update");
 
         return response($response, 201);
     }

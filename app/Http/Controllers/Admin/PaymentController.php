@@ -76,6 +76,16 @@ class PaymentController extends Controller
                 abort(403);
             }
         }
+        //on verifie si l'agence est suspendu
+        $agency = $reservation->ressource->agency;
+        if($agency->status == 'suspended') {
+            return response([
+                'errors' => [
+                    'en' => "Suspended Agency $agency->name.",
+                    'fr' => "Agence $agency->name suspendue.",
+                ]
+            ], 424);
+        }
 
         $validator = Validator::make($request->all(),[
             'amount' => 'required|integer|min:1',

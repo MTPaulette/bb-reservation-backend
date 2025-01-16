@@ -11,7 +11,11 @@ class DefaultController extends Controller
     public function getRessources()
     {
         $ressources =
-            Ressource::get()
+            // Ressource::whereNot('ressources.agency.status', 'suspended')
+            Ressource::whereHas('agency', function ($query) {
+                $query->whereNot('status', 'suspended');
+            })
+            ->get()
             ->map(function ($ressource) {
                 return [
                     'id' => $ressource->id,

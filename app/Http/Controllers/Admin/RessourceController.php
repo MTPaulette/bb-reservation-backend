@@ -138,6 +138,15 @@ class RessourceController extends Controller
         }
 
         $agency = Agency::findOrFail($request->agency_id);
+        if($agency->status == 'suspended') {
+            return response([
+                'errors' => [
+                    'en' => "Suspended Agency $agency->name.",
+                    'fr' => "Agence $agency->name suspendue.",
+                ]
+            ], 424);
+        }
+
         $space = Space::findOrFail($request->space_id);
 
         if(
@@ -211,6 +220,15 @@ class RessourceController extends Controller
         }
 
         $agency = Agency::findOrFail($request->agency_id);
+        if($agency->status == 'suspended') {
+            return response([
+                'errors' => [
+                    'en' => "Suspended Agency $agency->name.",
+                    'fr' => "Agence $agency->name suspendue.",
+                ]
+            ], 424);
+        }
+
         $space = Space::findOrFail($request->space_id);
         $ressource = Ressource::findOrFail($request->id);
 

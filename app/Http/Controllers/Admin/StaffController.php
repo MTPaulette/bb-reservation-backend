@@ -191,12 +191,21 @@ class StaffController extends Controller
             ], 422);
         }
 
+        $agency = Agency::findOrFail($request->agency_id);
+        if($agency->status == 'suspended') {
+            return response([
+                'errors' => [
+                    'en' => "Suspended Agency $agency->name.",
+                    'fr' => "Agence $agency->name suspendue.",
+                ]
+            ], 424);
+        }
+
+        $role = Role::findOrFail($request->role_id);
+    
         $user = User::create($validator->validated());
 
         $user = User::where('email', $request->email)->first();
-        $agency = Agency::findOrFail($request->agency_id);
-        $role = Role::findOrFail($request->role_id);
-
         $usertype = '';
         if($request->user()->hasPermission('create_admin')) {
             if($request->user()->hasPermission('create_superadmin')) {
@@ -261,6 +270,14 @@ class StaffController extends Controller
                 if($user->role == 'admin') {
                     if($request->has('agency_id') && isset($request->agency_id)) {
                         $agency = Agency::findOrFail($request->agency_id);
+                        if($agency->status == 'suspended') {
+                            return response([
+                                'errors' => [
+                                    'en' => "Suspended Agency $agency->name.",
+                                    'fr' => "Agence $agency->name suspendue.",
+                                ]
+                            ], 424);
+                        }
                         $user->work_at = $agency->id;
                         if($request->has('lastname') && isset($request->lastname)) {
                             $user->lastname = $request->lastname;
@@ -286,6 +303,14 @@ class StaffController extends Controller
                 if($user->role == 'superadmin') {
                     if($request->has('agency_id') && isset($request->agency_id)) {
                         $agency = Agency::findOrFail($request->agency_id);
+                        if($agency->status == 'suspended') {
+                            return response([
+                                'errors' => [
+                                    'en' => "Suspended Agency $agency->name.",
+                                    'fr' => "Agence $agency->name suspendue.",
+                                ]
+                            ], 424);
+                        }
                         $user->work_at = $agency->id;
                     }
                     if($request->has('role_id') && isset($request->role_id)) {
