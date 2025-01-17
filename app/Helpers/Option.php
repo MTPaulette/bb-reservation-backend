@@ -9,7 +9,10 @@ class Option
 {
     public static function getValue($name)
     {
-    	return OptionModel::where('name', $name)->first()->value;
+        if(OptionModel::where('name', $name)->exists()) {
+    	    return OptionModel::where('name', $name)->first()->value;
+        };
+        return null;
     }
 
 }

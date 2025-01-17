@@ -223,30 +223,56 @@ class ReservationController extends Controller
 
         $start_hour = $request->start_hour;
         $end_hour = $request->end_hour;
-        /*
-        $start_hour = $request->has("start_hour") && isset($request->start_hour) ?
-                        $request->start_hour : $this->formatHour($now->copy()->addHour());
-        $end_hour = $request->has("end_hour") && isset($request->end_hour) ?
-                        $request->end_hour : $this->formatHour($now->copy()->addHours(2)); */
+        $midday_period = $request->midday_period;
+
         $start_date_carbon = Carbon::parse($start_date);
         $end_date_carbon = Carbon::parse($end_date);
         if($this->formatDate($start_date_carbon) == $this->formatDate($now)) {
-            if($validity == 'hour' && $this->formatHour(Carbon::parse($start_hour)) <= $this->formatHour($now)) {
-                \LogActivity::addToLog("Reservation creation failed. Error: Invalid start hour $start_hour.");
+            if($validity == 'hour' && $this->formatHour(Carbon::parse($end_hour)) <= $this->formatHour($now)) {
+                \LogActivity::addToLog("Reservation creation failed. Error: Invalid start hour $end_hour.");
                 return response([
                     'errors' => [
-                        'en' => "Invalid start hour $start_hour",
-                        'fr' => "Heure de debut invalide $start_hour",
+                        'en' => "Invalid end hour $end_hour. You can not make reservation which end hour is already passed.",
+                        'fr' => "Heure de fin invalide $end_hour. Vous ne pouvez pas effectuer une réservation dont l'heure de fin est déjà passée.",
                     ]
                 ], 422);
             }
+
+            if($validity == 'midday') {
+                if(
+                    ($midday_period == "morning" &&
+                    $this->formatHour(Carbon::parse("13:00")) <= $this->formatHour($now))
+                ) {
+                    \LogActivity::addToLog("Reservation creation failed. Error: Invalid end hour 13:00.");
+                    return response([
+                        'errors' => [
+                            'en' => "Invalid end hour 13:00. You can not make reservation which end hour is already passed.",
+                            'fr' => "Heure de fin invalide 13:00. Vous ne pouvez pas effectuer une réservation dont l'heure de fin est déjà passée.",
+                        ]
+                    ], 422);
+                }
+
+                if(
+                    ($midday_period == "afternoon" &&
+                    $this->formatHour(Carbon::parse("18:00")) <= $this->formatHour($now))
+                ) {
+                    \LogActivity::addToLog("Reservation creation failed. Error: Invalid end hour 18:00.");
+                    return response([
+                        'errors' => [
+                            'en' => "Invalid end hour 18:00. You can not make reservation which end hour is already passed.",
+                            'fr' => "Heure de fin invalide 18:00. Vous ne pouvez pas effectuer une réservation dont l'heure de fin est déjà passée.",
+                        ]
+                    ], 422);
+                }
+            }
+
             if(in_array($validity, ['day', 'week', 'month'])) {
                 \LogActivity::addToLog("Reservation creation failed. Error: All reservations for a day, week or month
                  must be submitted no later than the day before, prior to the scheduled start date.");
                 return response([
                     'errors' => [
                         'en' => "All reservations for a day, week or month must be submitted no later than the day before, prior to the scheduled start date.",
-                        'fr' => "Toutes les réservations pour une journée, une semaine ou un mois doit être soumises au plutard la veille, avant la date de début prévue",
+                        'fr' => "Toute réservation pour une journée, une semaine ou un mois doit être soumise au plutard la veille, avant la date de début prévue",
                     ]
                 ], 422);
             }
@@ -416,10 +442,10 @@ class ReservationController extends Controller
             $start_hour_confirmed = $this->formatHour($start_hour);
             $end_hour_confirmed = $this->formatHour($end_hour);
         }
+
         if($validity == 'midday') {
             $start_date_confirmed = $this->formatDate($start_date_carbon);
             $end_date_confirmed = $this->formatDate($start_date_carbon);
-            $midday_period = $request->midday_period;
             // if($this->formatHour(Carbon::parse($opening_hour)) <= $this->formatHour($now)){
             //     $midday_period = "afternoon";
             // }

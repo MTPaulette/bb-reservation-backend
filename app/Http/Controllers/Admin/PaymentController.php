@@ -65,6 +65,7 @@ class PaymentController extends Controller
         }
 
         $reservation = Reservation::find($request->reservation_id);
+        $space_name = $reservation->ressource->space->name;
 
         // on verifie les droits sur cette reservation
         $agency_id = $reservation->ressource->agency_id;
@@ -106,14 +107,31 @@ class PaymentController extends Controller
 
         //on verifie la reservation n'est pas une date de fin depasse
         $now = Carbon::now();
-        if($reservation->end_date < $now->format('Y-m-d')) {
-        \LogActivity::addToLog("Payment creation failed. Error: You can not make payment for the reservation id $reservation->id which end date $reservation->end_date is already passed.");
-        return response([
-            'errors' => [
-                'en' => "You can not make payment for reservation id $reservation->id which end date is already passed.",
-                'fr' => "Vous ne pouvez pas effectuer de paiement pour la réservation id $reservation->id dont la date de fin $reservation->end_date est déjà passée.",
-            ]
-        ], 422);
+        $end_date = Carbon::parse($reservation->end_date)->format('Y-m-d');
+        $end_hour = Carbon::parse($reservation->end_hour)->format("H:i") ;
+
+        if($end_date < $now->format('Y-m-d')) {
+            // if($reservation->end_date < $now->format('Y-m-d')) {
+            \LogActivity::addToLog("Payment creation failed. Error: You can not make payment for the reservation $space_name (id $reservation->id) which end date $reservation->end_date is already passed.");
+            return response([
+                'errors' => [
+                    'en' => "You can not make payment for reservation $space_name (id $reservation->id) which end date is already passed.",
+                    'fr' => "Vous ne pouvez pas effectuer de paiement pour la réservation $space_name (id $reservation->id) dont la date de fin $reservation->end_date est déjà passée.",
+                ]
+            ], 422);
+        }
+
+        //on verifie la reservation n'est pas une heure de fin depasse
+        if($end_date == $now->format('Y-m-d')) {
+            if($end_hour <= $now->format("H:i")) {
+                \LogActivity::addToLog("Payment creation failed. Error: You can not make payment for the reservation $space_name (id $reservation->id) which end hour $reservation->end_hour is already passed.");
+                return response([
+                    'errors' => [
+                        'en' => "You can not make payment for reservation $space_name (id $reservation->id) which end hour is already passed.",
+                        'fr' => "Vous ne pouvez pas effectuer de paiement pour la réservation $space_name (id $reservation->id) dont l'heure de fin $reservation->end_hour est déjà passée.",
+                    ]
+                ], 422);
+            }
         }
 
         // verifie si la reservation n'est pas annulee
