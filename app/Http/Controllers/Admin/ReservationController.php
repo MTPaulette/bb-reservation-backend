@@ -6,29 +6,19 @@ use App\Http\Controllers\Controller;
 
 use App\Helpers\Reservation as HelpersReservation;
 use App\Helpers\User as HelpersUser;
-use App\Jobs\CheckTokenInactivity;
-use App\Models\Agency;
 use App\Models\Coupon;
 use App\Models\Openingday;
-use App\Models\Option;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\Reservation_draft;
 use App\Models\Ressource;
-use App\Models\Space;
 use App\Models\User;
-use App\Notifications\CouponExpired;
-use App\Notifications\NewCouponSent;
-use App\Notifications\NewPayment;
 use App\Notifications\NewReservation;
-use App\Notifications\ReservationEndingSoon;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
-use App\Notifications\ReservationStartingSoon;
-use Illuminate\Support\Facades\Auth;
 
 class ReservationController extends Controller
 {
@@ -777,6 +767,12 @@ class ReservationController extends Controller
         if(!Coupon::where("code", $coupon)->exists()) {
             return [
                 'success' => false,
+                'errors' => [
+                    'errors' => [
+                        'en' => "Not existing coupon code",
+                        'fr' => "Coe du coupon inexistant",
+                    ]
+                ]
             ];
         }
         $coupon = Coupon::where('code', $coupon)->first();
@@ -840,107 +836,6 @@ class ReservationController extends Controller
         ];
     }
 
-
-    public function test(Request $request)
-    {
-        // Récupérer la date de la dernière requête API
-        $user = $request->user();
-
-        $now = Carbon::now(); // ->format("Y-m-d H:i");
-
-            // if ($lastRequest && ($now->diffInSeconds($lastRequest) > 1)) {
-        // Vérifie si la dernière requête API a été faite il y a plus de 15 minutes
-        // if ($lastRequest && (now()->diffInMinutes($lastRequest) > 15)) {
-        if ($user) {
-          if ($user->role_id != 2) {
-            $lastRequest = $user->last_request_at;
-            if ($lastRequest && (Carbon::now()->diffInSeconds($lastRequest) > 10)) {
-              $user->tokens()->delete();
-            }
-            $user->last_request_at = Carbon::now();
-            $user->save();
-          }
-        }
-
-        return [
-            "last_request_at" =>$user->last_request_at,
-            "mow" => $now,
-            "diff" => $now->diffInSeconds($user->last_request_at)
-        ];
-
-
-
-        $admin = User::find(1);
-        $client = User::find(58); // 35
-        $reservation = Reservation::find(1); //97
-        $payment = Payment::find(21);
-        $coupon = Coupon::find(1);
-
-        $admin->notify(new NewReservation($reservation));
-        $client->notify(new NewReservation($reservation));
-
-        /*
-
-        $admin->notify(new NewCouponSent($coupon));
-        $client->notify(new NewCouponSent($coupon));
-
-        $admin->notify(new CouponExpired($coupon));
-        $client->notify(new CouponExpired($coupon));
-
-        $admin->notify(new ReservationStartingSoon($reservation));
-        $client->notify(new ReservationStartingSoon($reservation));
-
-        $admin->notify(new ReservationEndingSoon($reservation));
-        $client->notify(new ReservationEndingSoon($reservation));
-
-        $admin->notify(new NewPayment($reservation, $payment));
-        $client->notify(new NewPayment($reservation, $payment));
-
-        */
-        return "envoye";
-
-        $now = Carbon::parse("07:30");
-        $now_30_min = $now->copy()->addMinutes(30)->format("H:i");
-        $today = $now->copy()->format('Y-m-d');
-
-        // Récupérer les réservations qui commencent dans 30 minutes exactement
-        $reservationsStartingSoon =
-            Reservation::where(function ($query) use ($today) {
-                $query->where('start_date', '<=', $today)
-                    ->where('end_date', '>=', $today);
-            })
-            ->where('start_hour', $now_30_min)
-            ->get();
-
-        // Envoyer des notifications aux utilisateurs de ces réservations
-        foreach ($reservationsStartingSoon as $reservation) {
-            $reservation->client->notify(new ReservationStartingSoon($reservation));
-            $superadmin_admins = HelpersUser::getSuperadminAndAdmins($reservation->ressource->agency_id);
-            foreach($superadmin_admins as $admin) {
-                $admin->notify(new ReservationStartingSoon($reservation));
-            }
-        }
-
-        // Récupérer les réservations qui commencent dans 30 minutes exactement
-        $reservationsEndingSoon =
-            Reservation::where(function ($query) use ($today) {
-                $query->where('start_date', '<=', $today)
-                    ->where('end_date', '>=', $today);
-            })
-            ->where('end_hour', $now_30_min)
-            ->get();
-
-        // Envoyer des notifications aux utilisateurs de ces réservations
-        foreach ($reservationsEndingSoon as $reservation) {
-            $reservation->client->notify(new ReservationEndingSoon($reservation));
-            $superadmin_admins = HelpersUser::getSuperadminAndAdmins($reservation->ressource->agency_id);
-            foreach($superadmin_admins as $admin) {
-                $admin->notify(new ReservationEndingSoon($reservation));
-            }
-        }
-        return "envoye";
-    }
-
     public function calendar(Request $request)
     {
         $authUser = $request->user();
@@ -987,5 +882,4 @@ class ReservationController extends Controller
 
         abort(403);
     }
-
 }

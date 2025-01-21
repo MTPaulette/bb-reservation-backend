@@ -92,9 +92,7 @@ return [
     */
 
     'from' => [
-        //'address' => \Options::getValue('email')? \Options::getValue('email') : env('MAIL_FROM_ADDRESS', 'hello@example.com'),
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        // 'address' => env('MAIL_FROM_ADDRESS', Option::where('name', 'smtp_email')->first()->value),
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
