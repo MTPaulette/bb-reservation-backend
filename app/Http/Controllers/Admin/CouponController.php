@@ -93,6 +93,20 @@ class CouponController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
+        
+
+        if($request->has('percent') && $request->has('amount')) {
+            if(!isset($request->percent) && !isset($request->amount)) {
+                \LogActivity::addToLog("Coupon updation failed. The field amount or percent is required");
+                return response([
+                    'errors' => [
+                        'en' => "The field amount or percent is required.",
+                        'fr' => "le champ montant ou pourcentage est requis.",
+                    ]
+                ], 422);
+            }
+        }
+
         $code = Str::random(9);
         while(Coupon::where('code', $code)->exists()) {
             $code = Str::random(9);
@@ -122,7 +136,7 @@ class CouponController extends Controller
                 'percent' => 'nullable|integer|min:1',
                 'amount' => 'nullable|integer|min:1',
                 'is_public' => 'required|boolean',
-                'expired_on' => 'required|date|after:'.Carbon::today()->format('Y-m-d H:m:s'), //after, before
+                'expired_on' => 'required|date|after:'.Carbon::today()->format('Y-m-d'), //format('Y-m-d H:m:s'), //after, before
                 'note_en' => 'string|nullable',
                 'note_fr' => 'string|nullable',
             ]);
@@ -132,6 +146,18 @@ class CouponController extends Controller
                 return response([
                     'errors' => $validator->errors(),
                 ], 422);
+            }
+
+            if($request->has('percent') && $request->has('amount')) {
+                if(!isset($request->percent) && !isset($request->amount)) {
+                    \LogActivity::addToLog("Coupon updation failed. The field amount or percent is required");
+                    return response([
+                        'errors' => [
+                            'en' => "The field amount or percent is required.",
+                            'fr' => "le champ montant ou pourcentage est requis.",
+                        ]
+                    ], 422);
+                }
             }
 
             $coupon = Coupon::findOrFail($request->id);
@@ -148,11 +174,9 @@ class CouponController extends Controller
                 $coupon->total_usage = $request->total_usage;
             }
             if($request->has('percent')) {
-            // if($request->has('percent') && isset($request->percent)) {
                 $coupon->percent = $request->percent;
             }
             if($request->has('amount')) {
-            // if($request->has('amount') && isset($request->amount)) {
                 $coupon->amount = $request->amount;
             }
             if($request->has('expired_on') && isset($request->expired_on)) {
@@ -182,12 +206,8 @@ class CouponController extends Controller
             $response = [
                 'message' => "The $coupon->name successfully updated",
             ];
-            // foreach($coupon->users as $user) {
-            //     $user->notify(new NewCouponSent($coupon));
-            // }
 
             \LogActivity::addToLog("The coupon $coupon->name has been updated.");
-            // return response($coupon, 201);
             return response($response, 201);
         }
         abort(403);

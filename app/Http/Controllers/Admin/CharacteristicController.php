@@ -36,8 +36,8 @@ class CharacteristicController extends Controller
             abort(403);
         }
         $validator = Validator::make($request->all(),[
-            'name_en' => 'required|string|max:250',
-            'name_fr' => 'required|string|max:250'
+            'name_en' => 'required|string|unique:characteristics|max:250',
+            'name_fr' => 'required|string|unique:characteristics|max:250'
         ]);
 
         if($validator->fails()){

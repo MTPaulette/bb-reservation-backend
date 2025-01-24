@@ -156,7 +156,10 @@ class RessourceController extends Controller
         ){
             \LogActivity::addToLog("Ressource creation failed. Error: The selected space has been already created in this agency");
             return response([
-                'errors' => "The selected space has been already created in this agency",
+                'errors' => [
+                    'en' => "The selected space has been already created in this agency $agency->name.",
+                    'fr' => "L'espace sélectionné a déjà été créé dans l'agence $agency->name.",
+                ]
             ], 422);
         }
 
@@ -249,7 +252,10 @@ class RessourceController extends Controller
         if($existing_ressource && $existing_ressource->id != $request->id){
             \LogActivity::addToLog("Ressource updation failed. Error: The selected space has been already created in this agency");
             return response([
-                'errors' => "The selected space has been already created in this agency.",
+                'errors' => [
+                    'en' => "The selected space has been already created in this agency $agency->name.",
+                    'fr' => "L'espace sélectionné a déjà été créé dans l'agence $agency->name.",
+                ]
             ], 422);
         }
 
